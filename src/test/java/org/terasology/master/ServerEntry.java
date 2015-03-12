@@ -22,16 +22,16 @@ package org.terasology.master;
 public class ServerEntry {
 
     private String name;
-    private String host;
+    private String address;
     private int port;
 
     private ServerEntry() {
         // required for marshalling
     }
 
-    public ServerEntry(String name, String host, int port) {
+    public ServerEntry(String name, String address, int port) {
         this.name = name;
-        this.host = host;
+        this.address = address;
         this.port = port;
     }
 
@@ -39,8 +39,8 @@ public class ServerEntry {
         return name;
     }
 
-    public String getHost() {
-        return host;
+    public String getAddress() {
+        return address;
     }
 
     public int getPort() {
@@ -49,7 +49,7 @@ public class ServerEntry {
 
     @Override
     public String toString() {
-        return "ServerEntry [name=" + name + ", host=" + host + ", port=" + port + "]";
+        return "ServerEntry [name=" + name + ", address=" + address + ", port=" + port + "]";
     }
 
 

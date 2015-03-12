@@ -40,9 +40,9 @@ public class Downloader {
 
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-    public static void main(String[] args) throws IOException, SQLException {
+    public static void main(String[] args) throws IOException, SQLException, InterruptedException {
 
-        URL url = new URL("http://serveletty.herokuapp.com/servers/list");
+        URL url = new URL("http://master-server.herokuapp.com/servers/list");
         Charset cs = StandardCharsets.UTF_8;
 
         @SuppressWarnings({"serial"})

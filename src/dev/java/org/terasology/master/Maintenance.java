@@ -35,16 +35,18 @@ public class Maintenance {
 
         try (Connection conn = pool.getConnection()) {
             try (Statement stmt = conn.createStatement()) {
+//                stmt.execute("DROP TABLE servers");
+
                 String createTable = "CREATE TABLE IF NOT EXISTS servers ("
                         + "id      SERIAL PRIMARY KEY,"
                         + "name    varchar(128),"
-                        + "host    varchar(128),"
+                        + "address varchar(128),"
                         + "port    integer,"
                         + "modtime timestamp DEFAULT current_timestamp"
                         + ");";
                 stmt.execute(createTable);
 
-                String insert = String.format("INSERT INTO servers (name, host, port) values('%s', '%s', %d);",
+                String insert = String.format("INSERT INTO servers (name, address, port) values('%s', '%s', %d);",
                         "myServerName", "myHostAddress", 25777);
                 stmt.executeUpdate(insert);
             }
