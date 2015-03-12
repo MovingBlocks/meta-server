@@ -1,0 +1,29 @@
+apply plugin:'java'
+apply plugin:'application'
+apply plugin:'eclipse'
+
+mainClassName = "org.terasology.master.JettyMain"
+applicationName = "app"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.eclipse.jetty:jetty-servlet:9.2.+'
+    compile 'javax.servlet:javax.servlet-api:3.1.0'
+
+    compile 'com.google.code.gson:gson:2.3.1'
+    compile 'com.google.guava:guava:18.0'
+
+    compile 'org.postgresql:postgresql:9.4+'
+
+    compile 'org.slf4j:slf4j-api:1.7.9'
+    runtime group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.2'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.3'
+}
+
+task stage(dependsOn: ['clean', 'installApp'])
