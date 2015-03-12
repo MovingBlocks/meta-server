@@ -1,33 +1,21 @@
-# java-getting-started
+master-server
+=========
 
-A barebones Java app, which can easily be deployed to Heroku.  
+A Jetty-based servlet that runs on Heroku and serves information about Terasology hosters in JSON format.
+The data is hosted on a Amazon EC2 PostgreSQL instance.
 
-This application support the [Getting Started with Java on Heroku](https://devcenter.heroku.com/articles/getting-started-with-java) article - check it out.
+Data
+-----------
+A list of available server is served at 
 
-## Running Locally
+    https://master-server.herokuapp.com/servers/list
 
-Make sure you have Java and Maven installed.  Also, install the [Heroku Toolbelt](https://toolbelt.heroku.com/).
+Deployment
+-------------
 
-```sh
-$ git clone https://github.com/heroku/java-getting-started.git
-$ cd java-getting-started
-$ mvn install
-$ foreman start web
-```
+Clone the repository and push the content to Heroku. The database connection details are provided by Heroku under the environment variable `DATABASE_URL`.
 
-Your app should now be running on [localhost:5000](http://localhost:5000/).
+License
+-------------
 
-## Deploying to Heroku
-
-```sh
-$ heroku create
-$ git push heroku master
-$ heroku open
-```
-
-## Documentation
-
-For more information about using Java on Heroku, see these Dev Center articles:
-
-- [Java on Heroku](https://devcenter.heroku.com/categories/java)
-
+This software is licensed under the [Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0.html).
