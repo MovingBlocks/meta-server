@@ -36,12 +36,13 @@ public class Database {
             String password = dbUri.getUserInfo().split(":")[1];
             int port = dbUri.getPort();
 
-            String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ":" + port + dbUri.getPath() + "?sslmode=require";
+            String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ":" + port + dbUri.getPath();
 
             PGConnectionPoolDataSource ds = new PGConnectionPoolDataSource();
             ds.setUrl(dbUrl);
             ds.setUser(username);
             ds.setPassword(password);
+            ds.setSslMode("require");
 
             PooledConnection pool = ds.getPooledConnection();
             return pool;
