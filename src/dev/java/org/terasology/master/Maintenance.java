@@ -16,12 +16,13 @@
 
 package org.terasology.master;
 
-import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import javax.sql.PooledConnection;
+import javax.sql.DataSource;
 
 
 /**
@@ -30,10 +31,11 @@ import javax.sql.PooledConnection;
  */
 public class Maintenance {
 
-    public static void main(String[] args) throws IOException, SQLException {
-        PooledConnection pool = Database.getPooledConnection();
+    public static void main(String[] args) throws SQLException, URISyntaxException {
+        URI dbUri = new URI(System.getenv("DATABASE_URL"));
+        DataSource source = Database.getPooledConnection(dbUri);
 
-        try (Connection conn = pool.getConnection()) {
+        try (Connection conn = source.getConnection()) {
             try (Statement stmt = conn.createStatement()) {
 //                stmt.execute("DROP TABLE servers");
 
@@ -50,8 +52,6 @@ public class Maintenance {
                         "myServerName", "myHostAddress", 25777);
                 stmt.executeUpdate(insert);
             }
-        } finally {
-            pool.close();
         }
     }
 }

@@ -16,7 +16,9 @@
 
 package org.terasology.master;
 
-import javax.sql.PooledConnection;
+import java.net.URI;
+
+import javax.sql.DataSource;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandler;
@@ -41,9 +43,10 @@ public class JettyMain {
     public static void main(String[] args) throws Exception {
 
         Integer port = Integer.valueOf(System.getenv("PORT"));
-        Server server = new Server(port.intValue());
+        URI dbUri = new URI(System.getenv("DATABASE_URL"));
 
-        PooledConnection pool = Database.getPooledConnection();
+        Server server = new Server(port.intValue());
+        DataSource dataSource = Database.getPooledConnection(dbUri);
 
         ResourceHandler resourceHandler = new ResourceHandler();
         resourceHandler.setDirectoriesListed(true);
@@ -54,7 +57,7 @@ public class JettyMain {
 
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/servers");
-        context.addServlet(new ServletHolder(new Serveletty(pool)), "/*");
+        context.addServlet(new ServletHolder(new Serveletty(dataSource)), "/*");
 
         HandlerList handlers = new HandlerList();
         handlers.addHandler(ctx);
@@ -66,7 +69,5 @@ public class JettyMain {
         logger.info("Server started on port {}!", port);
 
         server.join();
-
-        pool.close();
     }
 }

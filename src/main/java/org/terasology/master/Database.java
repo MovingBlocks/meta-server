@@ -16,40 +16,31 @@
 
 package org.terasology.master;
 
-import java.io.IOException;
 import java.net.URI;
 
-import javax.sql.PooledConnection;
+import javax.sql.DataSource;
 
-import org.postgresql.ds.PGConnectionPoolDataSource;
+import org.postgresql.ds.PGSimpleDataSource;
 
 /**
  * @author Martin Steiger
  */
 public class Database {
 
-    public static PooledConnection getPooledConnection() throws IOException {
-        try {
-            String env = System.getenv("DATABASE_URL");
-            URI dbUri = new URI(env);
-            String username = dbUri.getUserInfo().split(":")[0];
-            String password = dbUri.getUserInfo().split(":")[1];
-            int port = dbUri.getPort();
+    public static DataSource getPooledConnection(URI dbUri) {
+        String username = dbUri.getUserInfo().split(":")[0];
+        String password = dbUri.getUserInfo().split(":")[1];
+        int port = dbUri.getPort();
 
-            String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ":" + port + dbUri.getPath();
+        String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ":" + port + dbUri.getPath();
 
-            PGConnectionPoolDataSource ds = new PGConnectionPoolDataSource();
-            ds.setUrl(dbUrl);
-            ds.setUser(username);
-            ds.setPassword(password);
-            ds.setSslMode("require");
+        PGSimpleDataSource ds = new PGSimpleDataSource();
+        ds.setUrl(dbUrl);
+        ds.setUser(username);
+        ds.setPassword(password);
+        ds.setSslMode("require");
 
-            PooledConnection pool = ds.getPooledConnection();
-            return pool;
-        }
-        catch (Exception e) {
-            throw new IOException(e);
-        }
+        return ds;
 
     }
 }

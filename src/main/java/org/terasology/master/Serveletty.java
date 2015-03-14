@@ -28,7 +28,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.sql.PooledConnection;
+import javax.sql.DataSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,24 +47,26 @@ public class Serveletty extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(Serveletty.class);
 
-    private final PooledConnection connPool;
+    private final DataSource dataSource;
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-    public Serveletty(PooledConnection pooledConnection) {
-        this.connPool = pooledConnection;
+    public Serveletty(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
         if (req.getRequestURI().endsWith("/list")) {
+            logger.info("Requested server list");
+
             showDatabase("servers", resp);
         }
     }
 
     private void showDatabase(String tableName, HttpServletResponse resp) throws IOException {
 
-        try (Connection connection = connPool.getConnection()) {
+        try (Connection connection = dataSource.getConnection()) {
             try (Statement stmt = connection.createStatement()) {
 
                 List<Map<String, Object>> entries = Lists.newArrayList();
