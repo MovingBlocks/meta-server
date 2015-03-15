@@ -16,6 +16,7 @@
 
 package org.terasology.master;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.sql.Connection;
@@ -24,6 +25,10 @@ import java.sql.Statement;
 
 import javax.sql.DataSource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.terasology.master.dbip.GeoLocationServiceDbIp;
+
 
 /**
  *
@@ -31,26 +36,58 @@ import javax.sql.DataSource;
  */
 public class Maintenance {
 
+    private static final Logger logger = LoggerFactory.getLogger(Maintenance.class);
+
     public static void main(String[] args) throws SQLException, URISyntaxException {
         URI dbUri = new URI(System.getenv("DATABASE_URL"));
         DataSource source = Database.getPooledConnection(dbUri);
 
+        String tableName = "servers";
+        String escTableName = "\"" + tableName + "\"";
+
         try (Connection conn = source.getConnection()) {
             try (Statement stmt = conn.createStatement()) {
-//                stmt.execute("DROP TABLE servers");
 
-                String createTable = "CREATE TABLE IF NOT EXISTS servers ("
-                        + "id      SERIAL PRIMARY KEY,"
-                        + "name    varchar(128),"
-                        + "address varchar(128),"
-                        + "port    integer,"
-                        + "modtime timestamp DEFAULT current_timestamp"
+                String createTable = "CREATE TABLE IF NOT EXISTS " + escTableName + " ("
+                        + "name      varchar(256),"
+                        + "address   varchar(256),"
+                        + "port      integer,"
+                        + "country   varchar(256),"
+                        + "stateprov varchar(256),"
+                        + "city      varchar(256),"
+                        + "modtime   timestamp DEFAULT current_timestamp,"
+                        + "PRIMARY KEY (address, port)"
                         + ");";
                 stmt.execute(createTable);
+                if (stmt.getWarnings() != null) {
+                    logger.info(stmt.getWarnings().toString());
+                }
 
-                String insert = String.format("INSERT INTO servers (name, address, port) values('%s', '%s', %d);",
-                        "myServerName", "myHostAddress", 25777);
-                stmt.executeUpdate(insert);
+                String name = "tuffkidtek";
+                String address = "terasology.tuffkidtek.com";
+                int port = 25777;
+
+                String insert;
+
+                GeoLocationService geoService = new GeoLocationServiceDbIp();
+                try {
+                    GeoLocation geoLoc = geoService.resolve(address);
+                    String template = "INSERT INTO %s (name, address, port, country, stateprov, city) values('%s', '%s', %d, '%s', '%s', '%s');";
+                    String country = geoLoc.getCountry();
+                    String stateProv = geoLoc.getStateOrProvince();
+                    String city = geoLoc.getCity();
+                    insert = String.format(template, escTableName, name, address, port, country, stateProv, city);
+
+                } catch (IOException e) {
+                    logger.error("Could not resolve {}", address, e);
+
+                    String template = "INSERT INTO %s (name, address, port) values('%s', '%s', %d);";
+                    insert = String.format(template, escTableName, name, address, port);
+                }
+
+                int affected = stmt.executeUpdate(insert);
+
+                logger.info("Complete - {} rows affected", affected);
             }
         }
     }

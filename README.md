@@ -15,6 +15,13 @@ Deployment
 
 Clone the repository and push the content to Heroku. The database connection details are provided by Heroku under the environment variable `DATABASE_URL`.
 
+
+Geo-Location
+-------------
+
+The lookup service by [DB-IP.com](https://db-ip.com/) is used to retrieve additional information on the servers.
+
+
 License
 -------------
 

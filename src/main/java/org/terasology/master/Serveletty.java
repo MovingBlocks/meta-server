@@ -22,6 +22,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -34,7 +35,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -75,7 +75,7 @@ public class Serveletty extends HttpServlet {
 
                     ResultSetMetaData metaData = rs.getMetaData();
                     while (rs.next()) {
-                        Map<String, Object> entry = Maps.newHashMap();
+                        Map<String, Object> entry = new LinkedHashMap<>();
 
                         for (int i = 1; i <= metaData.getColumnCount(); i++) {
                             entry.put(metaData.getColumnLabel(i), rs.getObject(i));
