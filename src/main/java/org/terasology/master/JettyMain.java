@@ -28,13 +28,20 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.servlet.ServletContainer;
+
 
 /**
  * @author Martin Steiger
  */
-public class JettyMain {
+public final class JettyMain {
 
     private static final Logger logger = LoggerFactory.getLogger(JettyMain.class);
+
+    private JettyMain() {
+        // no instances
+    }
 
     /**
      * @param args ignored
@@ -55,9 +62,15 @@ public class JettyMain {
         ContextHandler ctx = new ContextHandler("/logs"); // the server uri path
         ctx.setHandler(resourceHandler);
 
+        ResourceConfig rc = new ResourceConfig();
+        rc.register(new GsonMessageBodyHandler());
+//        rc.register(new Serveletty(dataSource));
+        rc.register(MyServerList.class);
+
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/servers");
-        context.addServlet(new ServletHolder(new Serveletty(dataSource)), "/*");
+//      context.addServlet(new ServletHolder(new Serveletty(dataSource)), "/*");
+        context.addServlet(new ServletHolder(new ServletContainer(rc)), "/*");
 
         HandlerList handlers = new HandlerList();
         handlers.addHandler(ctx);
