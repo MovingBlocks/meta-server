@@ -72,72 +72,72 @@ public class Serveletty {
     @GET
     @Path("add")
     @Produces(MediaType.APPLICATION_JSON)
-    public Object add(@QueryParam("name") String name, @QueryParam("address") String address, @QueryParam("port") int port, @QueryParam("secret") String secret) {
+    public Response add(@QueryParam("name") String name, @QueryParam("address") String address, @QueryParam("port") int port, @QueryParam("secret") String secret) {
 
         logger.info("Requested addition: name: {}, address: {}, port:{}", name, address, port);
 
         try {
             if (name == null) {
-                return "No name specified";
+                return new Response(false, "No name specified");
             }
             if (name.length() < 3 || name.length() > 20) {
-                return "Name length must be in [3..20]";
+                return new Response(false, "Name length must be in [3..20]");
             }
             if (port < 1024 || port > 65535) {
-                return "Port must be in [1024..65535]";
+                return new Response(false, "Port must be in [1024..65535]");
             }
             if (address == null) {
-                return "No address specified";
+                return new Response(false, "No address specified");
             }
             InetAddress byName = InetAddress.getByName(address);
             if (!byName.isReachable(5000)) {
-                return "Unreachable host: " + address + " (" + byName.getHostAddress() + ")";
+                return new Response(false, "Unreachable host: " + address + " (" + byName.getHostAddress() + ")");
             }
 
             if (!Objects.equals(editSecret, secret)) {
-                return "Invalid secret key";
+                return new Response(false, "Invalid secret key");
             }
 
             ServerTable.insert(dataSource, tableName, name, address, port);
 
         } catch (UnknownHostException e) {
             logger.error("Could not resolve host: " + e.getMessage());
-            return "Unknown host: " + address;
+            return new Response(false, "Unknown host: " + address);
         } catch (IOException e) {
             logger.error("Could not connect: ", e);
-            return "IOExeption";
+            return new Response(false, "Could not connect to database");
         } catch (SQLException e) {
             logger.error("Could not query server table: " + e.getMessage());
-            return "SQLException: " + e.getLocalizedMessage();
+            return new Response(false, e.getMessage());
         }
-        return "Server added";
+        return new Response(true, "Entry added");
     }
 
     @GET
     @Path("remove")
     @Produces(MediaType.APPLICATION_JSON)
-    public Object remove(@QueryParam("address") String address, @QueryParam("port") int port, @QueryParam("secret") String secret) {
+    public Response remove(@QueryParam("address") String address, @QueryParam("port") int port, @QueryParam("secret") String secret) {
 
         if (address == null) {
-            return "No address specified";
+            return new Response(false, "No address specified");
         }
 
         if (port == 0) {
-            return "No port specified";
+            return new Response(false, "No port specified");
         }
 
         if (!Objects.equals(editSecret, secret)) {
-            return "Invalid secret key";
+            return new Response(false, "Invalid secret key");
         }
 
         try {
             if (ServerTable.remove(dataSource, tableName, address, port)) {
-                return "SUCCESS";
+                return new Response(true, "Entry removed");
             } else {
-                return "NOT FOUND";
+                return new Response(false, "Entry not found");
             }
         } catch (SQLException e) {
-            return "FAILED: " + e.getMessage();
+            return new Response(false, e.getMessage());
         }
     }
 }
