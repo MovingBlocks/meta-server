@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.terasology.master.dbip;
+package org.terasology.web.geo.dbip;
 
-import org.terasology.master.GeoLocation;
+import org.terasology.web.geo.GeoLocation;
 
 /**
- * TODO Type description
+ * An implementation that wraps a response from db-ip.com
  * @author Martin Steiger
  */
 public class DbIpQueryResponse implements GeoLocation {
@@ -30,10 +30,19 @@ public class DbIpQueryResponse implements GeoLocation {
     private String stateprov;
     private String city;
 
+    /**
+     * Success indicates that the geolocation fields are filled.
+     * Failure indicates that the error message is filled.
+     * @return true if the query was a success
+     */
     public boolean isSuccess() {
         return error == null;
     }
 
+    /**
+     * The error message (available only if {@link #isSuccess()} returns false.
+     * @return the error message text as by db-ip.com
+     */
     public String getError() {
         return error;
     }
@@ -60,6 +69,7 @@ public class DbIpQueryResponse implements GeoLocation {
 
     @Override
     public String toString() {
-        return String.format("Respone [error=%s, address=%s, country=%s, stateprov=%s, city=%s]", error, address, country, stateprov, city);
+        return String.format("DbIpQueryResponse [error=%s, address=%s, country=%s, stateprov=%s, city=%s]",
+                error, address, country, stateprov, city);
     }
 }

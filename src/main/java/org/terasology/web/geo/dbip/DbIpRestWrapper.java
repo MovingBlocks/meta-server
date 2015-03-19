@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-package org.terasology.master;
+package org.terasology.web.geo.dbip;
 
-import java.util.Collections;
-import java.util.Date;
+import retrofit.http.GET;
+import retrofit.http.Query;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+/**
+ * Maps the db-ip.com REST-ful API to a Java class.
+ * @author Martin Steiger
+ */
+public interface DbIpRestWrapper {
 
-@Path("helloworld")
-public class MyServerList {
-
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Object getHello() {
-        return Collections.singletonList(new Date());
-    }
+    @GET("/addrinfo")
+    DbIpQueryResponse getGeoLocation(@Query("addr") String ipAddress, @Query("api_key") String apiKey);
 }

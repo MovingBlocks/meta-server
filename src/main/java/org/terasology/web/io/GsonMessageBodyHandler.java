@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.terasology.master;
+package org.terasology.web.io;
 
 import java.io.IOException;
 import java.io.InputStream;

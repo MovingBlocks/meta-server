@@ -38,18 +38,18 @@ import com.google.gson.GsonBuilder;
  */
 public class Downloader {
 
-    private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     public static void main(String[] args) throws IOException, SQLException, InterruptedException {
 
         URL url = new URL("http://master-server.herokuapp.com/servers/list");
         Charset cs = StandardCharsets.UTF_8;
 
-        @SuppressWarnings({"serial"})
+        @SuppressWarnings("serial")
         Type entryListType = new TypeToken<List<ServerEntry>>() { /**/ }.getType();
 
         try (Reader reader = new InputStreamReader(url.openStream(), cs)) {
-            List<ServerEntry> list = gson.fromJson(reader, entryListType);
+            List<ServerEntry> list = GSON.fromJson(reader, entryListType);
             System.out.println(Joiner.on("\n").join(list));
         } catch (IOException e) {
             e.printStackTrace();

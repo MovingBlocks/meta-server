@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.terasology.master.dbip;
+package org.terasology.web.geo.dbip;
 
 import java.io.IOException;
 import java.net.InetAddress;
 
-import org.terasology.master.GeoLocation;
-import org.terasology.master.GeoLocationService;
+import org.terasology.web.geo.GeoLocation;
+import org.terasology.web.geo.GeoLocationService;
 
 import retrofit.RestAdapter;
 

@@ -14,38 +14,72 @@
  * limitations under the License.
  */
 
-package org.terasology.master;
+package org.terasology.web;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.terasology.master.dbip.GeoLocationServiceDbIp;
+import org.terasology.web.geo.GeoLocation;
+import org.terasology.web.geo.GeoLocationService;
+import org.terasology.web.geo.dbip.GeoLocationServiceDbIp;
 
+import com.google.common.collect.Lists;
 
 /**
- *
  * @author Martin Steiger
  */
-public class Maintenance {
+public class ServerTable {
 
-    private static final Logger logger = LoggerFactory.getLogger(Maintenance.class);
+    private static final Logger logger = LoggerFactory.getLogger(ServerTable.class);
 
-    public static void main(String[] args) throws SQLException, URISyntaxException {
-        URI dbUri = new URI(System.getenv("DATABASE_URL"));
-        DataSource source = Database.getPooledConnection(dbUri);
+    /**
+     * Retrieves the contents of a table
+     * @param dataSource the database connection data source
+     * @param tableName the name of the table in the DB
+     * @return a list of rows
+     * @throws SQLException if the table query fails
+     * @throws IOException if the connection fails
+     */
+    public static List<Map<String,Object>> readAll(DataSource dataSource, String tableName) throws SQLException, IOException {
 
-        String tableName = "servers";
+        try (Connection connection = dataSource.getConnection()) {
+            try (Statement stmt = connection.createStatement()) {
+
+                List<Map<String, Object>> entries = Lists.newArrayList();
+
+                try (ResultSet rs = stmt.executeQuery("SELECT * FROM \"" + tableName + "\"")) {
+
+                    ResultSetMetaData metaData = rs.getMetaData();
+                    while (rs.next()) {
+                        Map<String, Object> entry = new LinkedHashMap<>();
+
+                        for (int i = 1; i <= metaData.getColumnCount(); i++) {
+                            entry.put(metaData.getColumnLabel(i), rs.getObject(i));
+                        }
+                        entries.add(entry);
+                    }
+                }
+
+                return entries;
+            }
+        }
+    }
+
+    public static void insert(DataSource dataSource, String tableName, String name, String address, int port) throws SQLException {
         String escTableName = "\"" + tableName + "\"";
 
-        try (Connection conn = source.getConnection()) {
+        try (Connection conn = dataSource.getConnection()) {
             try (Statement stmt = conn.createStatement()) {
 
                 String createTable = "CREATE TABLE IF NOT EXISTS " + escTableName + " ("
@@ -62,10 +96,6 @@ public class Maintenance {
                 if (stmt.getWarnings() != null) {
                     logger.info(stmt.getWarnings().toString());
                 }
-
-                String name = "tuffkidtek";
-                String address = "terasology.tuffkidtek.com";
-                int port = 25777;
 
                 String insert;
 
@@ -86,6 +116,21 @@ public class Maintenance {
                 }
 
                 int affected = stmt.executeUpdate(insert);
+
+                logger.info("Complete - {} rows affected", affected);
+            }
+        }
+    }
+
+    public static void remove(DataSource dataSource, String tableName, String address, int port) throws SQLException {
+        String escTableName = "\"" + tableName + "\"";
+
+        try (Connection conn = dataSource.getConnection()) {
+            try (Statement stmt = conn.createStatement()) {
+                String template = "DELETE FROM %s WHERE address='%s' AND port=%d;";
+                String cmd = String.format(template, escTableName, address, port);
+
+                int affected = stmt.executeUpdate(cmd);
 
                 logger.info("Complete - {} rows affected", affected);
             }

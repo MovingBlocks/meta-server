@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.terasology.master;
+package org.terasology.web;
 
 import java.net.URI;
 
@@ -26,10 +26,11 @@ import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.terasology.web.io.GsonMessageBodyHandler;
 
 
 /**
@@ -53,28 +54,26 @@ public final class JettyMain {
         URI dbUri = new URI(System.getenv("DATABASE_URL"));
 
         Server server = new Server(port.intValue());
-        DataSource dataSource = Database.getPooledConnection(dbUri);
+        DataSource dataSource = Database.getDatabaseConnection(dbUri);
 
         ResourceHandler resourceHandler = new ResourceHandler();
         resourceHandler.setDirectoriesListed(true);
         resourceHandler.setResourceBase("logs");
 
-        ContextHandler ctx = new ContextHandler("/logs"); // the server uri path
-        ctx.setHandler(resourceHandler);
+        ContextHandler logContext = new ContextHandler("/logs"); // the server uri path
+        logContext.setHandler(resourceHandler);
 
         ResourceConfig rc = new ResourceConfig();
-        rc.register(new GsonMessageBodyHandler());
-//        rc.register(new Serveletty(dataSource));
-        rc.register(MyServerList.class);
+        rc.register(new GsonMessageBodyHandler());  // register JSON serializer
+        rc.register(new Serveletty(dataSource));    // register the actual servlet
 
-        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        context.setContextPath("/servers");
-//      context.addServlet(new ServletHolder(new Serveletty(dataSource)), "/*");
-        context.addServlet(new ServletHolder(new ServletContainer(rc)), "/*");
+        ServletContextHandler jerseyContext = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        jerseyContext.setContextPath("/servers");
+        jerseyContext.addServlet(new ServletHolder(new ServletContainer(rc)), "/*");
 
         HandlerList handlers = new HandlerList();
-        handlers.addHandler(ctx);
-        handlers.addHandler(context);
+        handlers.addHandler(logContext);
+        handlers.addHandler(jerseyContext);
 
         server.setHandler(handlers);
         server.start();

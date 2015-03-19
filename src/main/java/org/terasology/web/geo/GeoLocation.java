@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.terasology.master;
+package org.terasology.web.geo;
 
 /**
  * Provides geo-location information

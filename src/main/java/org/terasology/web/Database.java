@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.terasology.master;
+package org.terasology.web;
 
 import java.net.URI;
 
@@ -27,7 +27,8 @@ import org.postgresql.ds.PGSimpleDataSource;
  */
 public class Database {
 
-    public static DataSource getPooledConnection(URI dbUri) {
+    public static DataSource getDatabaseConnection(URI dbUri) {
+
         String username = dbUri.getUserInfo().split(":")[0];
         String password = dbUri.getUserInfo().split(":")[1];
         int port = dbUri.getPort();
