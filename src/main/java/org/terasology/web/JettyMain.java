@@ -50,6 +50,8 @@ public final class JettyMain {
      */
     public static void main(String[] args) throws Exception {
 
+        String secret = System.getenv("EDIT_SECRET");
+
         Integer port = Integer.valueOf(System.getenv("PORT"));
         URI dbUri = new URI(System.getenv("DATABASE_URL"));
 
@@ -64,8 +66,8 @@ public final class JettyMain {
         logContext.setHandler(resourceHandler);
 
         ResourceConfig rc = new ResourceConfig();
-        rc.register(new GsonMessageBodyHandler());               // register JSON serializer
-        rc.register(new Serveletty(dataSource, "servers"));      // register the actual servlet
+        rc.register(new GsonMessageBodyHandler());                     // register JSON serializer
+        rc.register(new Serveletty(dataSource, "servers", secret));    // register the actual servlet
 
         ServletContextHandler jerseyContext = new ServletContextHandler(ServletContextHandler.SESSIONS);
         jerseyContext.setContextPath("/servers");

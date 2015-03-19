@@ -21,6 +21,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.util.Collections;
+import java.util.Objects;
 
 import javax.sql.DataSource;
 import javax.ws.rs.GET;
@@ -44,9 +45,12 @@ public class Serveletty {
 
     private final String tableName;
 
-    public Serveletty(DataSource dataSource, String tableName) {
+    private final String editSecret;
+
+    public Serveletty(DataSource dataSource, String tableName, String editSecret) {
         this.dataSource = dataSource;
         this.tableName = tableName;
+        this.editSecret = editSecret;
     }
 
     @GET
@@ -56,8 +60,11 @@ public class Serveletty {
         logger.info("Requested server list");
         try {
             return ServerTable.readAll(dataSource, tableName);
-        } catch (IOException | SQLException e) {
-            logger.error("Could not query server table", e);
+        } catch (SQLException e) {
+            logger.error("Could not query server table: " + e.getMessage());
+            return Collections.emptyList();
+        } catch (IOException e) {
+            logger.error("Could not connect to database", e);
             return Collections.emptyList();
         }
     }
@@ -65,7 +72,7 @@ public class Serveletty {
     @GET
     @Path("add")
     @Produces(MediaType.APPLICATION_JSON)
-    public Object add(@QueryParam("name") String name, @QueryParam("address") String address, @QueryParam("port") int port) {
+    public Object add(@QueryParam("name") String name, @QueryParam("address") String address, @QueryParam("port") int port, @QueryParam("secret") String secret) {
 
         logger.info("Requested addition: name: {}, address: {}, port:{}", name, address, port);
 
@@ -87,13 +94,20 @@ public class Serveletty {
                 return "Unreachable host: " + address + " (" + byName.getHostAddress() + ")";
             }
 
+            if (!Objects.equals(editSecret, secret)) {
+                return "Invalid secret key";
+            }
+
             ServerTable.insert(dataSource, tableName, name, address, port);
 
         } catch (UnknownHostException e) {
+            logger.error("Could not resolve host: " + e.getMessage());
             return "Unknown host: " + address;
         } catch (IOException e) {
+            logger.error("Could not connect: ", e);
             return "IOExeption";
         } catch (SQLException e) {
+            logger.error("Could not query server table: " + e.getMessage());
             return "SQLException: " + e.getLocalizedMessage();
         }
         return "Server added";
@@ -102,7 +116,20 @@ public class Serveletty {
     @GET
     @Path("remove")
     @Produces(MediaType.APPLICATION_JSON)
-    public Object remove(@QueryParam("name") String name, @QueryParam("address") String address, @QueryParam("port") int port) {
+    public Object remove(@QueryParam("address") String address, @QueryParam("port") int port, @QueryParam("secret") String secret) {
+
+        if (address == null) {
+            return "No address specified";
+        }
+
+        if (port == 0) {
+            return "No port specified";
+        }
+
+        if (!Objects.equals(editSecret, secret)) {
+            return "Invalid secret key";
+        }
+
         try {
             if (ServerTable.remove(dataSource, tableName, address, port)) {
                 return "SUCCESS";
