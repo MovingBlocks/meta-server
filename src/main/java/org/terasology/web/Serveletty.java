@@ -42,8 +42,11 @@ public class Serveletty {
 
     private final DataSource dataSource;
 
-    public Serveletty(DataSource dataSource) {
+    private final String tableName;
+
+    public Serveletty(DataSource dataSource, String tableName) {
         this.dataSource = dataSource;
+        this.tableName = tableName;
     }
 
     @GET
@@ -52,7 +55,7 @@ public class Serveletty {
     public Object list() {
         logger.info("Requested server list");
         try {
-            return ServerTable.readAll(dataSource, "servers");
+            return ServerTable.readAll(dataSource, tableName);
         } catch (IOException | SQLException e) {
             logger.error("Could not query server table", e);
             return Collections.emptyList();
@@ -76,19 +79,22 @@ public class Serveletty {
             if (port < 1024 || port > 65535) {
                 return "Port must be in [1024..65535]";
             }
+            if (address == null) {
+                return "No address specified";
+            }
             InetAddress byName = InetAddress.getByName(address);
             if (!byName.isReachable(5000)) {
                 return "Unreachable host: " + address + " (" + byName.getHostAddress() + ")";
             }
 
-            ServerTable.insert(dataSource, "servers", name, address, port);
+            ServerTable.insert(dataSource, tableName, name, address, port);
 
         } catch (UnknownHostException e) {
             return "Unknown host: " + address;
         } catch (IOException e) {
             return "IOExeption";
         } catch (SQLException e) {
-            return "SQLException";
+            return "SQLException: " + e.getLocalizedMessage();
         }
         return "Server added";
     }
@@ -98,10 +104,13 @@ public class Serveletty {
     @Produces(MediaType.APPLICATION_JSON)
     public Object remove(@QueryParam("name") String name, @QueryParam("address") String address, @QueryParam("port") int port) {
         try {
-            ServerTable.remove(dataSource, "servers", address, port);
+            if (ServerTable.remove(dataSource, tableName, address, port)) {
+                return "SUCCESS";
+            } else {
+                return "NOT FOUND";
+            }
         } catch (SQLException e) {
-            return "FAILED";
+            return "FAILED: " + e.getMessage();
         }
-        return "SUCCESS";
     }
 }

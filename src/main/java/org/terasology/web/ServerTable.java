@@ -109,7 +109,7 @@ public class ServerTable {
                     insert = String.format(template, escTableName, name, address, port, country, stateProv, city);
 
                 } catch (IOException e) {
-                    logger.error("Could not resolve {}", address, e);
+                    logger.error("Could not resolve geo-location for {}", address, e);
 
                     String template = "INSERT INTO %s (name, address, port) values('%s', '%s', %d);";
                     insert = String.format(template, escTableName, name, address, port);
@@ -122,7 +122,15 @@ public class ServerTable {
         }
     }
 
-    public static void remove(DataSource dataSource, String tableName, String address, int port) throws SQLException {
+    /**
+     * @param dataSource the DB connection source
+     * @param tableName the name of the DB table
+     * @param address the server address
+     * @param port the server port
+     * @return true if the entry was found and removed, false otherwise
+     * @throws SQLException if the table query fails
+     */
+    public static boolean remove(DataSource dataSource, String tableName, String address, int port) throws SQLException {
         String escTableName = "\"" + tableName + "\"";
 
         try (Connection conn = dataSource.getConnection()) {
@@ -132,7 +140,8 @@ public class ServerTable {
 
                 int affected = stmt.executeUpdate(cmd);
 
-                logger.info("Complete - {} rows affected", affected);
+                // If everything went well, exactly 1 row should have been affected (=removed)
+                return (affected == 1);
             }
         }
     }
