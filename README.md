@@ -22,6 +22,11 @@ Geo-Location
 The lookup service by [DB-IP.com](https://db-ip.com/) is used to retrieve additional information on the servers.
 
 
+Flag Icons
+-------------
+
+The flag icons are from [famfamfam](http://www.famfamfam.com/lab/icons/flags/).
+
 License
 -------------
 

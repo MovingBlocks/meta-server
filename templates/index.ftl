@@ -47,7 +47,12 @@
                     <td>${item.name}</td>
                     <td>${item.address}</td>
                     <td>${item.port?c}</td>
-                    <td>${item.country!"?"}</td>
+                    <td>
+                    <#if item.country??>
+                        <img src="/img/flags/${item.country?lower_case}.png" title="${item.country}"/>
+                    </#if>
+                    ${item.city!}
+                    </td>
                 </tr>
 </#list>
                     
