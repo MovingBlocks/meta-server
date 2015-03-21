@@ -25,7 +25,11 @@ import org.postgresql.ds.PGSimpleDataSource;
 /**
  * @author Martin Steiger
  */
-public class Database {
+public final class Database {
+
+    private Database() {
+        // no instances
+    }
 
     public static DataSource getDatabaseConnection(URI dbUri) {
 
@@ -36,6 +40,7 @@ public class Database {
         String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ":" + port + dbUri.getPath();
 
         PGSimpleDataSource ds = new PGSimpleDataSource();
+        ds.setReadOnly(true);
         ds.setUrl(dbUrl);
         ds.setUser(username);
         ds.setPassword(password);

@@ -21,7 +21,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.util.Collections;
-import java.util.Objects;
 
 import javax.sql.DataSource;
 import javax.ws.rs.GET;
@@ -48,12 +47,9 @@ public class Serveletty {
 
     private final String tableName;
 
-    private final String editSecret;
-
-    public Serveletty(DataSource dataSource, String tableName, String editSecret) {
+    public Serveletty(DataSource dataSource, String tableName) {
         this.dataSource = dataSource;
         this.tableName = tableName;
-        this.editSecret = editSecret;
     }
 
     @GET
@@ -81,10 +77,10 @@ public class Serveletty {
         }
     }
 
-    @GET
-    @Path("add")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response add(@QueryParam("name") String name, @QueryParam("address") String address, @QueryParam("port") int port, @QueryParam("secret") String secret) {
+//    @GET
+//    @Path("add")
+//    @Produces(MediaType.APPLICATION_JSON)
+    public Response add(@QueryParam("name") String name, @QueryParam("address") String address, @QueryParam("port") int port) {
 
         logger.info("Requested addition: name: {}, address: {}, port:{}", name, address, port);
 
@@ -106,10 +102,6 @@ public class Serveletty {
                 return new Response(false, "Unreachable host: " + address + " (" + byName.getHostAddress() + ")");
             }
 
-            if (!Objects.equals(editSecret, secret)) {
-                return new Response(false, "Invalid secret key");
-            }
-
             ServerTable.insert(dataSource, tableName, name, address, port);
 
         } catch (UnknownHostException e) {
@@ -125,10 +117,10 @@ public class Serveletty {
         return new Response(true, "Entry added");
     }
 
-    @GET
-    @Path("remove")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response remove(@QueryParam("address") String address, @QueryParam("port") int port, @QueryParam("secret") String secret) {
+//    @GET
+//    @Path("remove")
+//    @Produces(MediaType.APPLICATION_JSON)
+    public Response remove(@QueryParam("address") String address, @QueryParam("port") int port) {
 
         if (address == null) {
             return new Response(false, "No address specified");
@@ -136,10 +128,6 @@ public class Serveletty {
 
         if (port == 0) {
             return new Response(false, "No port specified");
-        }
-
-        if (!Objects.equals(editSecret, secret)) {
-            return new Response(false, "Invalid secret key");
         }
 
         try {
