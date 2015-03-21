@@ -27,6 +27,7 @@ import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.mvc.freemarker.FreemarkerMvcFeature;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,23 +59,33 @@ public final class JettyMain {
         Server server = new Server(port.intValue());
         DataSource dataSource = Database.getDatabaseConnection(dbUri);
 
-        ResourceHandler resourceHandler = new ResourceHandler();
-        resourceHandler.setDirectoriesListed(true);
-        resourceHandler.setResourceBase("logs");
+        ResourceHandler logFileResourceHandler = new ResourceHandler();
+        logFileResourceHandler.setDirectoriesListed(true);
+        logFileResourceHandler.setResourceBase("logs");
 
         ContextHandler logContext = new ContextHandler("/logs"); // the server uri path
-        logContext.setHandler(resourceHandler);
+        logContext.setHandler(logFileResourceHandler);
+
+        ResourceHandler webResourceHandler = new ResourceHandler();
+        webResourceHandler.setDirectoriesListed(false);
+        webResourceHandler.setResourceBase("web");
+
+        ContextHandler webContext = new ContextHandler("/"); // the server uri path
+        webContext.setHandler(webResourceHandler);
 
         ResourceConfig rc = new ResourceConfig();
         rc.register(new GsonMessageBodyHandler());                       // register JSON serializer
+        rc.register(FreemarkerMvcFeature.class);
         rc.register(new Serveletty(dataSource, "servers", secret));      // register the actual servlet
 
         ServletContextHandler jerseyContext = new ServletContextHandler(ServletContextHandler.SESSIONS);
         jerseyContext.setContextPath("/servers");
+        jerseyContext.setResourceBase("templates");
         jerseyContext.addServlet(new ServletHolder(new ServletContainer(rc)), "/*");
 
         HandlerList handlers = new HandlerList();
         handlers.addHandler(logContext);
+        handlers.addHandler(webContext);
         handlers.addHandler(jerseyContext);
 
         server.setHandler(handlers);

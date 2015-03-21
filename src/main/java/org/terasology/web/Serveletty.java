@@ -30,8 +30,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import org.glassfish.jersey.server.mvc.Viewable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Martin Steiger
@@ -52,6 +55,15 @@ public class Serveletty {
         this.tableName = tableName;
         this.editSecret = editSecret;
     }
+
+    @GET
+    @Path("show")
+    @Produces(MediaType.TEXT_HTML)
+    public Viewable show() {
+        logger.info("Requested server list as HTML");
+        return new Viewable("/index.ftl", ImmutableMap.of("items", list()));
+    }
+
 
     @GET
     @Path("list")
