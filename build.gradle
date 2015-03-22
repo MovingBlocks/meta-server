@@ -6,7 +6,6 @@ mainClassName = "org.terasology.web.JettyMain"
 applicationName = "app"
 
 group = 'org.terasology.web'
-version = '2.0.0-SNAPSHOT'
 
 repositories {
     mavenCentral()

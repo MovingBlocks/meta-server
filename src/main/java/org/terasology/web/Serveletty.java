@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.Collections;
 
 import javax.sql.DataSource;
@@ -57,7 +58,11 @@ public class Serveletty {
     @Produces(MediaType.TEXT_HTML)
     public Viewable show() {
         logger.info("Requested server list as HTML");
-        return new Viewable("/index.ftl", ImmutableMap.of("items", list()));
+        ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
+                .put("items", list())
+                .put("year", LocalDateTime.now().getYear())
+                .build();
+        return new Viewable("/index.ftl", dataModel);
     }
 
 

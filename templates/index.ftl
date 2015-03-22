@@ -61,7 +61,7 @@
       </div>
 
       <footer class="footer">
-        <p>&#169; MovingBlocks</p>
+        <p>&#169; MovingBlocks ${year?c}</p>
       </footer>
 
     </div> <!-- /container -->  
