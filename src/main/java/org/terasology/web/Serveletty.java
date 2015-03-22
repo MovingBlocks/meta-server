@@ -33,6 +33,7 @@ import javax.ws.rs.core.MediaType;
 import org.glassfish.jersey.server.mvc.Viewable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.terasology.version.Version;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -61,6 +62,7 @@ public class Serveletty {
         ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                 .put("items", list())
                 .put("year", LocalDateTime.now().getYear())
+                .put("version", Version.getVersion())
                 .build();
         return new Viewable("/index.ftl", dataModel);
     }
