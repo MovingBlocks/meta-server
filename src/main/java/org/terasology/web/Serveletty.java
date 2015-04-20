@@ -87,7 +87,8 @@ public class Serveletty {
 //    @GET
 //    @Path("add")
 //    @Produces(MediaType.APPLICATION_JSON)
-    public Response add(@QueryParam("name") String name, @QueryParam("address") String address, @QueryParam("port") int port) {
+    public Response add(@QueryParam("name") String name, @QueryParam("address") String address, @QueryParam("port") int port,
+            @QueryParam("owner") String owner) {
 
         logger.info("Requested addition: name: {}, address: {}, port:{}", name, address, port);
 
@@ -104,12 +105,15 @@ public class Serveletty {
             if (address == null) {
                 return new Response(false, "No address specified");
             }
+            if (owner == null || owner.isEmpty()) {
+                return new Response(false, "No owner specified");
+            }
             InetAddress byName = InetAddress.getByName(address);
             if (!byName.isReachable(5000)) {
                 return new Response(false, "Unreachable host: " + address + " (" + byName.getHostAddress() + ")");
             }
 
-            ServerTable.insert(dataSource, tableName, name, address, port);
+            ServerTable.insert(dataSource, tableName, name, address, port, owner);
 
         } catch (UnknownHostException e) {
             logger.error("Could not resolve host: " + e.getMessage());

@@ -46,7 +46,7 @@ public class Maintenance {
         String address = "terasology.tuffkidtek.com";
         int port = 25777;
 
-        ServerTable.insert(source, tableName, name, address, port);
+        ServerTable.insert(source, tableName, name, address, port, "minnesotags");
     }
 }
 

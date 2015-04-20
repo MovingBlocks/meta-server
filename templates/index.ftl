@@ -38,6 +38,7 @@
                     <th class="name header">Name</th>
                     <th class="name header">Address</th>
                     <th class="name header">Port</th>
+                    <th class="name header">Owner</th>
                     <th class="name header">Location</th>
                 </tr>
             </thead>
@@ -47,6 +48,7 @@
                     <td>${item.name}</td>
                     <td>${item.address}</td>
                     <td>${item.port?c}</td>
+                    <td>${item.owner}</td>
                     <td>
                     <#if item.country??>
                         <img src="/img/flags/${item.country?lower_case}.png" title="${item.country}"/>

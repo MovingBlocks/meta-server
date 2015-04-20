@@ -76,7 +76,7 @@ public class ServerTable {
         }
     }
 
-    public static void insert(DataSource dataSource, String tableName, String name, String address, int port) throws SQLException {
+    public static void insert(DataSource dataSource, String tableName, String name, String address, int port, String owner) throws SQLException {
         String escTableName = "\"" + tableName + "\"";
 
         try (Connection conn = dataSource.getConnection()) {
@@ -89,6 +89,7 @@ public class ServerTable {
                         + "country   varchar(256),"
                         + "stateprov varchar(256),"
                         + "city      varchar(256),"
+                        + "owner     varchar(256),"
                         + "modtime   timestamp DEFAULT current_timestamp,"
                         + "PRIMARY KEY (address, port)"
                         + ");";
@@ -102,17 +103,20 @@ public class ServerTable {
                 GeoLocationService geoService = new GeoLocationServiceDbIp();
                 try {
                     GeoLocation geoLoc = geoService.resolve(address);
-                    String template = "INSERT INTO %s (name, address, port, country, stateprov, city) values('%s', '%s', %d, '%s', '%s', '%s');";
                     String country = geoLoc.getCountry();
                     String stateProv = geoLoc.getStateOrProvince();
                     String city = geoLoc.getCity();
-                    insert = String.format(template, escTableName, name, address, port, country, stateProv, city);
+                    insert = String.format("INSERT INTO %s "
+                            + "(name, address, port, country, stateprov, city, owner) "
+                            + "values('%s', '%s', %d, '%s', '%s', '%s', '%s');",
+                            escTableName,
+                            name, address, port, country, stateProv, city, owner);
 
                 } catch (IOException e) {
                     logger.error("Could not resolve geo-location for {}", address, e);
 
-                    String template = "INSERT INTO %s (name, address, port) values('%s', '%s', %d);";
-                    insert = String.format(template, escTableName, name, address, port);
+                    String template = "INSERT INTO %s (name, address, port, owner) values('%s', '%s', %d, '%s');";
+                    insert = String.format(template, escTableName, name, address, port, owner);
                 }
 
                 int affected = stmt.executeUpdate(insert);
