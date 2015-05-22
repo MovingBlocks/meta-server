@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.version.Version;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -50,6 +51,9 @@ public class Serveletty {
     private final String tableName;
 
     public Serveletty(DataSource dataSource, String tableName) {
+        Preconditions.checkArgument(dataSource != null, "dataSource must not be null");
+        Preconditions.checkArgument(tableName != null, "tableName must not be null");
+
         this.dataSource = dataSource;
         this.tableName = tableName;
     }
@@ -94,38 +98,43 @@ public class Serveletty {
 
         try {
             if (name == null) {
-                return new Response(false, "No name specified");
+                return Response.fail("No name specified");
             }
+
             if (name.length() < 3 || name.length() > 20) {
-                return new Response(false, "Name length must be in [3..20]");
+                return Response.fail("Name length must be in [3..20]");
             }
+
             if (port < 1024 || port > 65535) {
-                return new Response(false, "Port must be in [1024..65535]");
+                return Response.fail("Port must be in [1024..65535]");
             }
+
             if (address == null) {
-                return new Response(false, "No address specified");
+                return Response.fail("No address specified");
             }
+
             if (owner == null || owner.isEmpty()) {
-                return new Response(false, "No owner specified");
+                return Response.fail("No owner specified");
             }
+
             InetAddress byName = InetAddress.getByName(address);
             if (!byName.isReachable(5000)) {
-                return new Response(false, "Unreachable host: " + address + " (" + byName.getHostAddress() + ")");
+                return Response.fail("Unreachable host: " + address + " (" + byName.getHostAddress() + ")");
             }
 
             ServerTable.insert(dataSource, tableName, name, address, port, owner);
 
         } catch (UnknownHostException e) {
             logger.error("Could not resolve host: " + e.getMessage());
-            return new Response(false, "Unknown host: " + address);
+            return Response.fail("Unknown host: " + address);
         } catch (IOException e) {
             logger.error("Could not connect: ", e);
-            return new Response(false, "Could not connect to database");
+            return Response.fail("Could not connect to database");
         } catch (SQLException e) {
             logger.error("Could not query server table: " + e.getMessage());
-            return new Response(false, e.getMessage());
+            return Response.fail(e.getMessage());
         }
-        return new Response(true, "Entry added");
+        return Response.success("Entry added");
     }
 
 //    @GET
@@ -134,21 +143,21 @@ public class Serveletty {
     public Response remove(@QueryParam("address") String address, @QueryParam("port") int port) {
 
         if (address == null) {
-            return new Response(false, "No address specified");
+            return Response.fail("No address specified");
         }
 
         if (port == 0) {
-            return new Response(false, "No port specified");
+            return Response.fail("No port specified");
         }
 
         try {
             if (ServerTable.remove(dataSource, tableName, address, port)) {
-                return new Response(true, "Entry removed");
+                return Response.success("Entry removed");
             } else {
-                return new Response(false, "Entry not found");
+                return Response.fail("Entry not found");
             }
         } catch (SQLException e) {
-            return new Response(false, e.getMessage());
+            return Response.fail(e.getMessage());
         }
     }
 }

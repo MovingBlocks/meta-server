@@ -25,13 +25,17 @@ public class Response {
     private String message;
     private boolean success;
 
-    private Response() {
-        // required for marshalling
-    }
-
-    public Response(boolean success, String message) {
+    private Response(boolean success, String message) {
         this.message = message;
         this.success = success;
+    }
+
+    public static Response fail(String message) {
+        return new Response(false, message);
+    }
+
+    public static Response success(String message) {
+        return new Response(true, message);
     }
 
     public String getMessage() {
