@@ -25,7 +25,7 @@ public class ServerEntry {
     private String address;
     private int port;
 
-    private ServerEntry() {
+    ServerEntry() {
         // required for marshalling
     }
 

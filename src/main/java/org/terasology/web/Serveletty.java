@@ -65,12 +65,25 @@ public class Serveletty {
         logger.info("Requested server list as HTML");
         ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                 .put("items", list())
+                .put("tab", "show")
                 .put("year", LocalDateTime.now().getYear())
                 .put("version", Version.getVersion())
                 .build();
-        return new Viewable("/index.ftl", dataModel);
+        return new Viewable("/server-list.ftl", dataModel);
     }
 
+    @GET
+    @Path("about")
+    @Produces(MediaType.TEXT_HTML)
+    public Viewable about() {
+        logger.info("Requested about as HTML");
+        ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
+                .put("tab", "about")
+                .put("year", LocalDateTime.now().getYear())
+                .put("version", Version.getVersion())
+                .build();
+        return new Viewable("/about.ftl", dataModel);
+    }
 
     @GET
     @Path("list")
