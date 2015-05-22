@@ -24,7 +24,9 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 
 import javax.sql.DataSource;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -50,12 +52,16 @@ public class Serveletty {
 
     private final String tableName;
 
-    public Serveletty(DataSource dataSource, String tableName) {
+    private final String editSecret;
+
+    public Serveletty(DataSource dataSource, String tableName, String editSecret) {
         Preconditions.checkArgument(dataSource != null, "dataSource must not be null");
         Preconditions.checkArgument(tableName != null, "tableName must not be null");
+        Preconditions.checkArgument(editSecret != null, "editSecret must not be null");
 
         this.dataSource = dataSource;
         this.tableName = tableName;
+        this.editSecret = editSecret;
     }
 
     @GET
@@ -70,6 +76,19 @@ public class Serveletty {
                 .put("version", Version.getVersion())
                 .build();
         return new Viewable("/server-list.ftl", dataModel);
+    }
+
+    @GET
+    @Path("add")
+    @Produces(MediaType.TEXT_HTML)
+    public Viewable add() {
+        logger.info("Requested add as HTML");
+        ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
+                .put("tab", "add")
+                .put("year", LocalDateTime.now().getYear())
+                .put("version", Version.getVersion())
+                .build();
+        return new Viewable("/add.ftl", dataModel);
     }
 
     @GET
@@ -101,13 +120,37 @@ public class Serveletty {
         }
     }
 
-//    @GET
-//    @Path("add")
-//    @Produces(MediaType.APPLICATION_JSON)
-    public Response add(@QueryParam("name") String name, @QueryParam("address") String address, @QueryParam("port") int port,
-            @QueryParam("owner") String owner) {
+    @POST
+    @Path("add")
+    @Produces(MediaType.TEXT_HTML)
+    public Viewable add(@FormParam("name") String name, @FormParam("address") String address, @FormParam("port") int port,
+            @FormParam("owner") String owner, @FormParam("secret") String secret) {
 
-        logger.info("Requested addition: name: {}, address: {}, port:{}", name, address, port);
+        logger.info("Requested addition: name: {}, address: {}, port:{}, owner:{}", name, address, port, owner);
+
+        Response response = tryAdd(name, address, port, owner, secret);
+
+        if (response.isSuccess()) {
+            ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
+                    .put("items", list())
+                    .put("tab", "show")
+                    .put("message", response.getMessage())
+                    .put("year", LocalDateTime.now().getYear())
+                    .put("version", Version.getVersion())
+                    .build();
+            return new Viewable("/server-list.ftl", dataModel);
+        } else {
+            ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
+                    .put("tab", "add")
+                    .put("error", response.getMessage())
+                    .put("year", LocalDateTime.now().getYear())
+                    .put("version", Version.getVersion())
+                    .build();
+            return new Viewable("/add.ftl", dataModel);
+        }
+    }
+
+    private Response tryAdd(String name, String address, int port, String owner, String secret) {
 
         try {
             if (name == null) {
@@ -122,7 +165,7 @@ public class Serveletty {
                 return Response.fail("Port must be in [1024..65535]");
             }
 
-            if (address == null) {
+            if (address == null || address.trim().isEmpty()) {
                 return Response.fail("No address specified");
             }
 
@@ -133,6 +176,10 @@ public class Serveletty {
             InetAddress byName = InetAddress.getByName(address);
             if (!byName.isReachable(5000)) {
                 return Response.fail("Unreachable host: " + address + " (" + byName.getHostAddress() + ")");
+            }
+
+            if (!editSecret.equals(secret)) {
+                return Response.fail("Invalid secret");
             }
 
             ServerTable.insert(dataSource, tableName, name, address, port, owner);
@@ -150,10 +197,10 @@ public class Serveletty {
         return Response.success("Entry added");
     }
 
-//    @GET
-//    @Path("remove")
-//    @Produces(MediaType.APPLICATION_JSON)
-    public Response remove(@QueryParam("address") String address, @QueryParam("port") int port) {
+    @GET
+    @Path("remove")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response remove(@QueryParam("address") String address, @QueryParam("port") int port, @QueryParam("secret") String secret) {
 
         if (address == null) {
             return Response.fail("No address specified");
@@ -161,6 +208,10 @@ public class Serveletty {
 
         if (port == 0) {
             return Response.fail("No port specified");
+        }
+
+        if (!editSecret.equals(secret)) {
+            return Response.fail("Invalid secret");
         }
 
         try {

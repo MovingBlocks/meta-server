@@ -54,6 +54,8 @@ public final class JettyMain {
         Integer port = Integer.valueOf(System.getenv("PORT"));
         URI dbUri = new URI(System.getenv("DATABASE_URL"));
 
+        String secret = System.getenv("EDIT_SECRET");
+
         Server server = new Server(port.intValue());
         DataSource dataSource = Database.getDatabaseConnection(dbUri);
 
@@ -74,7 +76,7 @@ public final class JettyMain {
         ResourceConfig rc = new ResourceConfig();
         rc.register(new GsonMessageBodyHandler());                   // register JSON serializer
         rc.register(FreemarkerMvcFeature.class);
-        rc.register(new Serveletty(dataSource, "servers"));  // register the actual servlet
+        rc.register(new Serveletty(dataSource, "servers", secret));  // register the actual servlet
 
         ServletContextHandler jerseyContext = new ServletContextHandler(ServletContextHandler.SESSIONS);
         jerseyContext.setContextPath("/servers");

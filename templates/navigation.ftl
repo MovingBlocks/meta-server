@@ -7,6 +7,10 @@
                 ><a href="show">Servers</a>
             </li>
             <li role="presentation"
+                <#if tab == "add">class="active"</#if>
+                ><a href="add">Add</a>
+            </li>
+            <li role="presentation"
                 <#if tab == "about">class="active"</#if>
                 ><a href="about">About</a>
             </li>
