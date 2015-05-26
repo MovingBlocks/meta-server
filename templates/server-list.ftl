@@ -19,6 +19,7 @@
                     <th class="name header">Port</th>
                     <th class="name header">Owner</th>
                     <th class="name header">Location</th>
+                    <th class="name header">Edit</th>
                 </tr>
             </thead>
             <tbody>
@@ -33,6 +34,11 @@
                         <img src="/img/flags/${item.country?lower_case}.png" title="${item.country}"/>
                     </#if>
                     ${item.city!}
+                    </td>
+                    <td align="center" title="Edit/Remove">
+                      <a href="edit?index=${item_index}">
+                        <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+                      </a>
                     </td>
                 </tr>
 </#list>

@@ -22,8 +22,11 @@ import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -92,6 +95,31 @@ public class Serveletty {
     }
 
     @GET
+    @Path("edit")
+    @Produces(MediaType.TEXT_HTML)
+    public Viewable edit(@QueryParam("index") @DefaultValue("-1") int index) throws SQLException, IOException {
+        List<Map<String, Object>> servers = ServerTable.readAll(dataSource, tableName);
+
+        if (index < 0 || index >= servers.size()) {
+            return null;
+        }
+
+        Map<String, Object> server = servers.get(index);
+
+        ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
+                .put("name", server.get("name"))
+                .put("address", server.get("address"))
+                .put("port", server.get("port"))
+                .put("owner", server.get("owner"))
+                .put("tab", "edit")
+                .put("year", LocalDateTime.now().getYear())
+                .put("version", Version.getVersion())
+                .build();
+
+        return new Viewable("/edit.ftl", dataModel);
+    }
+
+    @GET
     @Path("about")
     @Produces(MediaType.TEXT_HTML)
     public Viewable about() {
@@ -153,54 +181,82 @@ public class Serveletty {
     private Response tryAdd(String name, String address, int port, String owner, String secret) {
 
         try {
-            if (name == null) {
-                return Response.fail("No name specified");
+            Response response = verify(name, address, port, owner, secret);
+            if (!response.isSuccess()) {
+                return response;
+            } else {
+                ServerTable.insert(dataSource, tableName, name, address, port, owner);
+                return Response.success("Entry added");
             }
-
-            if (name.length() < 3 || name.length() > 20) {
-                return Response.fail("Name length must be in [3..20]");
-            }
-
-            if (port < 1024 || port > 65535) {
-                return Response.fail("Port must be in [1024..65535]");
-            }
-
-            if (address == null || address.trim().isEmpty()) {
-                return Response.fail("No address specified");
-            }
-
-            if (owner == null || owner.isEmpty()) {
-                return Response.fail("No owner specified");
-            }
-
-            InetAddress byName = InetAddress.getByName(address);
-            if (!byName.isReachable(5000)) {
-                return Response.fail("Unreachable host: " + address + " (" + byName.getHostAddress() + ")");
-            }
-
-            if (!editSecret.equals(secret)) {
-                return Response.fail("Invalid secret");
-            }
-
-            ServerTable.insert(dataSource, tableName, name, address, port, owner);
-
-        } catch (UnknownHostException e) {
-            logger.error("Could not resolve host: " + e.getMessage());
-            return Response.fail("Unknown host: " + address);
-        } catch (IOException e) {
-            logger.error("Could not connect: ", e);
-            return Response.fail("Could not connect to database");
         } catch (SQLException e) {
             logger.error("Could not query server table: " + e.getMessage());
             return Response.fail(e.getMessage());
         }
-        return Response.success("Entry added");
     }
 
-    @GET
+    @POST
     @Path("remove")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response remove(@QueryParam("address") String address, @QueryParam("port") int port, @QueryParam("secret") String secret) {
+    @Produces(MediaType.TEXT_HTML)
+    public Viewable remove(@FormParam("name") String name, @FormParam("address") String address, @FormParam("port") int port,
+            @FormParam("owner") String owner, @FormParam("secret") String secret) {
+
+        Response response = tryRemove(address, port, secret);
+        if (response.isSuccess()) {
+            ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
+                    .put("items", list())
+                    .put("tab", "show")
+                    .put("message", response.getMessage())
+                    .put("year", LocalDateTime.now().getYear())
+                    .put("version", Version.getVersion())
+                    .build();
+            return new Viewable("/server-list.ftl", dataModel);
+        } else {
+            ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
+                    .put("name", name)
+                    .put("address", address)
+                    .put("port", port)
+                    .put("owner", owner)
+                    .put("tab", "edit")
+                    .put("error", response.getMessage())
+                    .put("year", LocalDateTime.now().getYear())
+                    .put("version", Version.getVersion())
+                    .build();
+            return new Viewable("/edit.ftl", dataModel);
+        }
+    }
+
+    @POST
+    @Path("update")
+    @Produces(MediaType.TEXT_HTML)
+    public Viewable update(@FormParam("name") String name, @FormParam("address") String address, @FormParam("port") int port,
+            @FormParam("owner") String owner, @FormParam("secret") String secret) {
+
+        Response response = tryUpdate(name, address, port, owner, secret);
+        if (response.isSuccess()) {
+            ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
+                    .put("items", list())
+                    .put("tab", "show")
+                    .put("message", response.getMessage())
+                    .put("year", LocalDateTime.now().getYear())
+                    .put("version", Version.getVersion())
+                    .build();
+            return new Viewable("/server-list.ftl", dataModel);
+        } else {
+            ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
+                    .put("name", name)
+                    .put("address", address)
+                    .put("port", port)
+                    .put("owner", owner)
+                    .put("tab", "edit")
+                    .put("error", response.getMessage())
+                    .put("year", LocalDateTime.now().getYear())
+                    .put("version", Version.getVersion())
+                    .build();
+            return new Viewable("/edit.ftl", dataModel);
+        }
+    }
+
+    private Response tryRemove(String address, int port, String secret) {
 
         if (address == null) {
             return Response.fail("No address specified");
@@ -216,6 +272,65 @@ public class Serveletty {
 
         try {
             if (ServerTable.remove(dataSource, tableName, address, port)) {
+                return Response.success("Entry removed");
+            } else {
+                return Response.fail("Entry not found");
+            }
+        } catch (SQLException e) {
+            return Response.fail(e.getMessage());
+        }
+    }
+
+    private Response verify(String name, String address, int port, String owner, String secret) {
+        if (name == null) {
+            return Response.fail("No name specified");
+        }
+
+        if (name.length() < 3 || name.length() > 20) {
+            return Response.fail("Name length must be in [3..20]");
+        }
+
+        if (port < 1024 || port > 65535) {
+            return Response.fail("Port must be in [1024..65535]");
+        }
+
+        if (address == null || address.trim().isEmpty()) {
+            return Response.fail("No address specified");
+        }
+
+        if (owner == null || owner.isEmpty()) {
+            return Response.fail("No owner specified");
+        }
+
+        try {
+            InetAddress byName = InetAddress.getByName(address);
+            if (!byName.isReachable(5000)) {
+                return Response.fail("Unreachable host: " + address + " (" + byName.getHostAddress() + ")");
+            }
+        } catch (UnknownHostException e) {
+            logger.error("Could not resolve host: " + e.getMessage());
+            return Response.fail("Unknown host: " + address);
+        } catch (IOException e) {
+            logger.error("Could not connect: ", e);
+            return Response.fail("Could not connect to database");
+        }
+
+        if (!editSecret.equals(secret)) {
+            return Response.fail("Invalid secret");
+        }
+
+        return Response.success("OK");
+    }
+
+    private Response tryUpdate(String name, String address, int port, String owner, String secret) {
+
+        Response response = verify(name, address, port, owner, secret);
+        if (!response.isSuccess()) {
+            return response;
+        }
+
+        try {
+            if (ServerTable.update(dataSource, tableName, name, address, port, owner)) {
                 return Response.success("Entry removed");
             } else {
                 return Response.fail("Entry not found");

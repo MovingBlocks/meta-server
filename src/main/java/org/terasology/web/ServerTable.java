@@ -76,7 +76,42 @@ public class ServerTable {
         }
     }
 
-    public static void insert(DataSource dataSource, String tableName, String name, String address, int port, String owner) throws SQLException {
+    public static boolean update(DataSource dataSource, String tableName, String name, String address, int port, String owner) throws SQLException {
+        String escTableName = "\"" + tableName + "\"";
+
+        try (Connection conn = dataSource.getConnection()) {
+            try (Statement stmt = conn.createStatement()) {
+
+                String update;
+                GeoLocationService geoService = new GeoLocationServiceDbIp();
+                try {
+                    GeoLocation geoLoc = geoService.resolve(address);
+                    String country = geoLoc.getCountry();
+                    String stateProv = geoLoc.getStateOrProvince();
+                    String city = geoLoc.getCity();
+                    update = String.format("UPDATE %s "
+                            + "SET name = '%s', country = '%s', stateprov = '%s', city = '%s', owner = '%s' "
+                            + "WHERE address = '%s' AND port = '%d';",
+                            escTableName,
+                            name, country, stateProv, city, owner, address, port);
+
+                } catch (IOException e) {
+                    logger.error("Could not resolve geo-location for {}", address, e);
+
+                    update = String.format("UPDATE %s "
+                            + "SET name = '%s', owner = '%s' "
+                            + "WHERE address = '%s' AND port = '%d';",
+                            escTableName,
+                            name, owner, address, port);
+                }
+
+                int affected = stmt.executeUpdate(update);
+                return (affected == 1);
+            }
+        }
+    }
+
+    public static boolean insert(DataSource dataSource, String tableName, String name, String address, int port, String owner) throws SQLException {
         String escTableName = "\"" + tableName + "\"";
 
         try (Connection conn = dataSource.getConnection()) {
@@ -120,8 +155,8 @@ public class ServerTable {
                 }
 
                 int affected = stmt.executeUpdate(insert);
-
                 logger.info("Complete - {} rows affected", affected);
+                return (affected == 1);
             }
         }
     }
