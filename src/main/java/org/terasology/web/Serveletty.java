@@ -20,12 +20,10 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import javax.sql.DataSource;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -75,7 +73,6 @@ public class Serveletty {
         ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                 .put("items", list())
                 .put("tab", "show")
-                .put("year", LocalDateTime.now().getYear())
                 .put("version", Version.getVersion())
                 .build();
         return new Viewable("/server-list.ftl", dataModel);
@@ -88,7 +85,6 @@ public class Serveletty {
         logger.info("Requested add as HTML");
         ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                 .put("tab", "add")
-                .put("year", LocalDateTime.now().getYear())
                 .put("version", Version.getVersion())
                 .build();
         return new Viewable("/add.ftl", dataModel);
@@ -112,7 +108,6 @@ public class Serveletty {
                 .put("port", server.get("port"))
                 .put("owner", server.get("owner"))
                 .put("tab", "edit")
-                .put("year", LocalDateTime.now().getYear())
                 .put("version", Version.getVersion())
                 .build();
 
@@ -126,7 +121,6 @@ public class Serveletty {
         logger.info("Requested about as HTML");
         ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                 .put("tab", "about")
-                .put("year", LocalDateTime.now().getYear())
                 .put("version", Version.getVersion())
                 .build();
         return new Viewable("/about.ftl", dataModel);
@@ -163,7 +157,6 @@ public class Serveletty {
                     .put("items", list())
                     .put("tab", "show")
                     .put("message", response.getMessage())
-                    .put("year", LocalDateTime.now().getYear())
                     .put("version", Version.getVersion())
                     .build();
             return new Viewable("/server-list.ftl", dataModel);
@@ -171,7 +164,6 @@ public class Serveletty {
             ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                     .put("tab", "add")
                     .put("error", response.getMessage())
-                    .put("year", LocalDateTime.now().getYear())
                     .put("version", Version.getVersion())
                     .build();
             return new Viewable("/add.ftl", dataModel);
@@ -206,7 +198,6 @@ public class Serveletty {
                     .put("items", list())
                     .put("tab", "show")
                     .put("message", response.getMessage())
-                    .put("year", LocalDateTime.now().getYear())
                     .put("version", Version.getVersion())
                     .build();
             return new Viewable("/server-list.ftl", dataModel);
@@ -218,7 +209,6 @@ public class Serveletty {
                     .put("owner", owner)
                     .put("tab", "edit")
                     .put("error", response.getMessage())
-                    .put("year", LocalDateTime.now().getYear())
                     .put("version", Version.getVersion())
                     .build();
             return new Viewable("/edit.ftl", dataModel);
@@ -237,7 +227,6 @@ public class Serveletty {
                     .put("items", list())
                     .put("tab", "show")
                     .put("message", response.getMessage())
-                    .put("year", LocalDateTime.now().getYear())
                     .put("version", Version.getVersion())
                     .build();
             return new Viewable("/server-list.ftl", dataModel);
@@ -249,7 +238,6 @@ public class Serveletty {
                     .put("owner", owner)
                     .put("tab", "edit")
                     .put("error", response.getMessage())
-                    .put("year", LocalDateTime.now().getYear())
                     .put("version", Version.getVersion())
                     .build();
             return new Viewable("/edit.ftl", dataModel);
