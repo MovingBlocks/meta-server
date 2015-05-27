@@ -7,11 +7,16 @@
 
     <div class="container">
 
+<#assign tab = "servers">
 <#include "navigation.ftl">
+
+<#if message??>
+      <div class="alert alert-success" role="alert">${message}</div>
+</#if>
 
       <div class="server-list">
         <table class="table table-striped table-hover unselectable" id="playlist">
-        
+
             <thead>
                 <tr>
                     <th class="name header">Name</th>
@@ -42,13 +47,21 @@
                     </td>
                 </tr>
 </#list>
-                    
+
             </tbody>
         </table>
       </div>
 
+  <div class="row">
+    <div class="col-sm-12">
+      <a href="add" class="btn btn-success pull-right"><span class="glyphicon glyphicon-plus"></span> Add new server</a>
+    </div>
+  </div>
+
+  <br>
+
 <#include "footer.ftl">
 
-    </div> <!-- /container -->  
+    </div> <!-- /container -->
 
 </body></html>

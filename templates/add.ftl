@@ -7,6 +7,7 @@
 
     <div class="container">
 
+<#assign tab = "servers">
 <#include "navigation.ftl">
 
 <#if error??>
@@ -19,10 +20,6 @@
 
 <form action="add" method="post" class="form-horizontal">
 
-<#assign name = "">
-<#assign address = "">
-<#assign port = 25777>
-<#assign owner = "">
 <#include "edit-server-controls.ftl">
 
   <div class="row">
@@ -40,6 +37,6 @@
 
 <#include "footer.ftl">
 
-    </div> <!-- /container -->  
+    </div> <!-- /container -->
 
 </body></html>

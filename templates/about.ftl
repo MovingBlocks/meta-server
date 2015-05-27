@@ -7,6 +7,7 @@
 
     <div class="container">
 
+<#assign tab = "about">
 <#include "navigation.ftl">
 
       <h3>About Terasology</h3>
@@ -33,6 +34,6 @@ and available in source code form at <a href="https://github.com/MovingBlocks/Te
 
 <#include "footer.ftl">
 
-    </div> <!-- /container -->  
+    </div> <!-- /container -->
 
 </body></html>

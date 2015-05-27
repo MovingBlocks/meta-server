@@ -72,7 +72,6 @@ public class Serveletty {
         logger.info("Requested server list as HTML");
         ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                 .put("items", list())
-                .put("tab", "show")
                 .put("version", Version.getVersion())
                 .build();
         return new Viewable("/server-list.ftl", dataModel);
@@ -84,7 +83,10 @@ public class Serveletty {
     public Viewable add() {
         logger.info("Requested add as HTML");
         ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
-                .put("tab", "add")
+                .put("name", "")
+                .put("address", "")
+                .put("port", 25777)
+                .put("owner", "")
                 .put("version", Version.getVersion())
                 .build();
         return new Viewable("/add.ftl", dataModel);
@@ -107,7 +109,6 @@ public class Serveletty {
                 .put("address", server.get("address"))
                 .put("port", server.get("port"))
                 .put("owner", server.get("owner"))
-                .put("tab", "edit")
                 .put("version", Version.getVersion())
                 .build();
 
@@ -120,7 +121,6 @@ public class Serveletty {
     public Viewable about() {
         logger.info("Requested about as HTML");
         ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
-                .put("tab", "about")
                 .put("version", Version.getVersion())
                 .build();
         return new Viewable("/about.ftl", dataModel);
@@ -155,14 +155,16 @@ public class Serveletty {
         if (response.isSuccess()) {
             ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                     .put("items", list())
-                    .put("tab", "show")
                     .put("message", response.getMessage())
                     .put("version", Version.getVersion())
                     .build();
             return new Viewable("/server-list.ftl", dataModel);
         } else {
             ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
-                    .put("tab", "add")
+                    .put("name", name)
+                    .put("address", address)
+                    .put("port", port)
+                    .put("owner", owner)
                     .put("error", response.getMessage())
                     .put("version", Version.getVersion())
                     .build();
@@ -178,7 +180,7 @@ public class Serveletty {
                 return response;
             } else {
                 dataBase.insert(tableName, name, address, port, owner);
-                return Response.success("Entry added");
+                return Response.success("Entry added!");
             }
         } catch (SQLException e) {
             logger.error("Could not query server table: " + e.getMessage());
@@ -196,7 +198,6 @@ public class Serveletty {
         if (response.isSuccess()) {
             ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                     .put("items", list())
-                    .put("tab", "show")
                     .put("message", response.getMessage())
                     .put("version", Version.getVersion())
                     .build();
@@ -207,7 +208,6 @@ public class Serveletty {
                     .put("address", address)
                     .put("port", port)
                     .put("owner", owner)
-                    .put("tab", "edit")
                     .put("error", response.getMessage())
                     .put("version", Version.getVersion())
                     .build();
@@ -225,7 +225,6 @@ public class Serveletty {
         if (response.isSuccess()) {
             ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                     .put("items", list())
-                    .put("tab", "show")
                     .put("message", response.getMessage())
                     .put("version", Version.getVersion())
                     .build();
@@ -236,7 +235,6 @@ public class Serveletty {
                     .put("address", address)
                     .put("port", port)
                     .put("owner", owner)
-                    .put("tab", "edit")
                     .put("error", response.getMessage())
                     .put("version", Version.getVersion())
                     .build();
@@ -260,7 +258,7 @@ public class Serveletty {
 
         try {
             if (dataBase.remove(tableName, address, port)) {
-                return Response.success("Entry removed");
+                return Response.success("Entry removed!");
             } else {
                 return Response.fail("Entry not found");
             }
@@ -291,16 +289,10 @@ public class Serveletty {
         }
 
         try {
-            InetAddress byName = InetAddress.getByName(address);
-            if (!byName.isReachable(5000)) {
-                return Response.fail("Unreachable host: " + address + " (" + byName.getHostAddress() + ")");
-            }
+            InetAddress.getByName(address);
         } catch (UnknownHostException e) {
             logger.error("Could not resolve host: " + e.getMessage());
             return Response.fail("Unknown host: " + address);
-        } catch (IOException e) {
-            logger.error("Could not connect: ", e);
-            return Response.fail("Could not connect to database");
         }
 
         if (!editSecret.equals(secret)) {
@@ -319,7 +311,7 @@ public class Serveletty {
 
         try {
             if (dataBase.update(tableName, name, address, port, owner)) {
-                return Response.success("Entry removed");
+                return Response.success("Entry updated!");
             } else {
                 return Response.fail("Entry not found");
             }

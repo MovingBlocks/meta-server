@@ -3,12 +3,8 @@
         <nav>
           <ul class="nav nav-pills pull-right">
             <li role="presentation"
-                <#if tab == "show">class="active"</#if>
+                <#if tab == "servers">class="active"</#if>
                 ><a href="show">Servers</a>
-            </li>
-            <li role="presentation"
-                <#if tab == "add">class="active"</#if>
-                ><a href="add">Add</a>
             </li>
             <li role="presentation"
                 <#if tab == "about">class="active"</#if>

@@ -7,6 +7,7 @@
 
     <div class="container">
 
+<#assign tab = "servers">
 <#include "navigation.ftl">
 
 <#if error??>
@@ -39,6 +40,6 @@
 
 <#include "footer.ftl">
 
-    </div> <!-- /container -->  
+    </div> <!-- /container -->
 
 </body></html>
