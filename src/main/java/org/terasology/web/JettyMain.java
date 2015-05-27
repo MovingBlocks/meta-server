@@ -30,6 +30,8 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.web.io.GsonMessageBodyHandler;
+import org.terasology.web.model.ServerListModel;
+import org.terasology.web.model.ServerListModelImpl;
 
 
 /**
@@ -68,13 +70,15 @@ public final class JettyMain {
         webResourceHandler.setDirectoriesListed(false);
         webResourceHandler.setResourceBase("web");
 
-        ContextHandler webContext = new ContextHandler("/"); // the server uri path
+        ContextHandler webContext = new ContextHandler("/");     // the server uri path
         webContext.setHandler(webResourceHandler);
 
+        ServerListModel serverListModel = new ServerListModelImpl(dataBase, "servers", secret);
+
         ResourceConfig rc = new ResourceConfig();
-        rc.register(new GsonMessageBodyHandler());                   // register JSON serializer
+        rc.register(new GsonMessageBodyHandler());               // register JSON serializer
         rc.register(FreemarkerMvcFeature.class);
-        rc.register(new Serveletty(dataBase, "servers", secret));    // register the actual servlet
+        rc.register(new Serveletty(serverListModel));                // register the actual servlet
 
         ServletContextHandler jerseyContext = new ServletContextHandler(ServletContextHandler.SESSIONS);
         jerseyContext.setContextPath("/servers");

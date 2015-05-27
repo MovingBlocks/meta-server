@@ -33,7 +33,7 @@ public interface DataBase {
      * @return true if the entry was found and removed, false otherwise
      * @throws SQLException if the table query fails
      */
-    public boolean remove(String tableName, String address, int port) throws SQLException;
+    boolean remove(String tableName, String address, int port) throws SQLException;
 
     /**
      * Retrieves the contents of a table

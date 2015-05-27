@@ -14,28 +14,24 @@
  * limitations under the License.
  */
 
-package org.terasology.web;
+package org.terasology.web.model;
 
-/**
- *
- * @author Martin Steiger
- */
-public class Response {
+public final class Result {
 
-    private String message;
-    private boolean success;
+    private final String message;
+    private final boolean success;
 
-    private Response(boolean success, String message) {
+    private Result(boolean success, String message) {
         this.message = message;
         this.success = success;
     }
 
-    public static Response fail(String message) {
-        return new Response(false, message);
+    public static Result fail(String message) {
+        return new Result(false, message);
     }
 
-    public static Response success(String message) {
-        return new Response(true, message);
+    public static Result success(String message) {
+        return new Result(true, message);
     }
 
     public String getMessage() {

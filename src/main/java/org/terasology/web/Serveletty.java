@@ -17,9 +17,6 @@
 package org.terasology.web;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -37,8 +34,9 @@ import org.glassfish.jersey.server.mvc.Viewable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.version.Version;
+import org.terasology.web.model.Result;
+import org.terasology.web.model.ServerListModel;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -49,20 +47,10 @@ public class Serveletty {
 
     private static final Logger logger = LoggerFactory.getLogger(Serveletty.class);
 
-    private final DataBase dataBase;
+    private ServerListModel model;
 
-    private final String tableName;
-
-    private final String editSecret;
-
-    public Serveletty(DataBase dataSource, String tableName, String editSecret) {
-        Preconditions.checkArgument(dataSource != null, "dataSource must not be null");
-        Preconditions.checkArgument(tableName != null, "tableName must not be null");
-        Preconditions.checkArgument(editSecret != null, "editSecret must not be null");
-
-        this.dataBase = dataSource;
-        this.tableName = tableName;
-        this.editSecret = editSecret;
+    public Serveletty(ServerListModel model) {
+        this.model = model;
     }
 
     @GET
@@ -95,8 +83,8 @@ public class Serveletty {
     @GET
     @Path("edit")
     @Produces(MediaType.TEXT_HTML)
-    public Viewable edit(@QueryParam("index") @DefaultValue("-1") int index) throws SQLException, IOException {
-        List<Map<String, Object>> servers = dataBase.readAll(tableName);
+    public Viewable edit(@QueryParam("index") @DefaultValue("-1") int index) throws IOException {
+        List<Map<String, Object>> servers = model.getServers();
 
         if (index < 0 || index >= servers.size()) {
             return null;
@@ -132,10 +120,7 @@ public class Serveletty {
     public Object list() {
         logger.info("Requested server list");
         try {
-            return dataBase.readAll(tableName);
-        } catch (SQLException e) {
-            logger.error("Could not query server table: " + e.getMessage());
-            return Collections.emptyList();
+            return model.getServers();
         } catch (IOException e) {
             logger.error("Could not connect to database", e);
             return Collections.emptyList();
@@ -150,7 +135,7 @@ public class Serveletty {
 
         logger.info("Requested addition: name: {}, address: {}, port:{}, owner:{}", name, address, port, owner);
 
-        Response response = tryAdd(name, address, port, owner, secret);
+        Result response = model.addServer(name, address, port, owner, secret);
 
         if (response.isSuccess()) {
             ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
@@ -172,29 +157,13 @@ public class Serveletty {
         }
     }
 
-    private Response tryAdd(String name, String address, int port, String owner, String secret) {
-
-        try {
-            Response response = verify(name, address, port, owner, secret);
-            if (!response.isSuccess()) {
-                return response;
-            } else {
-                dataBase.insert(tableName, name, address, port, owner);
-                return Response.success("Entry added!");
-            }
-        } catch (SQLException e) {
-            logger.error("Could not query server table: " + e.getMessage());
-            return Response.fail(e.getMessage());
-        }
-    }
-
     @POST
     @Path("remove")
     @Produces(MediaType.TEXT_HTML)
     public Viewable remove(@FormParam("name") String name, @FormParam("address") String address, @FormParam("port") int port,
             @FormParam("owner") String owner, @FormParam("secret") String secret) {
 
-        Response response = tryRemove(address, port, secret);
+        Result response = model.removeServer(address, port, secret);
         if (response.isSuccess()) {
             ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                     .put("items", list())
@@ -221,7 +190,7 @@ public class Serveletty {
     public Viewable update(@FormParam("name") String name, @FormParam("address") String address, @FormParam("port") int port,
             @FormParam("owner") String owner, @FormParam("secret") String secret) {
 
-        Response response = tryUpdate(name, address, port, owner, secret);
+        Result response = model.updateServer(name, address, port, owner, secret);
         if (response.isSuccess()) {
             ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                     .put("items", list())
@@ -239,84 +208,6 @@ public class Serveletty {
                     .put("version", Version.getVersion())
                     .build();
             return new Viewable("/edit.ftl", dataModel);
-        }
-    }
-
-    private Response tryRemove(String address, int port, String secret) {
-
-        if (address == null) {
-            return Response.fail("No address specified");
-        }
-
-        if (port == 0) {
-            return Response.fail("No port specified");
-        }
-
-        if (!editSecret.equals(secret)) {
-            return Response.fail("Invalid secret");
-        }
-
-        try {
-            if (dataBase.remove(tableName, address, port)) {
-                return Response.success("Entry removed!");
-            } else {
-                return Response.fail("Entry not found");
-            }
-        } catch (SQLException e) {
-            return Response.fail(e.getMessage());
-        }
-    }
-
-    private Response verify(String name, String address, int port, String owner, String secret) {
-        if (name == null) {
-            return Response.fail("No name specified");
-        }
-
-        if (name.length() < 3 || name.length() > 20) {
-            return Response.fail("Name length must be in [3..20]");
-        }
-
-        if (port < 1024 || port > 65535) {
-            return Response.fail("Port must be in [1024..65535]");
-        }
-
-        if (address == null || address.trim().isEmpty()) {
-            return Response.fail("No address specified");
-        }
-
-        if (owner == null || owner.isEmpty()) {
-            return Response.fail("No owner specified");
-        }
-
-        try {
-            InetAddress.getByName(address);
-        } catch (UnknownHostException e) {
-            logger.error("Could not resolve host: " + e.getMessage());
-            return Response.fail("Unknown host: " + address);
-        }
-
-        if (!editSecret.equals(secret)) {
-            return Response.fail("Invalid secret");
-        }
-
-        return Response.success("OK");
-    }
-
-    private Response tryUpdate(String name, String address, int port, String owner, String secret) {
-
-        Response response = verify(name, address, port, owner, secret);
-        if (!response.isSuccess()) {
-            return response;
-        }
-
-        try {
-            if (dataBase.update(tableName, name, address, port, owner)) {
-                return Response.success("Entry updated!");
-            } else {
-                return Response.fail("Entry not found");
-            }
-        } catch (SQLException e) {
-            return Response.fail(e.getMessage());
         }
     }
 }
