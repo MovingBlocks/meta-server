@@ -20,13 +20,25 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Type;
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.sql.SQLException;
 import java.util.List;
 
-import com.google.common.base.Joiner;
+import org.eclipse.jetty.server.Server;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Assume;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.terasology.web.DataBase;
+import org.terasology.web.JettyMain;
+import org.terasology.web.PostgresDatabase;
+import org.terasology.web.model.ServerListModel;
+import org.terasology.web.model.ServerListModelImpl;
+
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -36,13 +48,39 @@ import com.google.gson.GsonBuilder;
  *
  * @author Martin Steiger
  */
-public class Downloader {
+public class ServerJsonListTest {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
-    public static void main(String[] args) throws IOException, SQLException, InterruptedException {
+    private static final int PORT = 8082;
+    private static final String URL_BASE = "http://localhost:" + PORT;
 
-        URL url = new URL("http://master-server.herokuapp.com/servers/list");
+    private static Server server;
+
+    @BeforeClass
+    public static void setup() throws Exception {
+
+        Assume.assumeNotNull(System.getenv("DATABASE_URL"));
+
+        URI dbUri = new URI(System.getenv("DATABASE_URL"));
+
+        String secret = "edit";
+
+        DataBase dataBase = new PostgresDatabase(dbUri);
+
+        ServerListModel serverListModel = new ServerListModelImpl(dataBase, "servers", secret);
+
+        server = JettyMain.start(PORT, serverListModel);
+    }
+
+    @AfterClass
+    public static void shutdown() throws Exception {
+        server.stop();
+    }
+
+    @Test
+    public void testJson() throws MalformedURLException {
+        URL url = new URL(URL_BASE + "/servers/list");
         Charset cs = StandardCharsets.UTF_8;
 
         @SuppressWarnings("serial")
@@ -50,7 +88,7 @@ public class Downloader {
 
         try (Reader reader = new InputStreamReader(url.openStream(), cs)) {
             List<ServerEntry> list = GSON.fromJson(reader, entryListType);
-            System.out.println(Joiner.on("\n").join(list));
+            Assert.assertNotNull(list);
         } catch (IOException e) {
             e.printStackTrace();
         }

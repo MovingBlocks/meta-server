@@ -28,10 +28,13 @@ dependencies {
     compile 'com.google.guava:guava:18.0'
 
     compile 'org.postgresql:postgresql:9.4-1201-jdbc41'
-	
+
     compile 'com.squareup.retrofit:retrofit:1.9.0'
 
     compile 'org.slf4j:slf4j-api:1.7.12'
+
+    testCompile 'junit:junit:4.12'
+
     runtime group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.3'
 }
 

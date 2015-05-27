@@ -56,8 +56,16 @@ public final class JettyMain {
 
         String secret = System.getenv("EDIT_SECRET");
 
-        Server server = new Server(port.intValue());
         DataBase dataBase = new PostgresDatabase(dbUri);
+
+        ServerListModel serverListModel = new ServerListModelImpl(dataBase, "servers", secret);
+
+        Server server = start(port.intValue(), serverListModel);
+        server.join();
+    }
+
+    public static Server start(int port, ServerListModel serverListModel) throws Exception {
+        Server server = new Server(port);
 
         ResourceHandler logFileResourceHandler = new ResourceHandler();
         logFileResourceHandler.setDirectoriesListed(true);
@@ -72,8 +80,6 @@ public final class JettyMain {
 
         ContextHandler webContext = new ContextHandler("/");     // the server uri path
         webContext.setHandler(webResourceHandler);
-
-        ServerListModel serverListModel = new ServerListModelImpl(dataBase, "servers", secret);
 
         ResourceConfig rc = new ResourceConfig();
         rc.register(new GsonMessageBodyHandler());               // register JSON serializer
@@ -95,6 +101,6 @@ public final class JettyMain {
 
         logger.info("Server started on port {}!", port);
 
-        server.join();
+        return server;
     }
 }
