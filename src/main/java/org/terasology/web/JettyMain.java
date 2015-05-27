@@ -18,8 +18,6 @@ package org.terasology.web;
 
 import java.net.URI;
 
-import javax.sql.DataSource;
-
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
@@ -57,7 +55,7 @@ public final class JettyMain {
         String secret = System.getenv("EDIT_SECRET");
 
         Server server = new Server(port.intValue());
-        DataSource dataSource = Database.getDatabaseConnection(dbUri);
+        DataBase dataBase = new PostgresDatabase(dbUri);
 
         ResourceHandler logFileResourceHandler = new ResourceHandler();
         logFileResourceHandler.setDirectoriesListed(true);
@@ -76,7 +74,7 @@ public final class JettyMain {
         ResourceConfig rc = new ResourceConfig();
         rc.register(new GsonMessageBodyHandler());                   // register JSON serializer
         rc.register(FreemarkerMvcFeature.class);
-        rc.register(new Serveletty(dataSource, "servers", secret));  // register the actual servlet
+        rc.register(new Serveletty(dataBase, "servers", secret));    // register the actual servlet
 
         ServletContextHandler jerseyContext = new ServletContextHandler(ServletContextHandler.SESSIONS);
         jerseyContext.setContextPath("/servers");

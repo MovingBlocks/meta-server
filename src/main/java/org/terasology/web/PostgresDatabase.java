@@ -17,6 +17,7 @@
 package org.terasology.web;
 
 import java.io.IOException;
+import java.net.URI;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -26,8 +27,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.sql.DataSource;
-
+import org.postgresql.ds.PGSimpleDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.web.geo.GeoLocation;
@@ -39,19 +39,50 @@ import com.google.common.collect.Lists;
 /**
  * @author Martin Steiger
  */
-public class ServerTable {
+public final class PostgresDatabase implements DataBase {
 
-    private static final Logger logger = LoggerFactory.getLogger(ServerTable.class);
+    private static final Logger logger = LoggerFactory.getLogger(PostgresDatabase.class);
+
+    private final PGSimpleDataSource dataSource;
 
     /**
-     * Retrieves the contents of a table
-     * @param dataSource the database connection data source
-     * @param tableName the name of the table in the DB
-     * @return a list of rows
-     * @throws SQLException if the table query fails
-     * @throws IOException if the connection fails
+     * @param dbUri the database URI in the form <code>postgres://user:pass@url:port/database</code>.
      */
-    public static List<Map<String,Object>> readAll(DataSource dataSource, String tableName) throws SQLException, IOException {
+    public PostgresDatabase(URI dbUri) {
+
+        String username = dbUri.getUserInfo().split(":")[0];
+        String password = dbUri.getUserInfo().split(":")[1];
+        int port = dbUri.getPort();
+
+        String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ":" + port + dbUri.getPath();
+
+        dataSource = new PGSimpleDataSource();
+        dataSource.setReadOnly(true);
+        dataSource.setUrl(dbUrl);
+        dataSource.setUser(username);
+        dataSource.setPassword(password);
+        dataSource.setSslMode("require");
+    }
+
+    @Override
+    public boolean remove(String tableName, String address, int port) throws SQLException {
+        String escTableName = "\"" + tableName + "\"";
+
+        try (Connection conn = dataSource.getConnection()) {
+            try (Statement stmt = conn.createStatement()) {
+                String template = "DELETE FROM %s WHERE address='%s' AND port=%d;";
+                String cmd = String.format(template, escTableName, address, port);
+
+                int affected = stmt.executeUpdate(cmd);
+
+                // If everything went well, exactly 1 row should have been affected (=removed)
+                return (affected == 1);
+            }
+        }
+    }
+
+    @Override
+    public List<Map<String,Object>> readAll(String tableName) throws SQLException, IOException {
 
         try (Connection connection = dataSource.getConnection()) {
             try (Statement stmt = connection.createStatement()) {
@@ -76,42 +107,8 @@ public class ServerTable {
         }
     }
 
-    public static boolean update(DataSource dataSource, String tableName, String name, String address, int port, String owner) throws SQLException {
-        String escTableName = "\"" + tableName + "\"";
-
-        try (Connection conn = dataSource.getConnection()) {
-            try (Statement stmt = conn.createStatement()) {
-
-                String update;
-                GeoLocationService geoService = new GeoLocationServiceDbIp();
-                try {
-                    GeoLocation geoLoc = geoService.resolve(address);
-                    String country = geoLoc.getCountry();
-                    String stateProv = geoLoc.getStateOrProvince();
-                    String city = geoLoc.getCity();
-                    update = String.format("UPDATE %s "
-                            + "SET name = '%s', country = '%s', stateprov = '%s', city = '%s', owner = '%s' "
-                            + "WHERE address = '%s' AND port = '%d';",
-                            escTableName,
-                            name, country, stateProv, city, owner, address, port);
-
-                } catch (IOException e) {
-                    logger.error("Could not resolve geo-location for {}", address, e);
-
-                    update = String.format("UPDATE %s "
-                            + "SET name = '%s', owner = '%s' "
-                            + "WHERE address = '%s' AND port = '%d';",
-                            escTableName,
-                            name, owner, address, port);
-                }
-
-                int affected = stmt.executeUpdate(update);
-                return (affected == 1);
-            }
-        }
-    }
-
-    public static boolean insert(DataSource dataSource, String tableName, String name, String address, int port, String owner) throws SQLException {
+    @Override
+    public boolean insert(String tableName, String name, String address, int port, String owner) throws SQLException {
         String escTableName = "\"" + tableName + "\"";
 
         try (Connection conn = dataSource.getConnection()) {
@@ -161,27 +158,40 @@ public class ServerTable {
         }
     }
 
-    /**
-     * @param dataSource the DB connection source
-     * @param tableName the name of the DB table
-     * @param address the server address
-     * @param port the server port
-     * @return true if the entry was found and removed, false otherwise
-     * @throws SQLException if the table query fails
-     */
-    public static boolean remove(DataSource dataSource, String tableName, String address, int port) throws SQLException {
+    @Override
+    public boolean update(String tableName, String name, String address, int port, String owner) throws SQLException {
         String escTableName = "\"" + tableName + "\"";
 
         try (Connection conn = dataSource.getConnection()) {
             try (Statement stmt = conn.createStatement()) {
-                String template = "DELETE FROM %s WHERE address='%s' AND port=%d;";
-                String cmd = String.format(template, escTableName, address, port);
 
-                int affected = stmt.executeUpdate(cmd);
+                String update;
+                GeoLocationService geoService = new GeoLocationServiceDbIp();
+                try {
+                    GeoLocation geoLoc = geoService.resolve(address);
+                    String country = geoLoc.getCountry();
+                    String stateProv = geoLoc.getStateOrProvince();
+                    String city = geoLoc.getCity();
+                    update = String.format("UPDATE %s "
+                            + "SET name = '%s', country = '%s', stateprov = '%s', city = '%s', owner = '%s' "
+                            + "WHERE address = '%s' AND port = '%d';",
+                            escTableName,
+                            name, country, stateProv, city, owner, address, port);
 
-                // If everything went well, exactly 1 row should have been affected (=removed)
+                } catch (IOException e) {
+                    logger.error("Could not resolve geo-location for {}", address, e);
+
+                    update = String.format("UPDATE %s "
+                            + "SET name = '%s', owner = '%s' "
+                            + "WHERE address = '%s' AND port = '%d';",
+                            escTableName,
+                            name, owner, address, port);
+                }
+
+                int affected = stmt.executeUpdate(update);
                 return (affected == 1);
             }
         }
     }
+
 }

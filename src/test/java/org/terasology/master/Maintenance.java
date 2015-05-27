@@ -20,12 +20,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
 
-import javax.sql.DataSource;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.terasology.web.Database;
-import org.terasology.web.ServerTable;
+import org.terasology.web.DataBase;
+import org.terasology.web.PostgresDatabase;
 
 
 /**
@@ -34,11 +30,9 @@ import org.terasology.web.ServerTable;
  */
 public class Maintenance {
 
-    private static final Logger logger = LoggerFactory.getLogger(Maintenance.class);
-
     public static void main(String[] args) throws SQLException, URISyntaxException {
         URI dbUri = new URI(System.getenv("DATABASE_URL"));
-        DataSource source = Database.getDatabaseConnection(dbUri);
+        DataBase db = new PostgresDatabase(dbUri);
 
         String tableName = "servers";
 
@@ -46,7 +40,7 @@ public class Maintenance {
         String address = "terasology.tuffkidtek.com";
         int port = 25777;
 
-        ServerTable.insert(source, tableName, name, address, port, "minnesotags");
+        db.insert(tableName, name, address, port, "minnesotags");
     }
 }
 

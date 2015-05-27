@@ -51,18 +51,18 @@ public class Serveletty {
 
     private static final Logger logger = LoggerFactory.getLogger(Serveletty.class);
 
-    private final DataSource dataSource;
+    private final DataBase dataBase;
 
     private final String tableName;
 
     private final String editSecret;
 
-    public Serveletty(DataSource dataSource, String tableName, String editSecret) {
+    public Serveletty(DataBase dataSource, String tableName, String editSecret) {
         Preconditions.checkArgument(dataSource != null, "dataSource must not be null");
         Preconditions.checkArgument(tableName != null, "tableName must not be null");
         Preconditions.checkArgument(editSecret != null, "editSecret must not be null");
 
-        this.dataSource = dataSource;
+        this.dataBase = dataSource;
         this.tableName = tableName;
         this.editSecret = editSecret;
     }
@@ -98,7 +98,7 @@ public class Serveletty {
     @Path("edit")
     @Produces(MediaType.TEXT_HTML)
     public Viewable edit(@QueryParam("index") @DefaultValue("-1") int index) throws SQLException, IOException {
-        List<Map<String, Object>> servers = ServerTable.readAll(dataSource, tableName);
+        List<Map<String, Object>> servers = dataBase.readAll(tableName);
 
         if (index < 0 || index >= servers.size()) {
             return null;
@@ -138,7 +138,7 @@ public class Serveletty {
     public Object list() {
         logger.info("Requested server list");
         try {
-            return ServerTable.readAll(dataSource, tableName);
+            return dataBase.readAll(tableName);
         } catch (SQLException e) {
             logger.error("Could not query server table: " + e.getMessage());
             return Collections.emptyList();
@@ -185,7 +185,7 @@ public class Serveletty {
             if (!response.isSuccess()) {
                 return response;
             } else {
-                ServerTable.insert(dataSource, tableName, name, address, port, owner);
+                dataBase.insert(tableName, name, address, port, owner);
                 return Response.success("Entry added");
             }
         } catch (SQLException e) {
@@ -271,7 +271,7 @@ public class Serveletty {
         }
 
         try {
-            if (ServerTable.remove(dataSource, tableName, address, port)) {
+            if (dataBase.remove(tableName, address, port)) {
                 return Response.success("Entry removed");
             } else {
                 return Response.fail("Entry not found");
@@ -330,7 +330,7 @@ public class Serveletty {
         }
 
         try {
-            if (ServerTable.update(dataSource, tableName, name, address, port, owner)) {
+            if (dataBase.update(tableName, name, address, port, owner)) {
                 return Response.success("Entry removed");
             } else {
                 return Response.fail("Entry not found");
