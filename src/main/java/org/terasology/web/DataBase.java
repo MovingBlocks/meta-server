@@ -46,4 +46,6 @@ public interface DataBase {
     boolean insert(String tableName, String name, String address, int port, String owner) throws SQLException;
 
     boolean update(String tableName, String name, String address, int port, String owner) throws SQLException;
+
+    void createTable(String tableName) throws SQLException;
 }

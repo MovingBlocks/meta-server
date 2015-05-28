@@ -18,11 +18,10 @@ package org.terasology.web.model;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 public interface ServerListModel {
 
-    List<Map<String, Object>> getServers() throws IOException;
+    List<ServerEntry> getServers() throws IOException;
 
     Result addServer(String name, String address, int port, String owner, String secret);
 

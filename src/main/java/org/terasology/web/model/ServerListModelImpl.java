@@ -19,6 +19,7 @@ package org.terasology.web.model;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -47,13 +48,29 @@ public class ServerListModelImpl implements ServerListModel {
     }
 
     @Override
-    public List<Map<String, Object>> getServers() throws IOException {
+    public List<ServerEntry> getServers() throws IOException {
         try {
-            List<Map<String, Object>> servers = dataBase.readAll(tableName);
+            List<Map<String, Object>> data = dataBase.readAll(tableName);
+            List<ServerEntry> servers = new ArrayList<>(data.size());
+            for (Map<String, Object> entry : data) {
+                String address = entry.get("address").toString();
+                Number port = (Number) entry.get("port");
+                ServerEntry server = new ServerEntry(address, port.intValue());
+                server.setName(orNull(entry.get("name")));
+                server.setOwner(orNull(entry.get("owner")));
+                server.setCity(orNull(entry.get("city")));
+                server.setStateprov(orNull(entry.get("stateprov")));
+                server.setCountry(orNull(entry.get("country")));
+                servers.add(server);
+            }
             return servers;
         } catch (Exception e) {
             throw new IOException(e);
         }
+    }
+
+    private String orNull(Object obj) {
+        return (obj != null) ? obj.toString() : null;
     }
 
     @Override

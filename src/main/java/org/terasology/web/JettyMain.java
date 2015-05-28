@@ -17,6 +17,7 @@
 package org.terasology.web;
 
 import java.net.URI;
+import java.util.Properties;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandler;
@@ -27,6 +28,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.mvc.freemarker.FreemarkerMvcFeature;
 import org.glassfish.jersey.servlet.ServletContainer;
+import org.postgresql.PGProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.web.io.GsonMessageBodyHandler;
@@ -56,7 +58,17 @@ public final class JettyMain {
 
         String secret = System.getenv("EDIT_SECRET");
 
-        DataBase dataBase = new PostgresDatabase(dbUri);
+        String username = dbUri.getUserInfo().split(":")[0];
+        String password = dbUri.getUserInfo().split(":")[1];
+        int dbPort = dbUri.getPort();
+
+        String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ":" + dbPort + dbUri.getPath();
+
+        Properties props = new Properties();
+        props.setProperty(PGProperty.USER.getName(), username);
+        props.setProperty(PGProperty.PASSWORD.getName(), password);
+        props.setProperty(PGProperty.SSL_MODE.getName(), "require");
+        DataBase dataBase = new JooqDatabase(dbUrl, props);
 
         ServerListModel serverListModel = new ServerListModelImpl(dataBase, "servers", secret);
 

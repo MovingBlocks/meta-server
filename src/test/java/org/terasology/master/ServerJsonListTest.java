@@ -21,7 +21,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Type;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -30,12 +29,12 @@ import java.util.List;
 import org.eclipse.jetty.server.Server;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.terasology.web.DataBase;
 import org.terasology.web.JettyMain;
-import org.terasology.web.PostgresDatabase;
+import org.terasology.web.JooqDatabase;
+import org.terasology.web.model.ServerEntry;
 import org.terasology.web.model.ServerListModel;
 import org.terasology.web.model.ServerListModelImpl;
 
@@ -55,18 +54,16 @@ public class ServerJsonListTest {
     private static final int PORT = 8082;
     private static final String URL_BASE = "http://localhost:" + PORT;
 
+    private static final String DB_URL = "jdbc:h2:mem:test";
+
     private static Server server;
 
     @BeforeClass
     public static void setup() throws Exception {
 
-        Assume.assumeNotNull(System.getenv("DATABASE_URL"));
-
-        URI dbUri = new URI(System.getenv("DATABASE_URL"));
-
         String secret = "edit";
 
-        DataBase dataBase = new PostgresDatabase(dbUri);
+        DataBase dataBase = new JooqDatabase(DB_URL);
 
         ServerListModel serverListModel = new ServerListModelImpl(dataBase, "servers", secret);
 

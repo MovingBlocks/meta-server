@@ -19,8 +19,6 @@ package org.terasology.web;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -35,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.version.Version;
 import org.terasology.web.model.Result;
+import org.terasology.web.model.ServerEntry;
 import org.terasology.web.model.ServerListModel;
 
 import com.google.common.collect.ImmutableMap;
@@ -84,19 +83,19 @@ public class Serveletty {
     @Path("edit")
     @Produces(MediaType.TEXT_HTML)
     public Viewable edit(@QueryParam("index") @DefaultValue("-1") int index) throws IOException {
-        List<Map<String, Object>> servers = model.getServers();
+        List<ServerEntry> servers = model.getServers();
 
         if (index < 0 || index >= servers.size()) {
             return null;
         }
 
-        Map<String, Object> server = servers.get(index);
+        ServerEntry server = servers.get(index);
 
         ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
-                .put("name", server.get("name"))
-                .put("address", server.get("address"))
-                .put("port", server.get("port"))
-                .put("owner", server.get("owner"))
+                .put("name", server.getName())
+                .put("address", server.getAddress())
+                .put("port", server.getPort())
+                .put("owner", server.getOwner())
                 .put("version", Version.getVersion())
                 .build();
 

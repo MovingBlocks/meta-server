@@ -22,9 +22,12 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
 
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -49,21 +52,27 @@ public final class JooqDatabase implements DataBase {
 
     private static final Logger logger = LoggerFactory.getLogger(JooqDatabase.class);
     private final String dbUri;
+    private final Properties props;
 
 
     /**
      * @param dbUri the database URI in the form <code>jdbc:mysql://server/db?user=[user]&password=[pass]</code>.
      */
     public JooqDatabase(String dbUri) {
-        this.dbUri = dbUri;
+        this(dbUri, new Properties());
+    }
 
-        logger.info("SQL dialect detected: {}", DSL.using(dbUri).configuration().dialect());
+    public JooqDatabase(String dbUri, Properties props) {
+        this.dbUri = dbUri;
+        this.props = props;
+
+        logger.info("SQL dialect detected: {}", DSL.using(dbUri, props).configuration().dialect());
     }
 
     @Override
     public boolean remove(String tableName, String address, int port) throws SQLException {
 
-        try (Connection conn = DriverManager.getConnection(dbUri)) {
+        try (Connection conn = DriverManager.getConnection(dbUri, props)) {
             DSLContext context = DSL.using(conn);
             Table<Record> table = DSL.table(DSL.name(tableName));
 
@@ -82,7 +91,7 @@ public final class JooqDatabase implements DataBase {
     @Override
     public List<Map<String, Object>> readAll(String tableName) throws SQLException {
 
-        try (Connection conn = DriverManager.getConnection(dbUri)) {
+        try (Connection conn = DriverManager.getConnection(dbUri, props)) {
             DSLContext context = DSL.using(conn);
             Table<Record> table = DSL.table(DSL.name(tableName));
 
@@ -103,15 +112,48 @@ public final class JooqDatabase implements DataBase {
     }
 
     @Override
-    public boolean insert(String tableName, String name, String address, int port, String owner) throws SQLException {
-
-        try (Connection conn = DriverManager.getConnection(dbUri)) {
+    public void createTable(String tableName) throws SQLException {
+        try (Connection conn = DriverManager.getConnection(dbUri, props)) {
             DSLContext context = DSL.using(conn);
             Table<?> table = tableExists(context, tableName);
             if (table == null) {
                 table = DSL.table(DSL.name(tableName));
                 createTable(context, table);
             }
+        }
+    }
+
+    private boolean insert(String tableName, Map<String, Object> data) throws SQLException {
+        if (data.isEmpty()) {
+            return true;
+        }
+
+        try (Connection conn = DriverManager.getConnection(dbUri, props)) {
+            DSLContext context = DSL.using(conn);
+            Table<?> table = DSL.table(DSL.name(tableName));
+
+            Iterator<Entry<String, Object>> it = data.entrySet().iterator();
+            Entry<String, Object> first = it.next();
+            InsertSetMoreStep<?> statement = context.insertInto(table)
+                    .set(DSL.field(DSL.name(first.getKey())), first.getValue());
+
+            while (it.hasNext()) {
+                Entry<String, Object> entry = it.next();
+                statement.set(DSL.field(DSL.name(entry.getKey())), entry.getValue());
+            }
+
+            int affected = statement.execute();
+            logger.info("Complete - {} rows affected", affected);
+            return (affected == 1);
+        }
+    }
+
+    @Override
+    public boolean insert(String tableName, String name, String address, int port, String owner) throws SQLException {
+
+        try (Connection conn = DriverManager.getConnection(dbUri, props)) {
+            DSLContext context = DSL.using(conn);
+            Table<?> table = DSL.table(DSL.name(tableName));
 
             InsertSetMoreStep<?> statement = context.insertInto(table)
                 .set(DSL.field(DSL.name("name")), name)
@@ -177,7 +219,7 @@ public final class JooqDatabase implements DataBase {
     @Override
     public boolean update(String tableName, String name, String address, int port, String owner) throws SQLException {
 
-        try (Connection conn = DriverManager.getConnection(dbUri)) {
+        try (Connection conn = DriverManager.getConnection(dbUri, props)) {
             DSLContext context = DSL.using(conn);
             Table<Record> table = DSL.table(DSL.name(tableName));
 
