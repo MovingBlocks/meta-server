@@ -82,7 +82,7 @@ public final class PostgresDatabase implements DataBase {
     }
 
     @Override
-    public List<Map<String, Object>> readAll(String tableName) throws SQLException, IOException {
+    public List<Map<String, Object>> readAll(String tableName) throws SQLException {
 
         try (Connection connection = dataSource.getConnection()) {
             try (Statement stmt = connection.createStatement()) {

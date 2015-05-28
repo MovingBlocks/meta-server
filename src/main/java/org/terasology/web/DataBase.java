@@ -16,7 +16,6 @@
 
 package org.terasology.web;
 
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +41,7 @@ public interface DataBase {
      * @throws SQLException if the table query fails
      * @throws IOException if the connection fails
      */
-    List<Map<String, Object>> readAll(String tableName) throws SQLException, IOException;
+    List<Map<String, Object>> readAll(String tableName) throws SQLException;
 
     boolean insert(String tableName, String name, String address, int port, String owner) throws SQLException;
 

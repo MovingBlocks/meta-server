@@ -19,7 +19,6 @@ package org.terasology.web.model;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -52,7 +51,7 @@ public class ServerListModelImpl implements ServerListModel {
         try {
             List<Map<String, Object>> servers = dataBase.readAll(tableName);
             return servers;
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new IOException(e);
         }
     }
@@ -68,8 +67,8 @@ public class ServerListModelImpl implements ServerListModel {
                 dataBase.insert(tableName, name, address, port, owner);
                 return Result.success("Entry added!");
             }
-        } catch (SQLException e) {
-            logger.error("Could not query server table: " + e.getMessage());
+        } catch (Exception e) {
+            logger.error("Could not insert entry into server table: " + e.getMessage());
             return Result.fail(e.getMessage());
         }
     }
@@ -95,7 +94,7 @@ public class ServerListModelImpl implements ServerListModel {
             } else {
                 return Result.fail("Entry not found");
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             return Result.fail(e.getMessage());
         }
     }
@@ -114,7 +113,7 @@ public class ServerListModelImpl implements ServerListModel {
             } else {
                 return Result.fail("Entry not found");
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             return Result.fail(e.getMessage());
         }
     }

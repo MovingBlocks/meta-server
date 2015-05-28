@@ -22,5 +22,6 @@
     </root>
     
     <logger name="org.eclipse.jetty" level="INFO" />
+    <logger name="org.jooq" level="INFO" />
 
 </configuration>
