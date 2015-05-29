@@ -34,9 +34,11 @@ dependencies {
 
     compile 'org.slf4j:slf4j-api:1.7.12'
 
+//    compile 'org.kohsuke:github-api:1.68'
+
+    testCompile 'org.jsoup:jsoup:1.7.2'
     testCompile 'junit:junit:4.12'
     testCompile 'com.h2database:h2:1.4.187'
-
 
     runtime group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.3'
 }

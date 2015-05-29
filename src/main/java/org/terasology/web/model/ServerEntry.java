@@ -16,6 +16,8 @@
 
 package org.terasology.web.model;
 
+import java.util.Objects;
+
 /**
  * @author Martin Steiger
  */
@@ -90,4 +92,32 @@ public class ServerEntry {
     public String toString() {
         return "ServerEntry [name=" + name + ", address=" + address + ", port=" + port + ", owner=" + owner + "]";
     }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, address, port, owner, country, stateprov, city);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        ServerEntry other = (ServerEntry) obj;
+
+        return Objects.equals(address, other.address)
+            && Objects.equals(port, other.port)
+            && Objects.equals(name, other.name)
+            && Objects.equals(owner, other.owner)
+            && Objects.equals(city, other.city)
+            && Objects.equals(stateprov, other.stateprov)
+            && Objects.equals(country, other.country);
+    }
+
 }

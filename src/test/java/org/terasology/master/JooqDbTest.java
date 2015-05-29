@@ -24,7 +24,8 @@ import org.terasology.web.JooqDatabase;
 
 public class JooqDbTest {
 
-    private static final String DB_URL = "jdbc:h2:mem:test";
+    // Keep the content of an in-memory database as long as the virtual machine is alive
+    private static final String DB_URL = "jdbc:h2:mem:dbtest;DB_CLOSE_DELAY=-1";
 
     @Test
     public void testConnection() throws Exception {
