@@ -14,8 +14,8 @@
       <div class="alert alert-success" role="alert">${message}</div>
 </#if>
 
-      <div class="server-list">
-        <table class="table table-striped table-hover unselectable" id="playlist">
+      <div>
+        <table class="table table-striped table-hover unselectable" id="server-list">
 
             <thead>
                 <tr>
@@ -30,17 +30,17 @@
             <tbody>
 <#list items as item>
                 <tr class="entry">
-                    <td>${item.name}</td>
-                    <td>${item.address}</td>
-                    <td>${item.port?c}</td>
-                    <td>${item.owner}</td>
-                    <td>
+                    <td class="server-name" >${item.name}</td>
+                    <td class="server-address">${item.address}</td>
+                    <td class="server-port">${item.port?c}</td>
+                    <td class="server-owner">${item.owner}</td>
+                    <td class="server-location">
                     <#if item.country??>
                         <img src="/img/flags/${item.country?lower_case}.png" title="${item.country}"/>
                     </#if>
                     ${item.city!}
                     </td>
-                    <td align="center" title="Edit/Remove">
+                    <td class="edit-remove" title="Edit/Remove">
                       <a href="edit?index=${item_index}">
                         <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
                       </a>

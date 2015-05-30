@@ -12,10 +12,9 @@
     <root level="DEBUG">
         <appender-ref ref="CONSOLE"/>
     </root>
-    
+
     <logger name="org.eclipse.jetty" level="INFO" />
     <logger name="org.jooq" level="INFO" />
     <logger name="org.jooq.Constants" level="WARN" />
-    <logger name="org.jooq.tools.LoggerListener" level="DEBUG" />
 
 </configuration>

@@ -15,4 +15,7 @@
     <!-- Custom styles for this template -->
     <link href="/css/jumbotron-narrow.css" rel="stylesheet">
 
+    <!-- Even more custom styles -->
+    <link href="/css/custom.css" rel="stylesheet">
+
   </head>

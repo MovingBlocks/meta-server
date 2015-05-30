@@ -20,6 +20,7 @@ import java.io.IOException;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -28,7 +29,7 @@ import org.junit.Test;
  *
  * @author Martin Steiger
  */
-public class ServerShowListTest extends WebServerBasedTests {
+public class ServerHtmlContentTest extends WebServerBasedTests {
 
     @Test
     public void testShowHtml() throws IOException {
@@ -36,8 +37,13 @@ public class ServerShowListTest extends WebServerBasedTests {
 
         Document doc = Jsoup.connect(url).get();
 
-        Assert.assertNotNull(doc);
-//        System.out.println(doc);
-//        doc.getElementById(id)
+        Element table = doc.getElementById("server-list");
+        Assert.assertTrue(table.nodeName().equals("table"));
+        Element tableBody = table.select("tbody").first();
+        Element firstRow = tableBody.select("tr").first();
+        Assert.assertEquals(firstEntry.getName(), firstRow.getElementsByClass("server-name").first().text());
+        Assert.assertEquals(firstEntry.getOwner(), firstRow.getElementsByClass("server-owner").first().text());
+        Assert.assertEquals("" + firstEntry.getPort(), firstRow.getElementsByClass("server-port").first().text());
+        Assert.assertEquals(firstEntry.getAddress(), firstRow.getElementsByClass("server-address").first().text());
     }
 }

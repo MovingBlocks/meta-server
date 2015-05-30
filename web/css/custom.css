@@ -1,0 +1,5 @@
+
+/* Center text of td elements with ID editremove */
+td.edit-remove {
+  text-align: center;
+}
