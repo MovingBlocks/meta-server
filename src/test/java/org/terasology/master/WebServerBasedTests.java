@@ -16,6 +16,10 @@
 
 package org.terasology.master;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.eclipse.jetty.server.Server;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -30,24 +34,29 @@ public abstract class WebServerBasedTests {
 
     protected static final int PORT = 8082;
     protected static final String URL_BASE = "http://localhost:" + PORT;
-    // Keep the content of an in-memory database as long as the virtual machine is alive
-    protected static final String DB_URL = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1";
     protected static final String SERVER_TABLE = "servers";
     protected static ServerEntry firstEntry;
 
     private static DataBase dataBase;
-    private static Server server;
+    private static Server webServer;
+    private static Connection dummyConn;
+    private static AtomicInteger atomCount = new AtomicInteger();
 
     @BeforeClass
     public static void setup() throws Exception {
 
         String secret = "edit";
 
-        dataBase = new JooqDatabase(DB_URL);
+        // make a unique database for each testing class
+        String dbUri = "jdbc:h2:mem:test_" + atomCount.getAndIncrement();
+
+        // Open a dummy connection to the in-memory database to keep it alive
+        dummyConn = DriverManager.getConnection(dbUri);
+        dataBase = new JooqDatabase(dbUri);
 
         ServerListModel serverListModel = new ServerListModelImpl(dataBase, SERVER_TABLE, secret);
 
-        server = JettyMain.start(PORT, serverListModel);
+        webServer = JettyMain.start(PORT, serverListModel);
 
         dataBase.createTable(SERVER_TABLE);
 
@@ -59,6 +68,7 @@ public abstract class WebServerBasedTests {
 
     @AfterClass
     public static void shutdown() throws Exception {
-        server.stop();
+        webServer.stop();
+        dummyConn.close();
     }
 }

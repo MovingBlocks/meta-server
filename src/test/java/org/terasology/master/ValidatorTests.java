@@ -43,10 +43,13 @@ public class ValidatorTests extends WebServerBasedTests {
             String text = CharStreams.toString(inr);
             ValidationResponse response = new ValidatorBuilder().html().validate(text);
             if (!response.valid()) {
-                for (Defect error : response.errors()) {
-                    System.err.println(error.toString());
+                for (Defect error : response.warnings()) {
+                    System.err.println("WARNING: " + error.toString());
                 }
-                Assert.fail();
+                for (Defect error : response.errors()) {
+                    System.err.println("ERROR: " + error.toString());
+                }
+                Assert.fail(response.errors().toString());
             }
         }
     }
