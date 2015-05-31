@@ -20,7 +20,7 @@ import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.terasology.web.JooqDatabase;
+import org.terasology.web.db.JooqDatabase;
 
 public class JooqDbTest {
 

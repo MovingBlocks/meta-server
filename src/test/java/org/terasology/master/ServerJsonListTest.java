@@ -29,6 +29,7 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 import org.terasology.web.model.ServerEntry;
+
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

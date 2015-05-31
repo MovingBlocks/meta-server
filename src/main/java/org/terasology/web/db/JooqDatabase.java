@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.terasology.web;
+package org.terasology.web.db;
 
 import java.io.IOException;
 import java.sql.Connection;

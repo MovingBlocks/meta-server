@@ -7,7 +7,7 @@
     <meta name="author" content="">
     <!--link rel="icon" href="http://getbootstrap.com/favicon.ico"-->
 
-    <title>Terasology Master Server</title>
+    <title>Terasology Web Server</title>
 
     <!-- Bootstrap core CSS -->
     <link href="/css/bootstrap.min.css" rel="stylesheet">

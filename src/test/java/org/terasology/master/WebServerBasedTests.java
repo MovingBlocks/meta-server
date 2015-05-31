@@ -23,9 +23,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.eclipse.jetty.server.Server;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.terasology.web.DataBase;
 import org.terasology.web.JettyMain;
-import org.terasology.web.JooqDatabase;
+import org.terasology.web.db.DataBase;
+import org.terasology.web.db.JooqDatabase;
+import org.terasology.web.model.ModuleListModel;
+import org.terasology.web.model.ModuleListModelImpl;
 import org.terasology.web.model.ServerEntry;
 import org.terasology.web.model.ServerListModel;
 import org.terasology.web.model.ServerListModelImpl;
@@ -55,8 +57,9 @@ public abstract class WebServerBasedTests {
         dataBase = new JooqDatabase(dbUri);
 
         ServerListModel serverListModel = new ServerListModelImpl(dataBase, SERVER_TABLE, secret);
+        ModuleListModel moduleListModel = new ModuleListModelImpl();
 
-        webServer = JettyMain.start(PORT, serverListModel);
+        webServer = JettyMain.start(PORT, serverListModel, moduleListModel);
 
         dataBase.createTable(SERVER_TABLE);
 

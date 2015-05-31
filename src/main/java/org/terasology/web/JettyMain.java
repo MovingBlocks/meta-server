@@ -31,9 +31,16 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.postgresql.PGProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.terasology.web.db.DataBase;
+import org.terasology.web.db.JooqDatabase;
 import org.terasology.web.io.GsonMessageBodyHandler;
+import org.terasology.web.model.ModuleListModel;
+import org.terasology.web.model.ModuleListModelImpl;
 import org.terasology.web.model.ServerListModel;
 import org.terasology.web.model.ServerListModelImpl;
+import org.terasology.web.servlet.AboutServlet;
+import org.terasology.web.servlet.ModuleServlet;
+import org.terasology.web.servlet.ServerServlet;
 
 
 /**
@@ -71,12 +78,13 @@ public final class JettyMain {
         DataBase dataBase = new JooqDatabase(dbUrl, props);
 
         ServerListModel serverListModel = new ServerListModelImpl(dataBase, "servers", secret);
+        ModuleListModel moduleListModel = new ModuleListModelImpl();
 
-        Server server = start(port.intValue(), serverListModel);
+        Server server = start(port.intValue(), serverListModel, moduleListModel);
         server.join();
     }
 
-    public static Server start(int port, ServerListModel serverListModel) throws Exception {
+    public static Server start(int port, ServerListModel serverListModel, ModuleListModel moduleListModel) throws Exception {
         Server server = new Server(port);
 
         ResourceHandler logFileResourceHandler = new ResourceHandler();
@@ -96,10 +104,12 @@ public final class JettyMain {
         ResourceConfig rc = new ResourceConfig();
         rc.register(new GsonMessageBodyHandler());               // register JSON serializer
         rc.register(FreemarkerMvcFeature.class);
-        rc.register(new Serveletty(serverListModel));                // register the actual servlet
+        rc.register(new AboutServlet());
+        rc.register(new ServerServlet(serverListModel));         // register the server list servlet
+        rc.register(new ModuleServlet(moduleListModel));         // register the module list servlet
 
         ServletContextHandler jerseyContext = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        jerseyContext.setContextPath("/servers");
+        jerseyContext.setContextPath("/");
         jerseyContext.setResourceBase("templates");
         jerseyContext.addServlet(new ServletHolder(new ServletContainer(rc)), "/*");
 

@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.terasology.web;
+package org.terasology.web.servlet;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -41,14 +42,14 @@ import com.google.common.collect.ImmutableMap;
 /**
  * @author Martin Steiger
  */
-@Path("/")
-public class Serveletty {
+@Path("/servers/")
+public class ServerServlet {
 
-    private static final Logger logger = LoggerFactory.getLogger(Serveletty.class);
+    private static final Logger logger = LoggerFactory.getLogger(ServerServlet.class);
 
     private ServerListModel model;
 
-    public Serveletty(ServerListModel model) {
+    public ServerServlet(ServerListModel model) {
         this.model = model;
     }
 
@@ -100,17 +101,6 @@ public class Serveletty {
                 .build();
 
         return new Viewable("/edit.ftl", dataModel);
-    }
-
-    @GET
-    @Path("about")
-    @Produces(MediaType.TEXT_HTML)
-    public Viewable about() {
-        logger.info("Requested about as HTML");
-        ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
-                .put("version", Version.getVersion())
-                .build();
-        return new Viewable("/about.ftl", dataModel);
     }
 
     @GET
