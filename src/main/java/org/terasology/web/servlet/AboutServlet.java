@@ -37,7 +37,7 @@ public class AboutServlet {
     private static final Logger logger = LoggerFactory.getLogger(AboutServlet.class);
 
     @GET
-    @Path("about")
+    @Path("home")
     @Produces(MediaType.TEXT_HTML)
     public Viewable about() {
         logger.info("Requested about as HTML");

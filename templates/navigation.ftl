@@ -12,7 +12,7 @@
             </li>
             <li role="presentation"
                 <#if tab == "about">class="active"</#if>
-                ><a href="/about">About</a>
+                ><a href="/home"><span class="glyphicon glyphicon-home" aria-hidden="true" title="Home"></span></a>
             </li>
           </ul>
         </nav>
