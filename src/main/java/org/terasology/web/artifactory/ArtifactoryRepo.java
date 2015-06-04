@@ -28,6 +28,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.io.Files;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -39,17 +42,22 @@ import com.google.gson.reflect.TypeToken;
  */
 public class ArtifactoryRepo {
 
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final Logger logger = LoggerFactory.getLogger(ArtifactoryRepo.class);
+
+    private static final Gson GSON = new GsonBuilder()
+            .setPrettyPrinting() // "2014-11-10T00:57:29.124-05:00"
+//            .setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+            .create();
 
     private final File cacheFile;
-    private final List<ArtifactoryItem> artifactInfo;
+    private final List<ModuleInfo> artifactInfo;
 
     public ArtifactoryRepo(String uri, String repo, Path cacheFolder) throws IOException {
         cacheFile = cacheFolder.resolve(repo + "_cache.json").toFile();
 
         if (cacheFile.exists()) {
             try (Reader reader = Files.newReader(cacheFile, StandardCharsets.UTF_8)) {
-                Type listType = new TypeToken<List<ArtifactoryItem>>() { }.getType();
+                Type listType = new TypeToken<List<ArtifactoryModuleInfo>>() { }.getType();
                 artifactInfo = GSON.fromJson(reader, listType);
                 return;
             }
@@ -75,7 +83,8 @@ public class ArtifactoryRepo {
                             if (matches(child3.uri)) {
                                 String artifactUrl = versionUrl + child3.uri;
                                 ArtifactoryItem artifact = readFolder(artifactUrl);
-                                artifactInfo.add(artifact);
+                                artifactInfo.add(new ArtifactoryModuleInfo(artifact));
+                                logger.debug("Added " + artifactUrl);
                             }
                         }
                     }
@@ -83,13 +92,12 @@ public class ArtifactoryRepo {
             }
         }
 
-        cacheFolder.toFile().mkdirs();
         try (Writer writer = Files.newWriter(cacheFile, StandardCharsets.UTF_8)) {
             GSON.toJson(artifactInfo, writer);
         }
     }
 
-    public List<ArtifactoryItem> getModules() {
+    public List<ModuleInfo> getModules() {
         return artifactInfo;
     }
 

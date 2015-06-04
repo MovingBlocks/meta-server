@@ -16,25 +16,24 @@
 
 package org.terasology.web.artifactory;
 
+import java.net.URL;
 import java.util.List;
 
-public class ArtifactoryItem {
+class ArtifactoryItem {
     String repo;                  // "terasology-release-local",
     String path;                  // "/org",
     String created;               // "2014-11-10T00:57:29.124-05:00",
     String createdBy;             // "gooey",
     String lastModified;          // "2014-11-10T00:57:29.124-05:00",
     String modifiedBy;            // "gooey",
-    String lastUpdated;           // "2014-11-10T00:57:29.124-05:00",
+    String lastUpdated;             // "2014-11-10T00:57:29.124-05:00",
     List<Entry> children;
     String uri;                   // "http://artifactory.terasology.org/artifactory/api/storage/terasology-release-local/org"
-    public String downloadUri;           // "http://a.t.o/a/t-s-l/o/t/m/BlockPicker/0.1.0-SNAPSHOT/BP-0.1.0-20150124.022632-3.jar",
+    URL downloadUri;              // "http://a.t.o/a/t-s-l/o/t/m/BlockPicker/0.1.0-SNAPSHOT/BP-0.1.0-20150124.022632-3.jar",
     String mimeType;              // "application/java-archive",
     int size;                     // "14063",
 
-
-
-    public static class Entry {
+    static class Entry {
           String uri; // : "/terasology",
           boolean folder;
     }

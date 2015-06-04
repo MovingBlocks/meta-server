@@ -19,8 +19,8 @@
 
             <thead>
                 <tr>
-                    <th class="name header">Name</th>
-                    <th class="name header">Version</th>
+                    <th style="width:50%" class="name header">Name</th>
+                    <th style="width:50%" class="name header">Version</th>
                 </tr>
             </thead>
             <tbody>
@@ -30,7 +30,7 @@
                     <td class="module-version">
 
     <#list items[key] as artifact>
-                      <a href="${artifact.uri}">${artifact.artifact}</a><br>
+                      <a href="${key}/${artifact}">${artifact}</a> 
     </#list>
 
                     </td>

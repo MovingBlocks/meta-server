@@ -18,7 +18,10 @@ package org.terasology.web.servlet;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -28,10 +31,12 @@ import javax.ws.rs.core.MediaType;
 import org.glassfish.jersey.server.mvc.Viewable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.terasology.module.ModuleMetadata;
+import org.terasology.naming.Name;
 import org.terasology.version.Version;
-import org.terasology.web.artifactory.ModuleInfo;
 import org.terasology.web.model.ModuleListModel;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
@@ -56,21 +61,16 @@ public class ModuleServlet {
     @Path("list")
     @Produces(MediaType.APPLICATION_JSON)
     public Object list() {
-        logger.info("Requested server list");
-        try {
-            // ArrayListMultimap.create();
-            Multimap<String, ModuleInfo> map = TreeMultimap.create();
+        logger.info("Requested module list");
 
-            List<ModuleInfo> mods = model.findModules();
-            for (ModuleInfo mod : mods) {
-                map.put(mod.getModule(), mod);
-            }
-
-            return map.asMap();
-        } catch (IOException e) {
-            logger.error("Could not connect to database", e);
-            return Collections.emptyList();
+        Set<Name> names = model.findModules();
+        // the key needs to be string, so that FreeMarker can use it for lookups
+        Multimap<String, org.terasology.naming.Version> map = TreeMultimap.create();
+        for (Name name : names) {
+            map.putAll(name.toString(), model.findVersions(name));
         }
+
+        return map.asMap();
     }
 
     @GET

@@ -18,8 +18,11 @@ package org.terasology.web.model;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
-import org.terasology.web.artifactory.ModuleInfo;
+import org.terasology.module.ModuleMetadata;
+import org.terasology.naming.Name;
+import org.terasology.naming.Version;
 
 /**
  * Provides a list of modules.
@@ -30,6 +33,10 @@ public interface ModuleListModel {
      * @return
      * @throws IOException
      */
-    List<ModuleInfo> findModules() throws IOException;
+    Set<Name> findModules();
+
+    Set<Version> findVersions(Name module);
+
+    ModuleMetadata findMetadata(Name module, Version version);
 
 }

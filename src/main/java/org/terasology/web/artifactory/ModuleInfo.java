@@ -16,50 +16,18 @@
 
 package org.terasology.web.artifactory;
 
+import java.net.URL;
+
 /**
- * Describes a module based on its URL in Artifactory.
+ * Describes a module.
  */
-public class ModuleInfo implements Comparable<ModuleInfo> {
-    private final String uri;
-    private final String version;
-    private final String artifact;
-    private final String module;
+public interface ModuleInfo extends Comparable<ModuleInfo> {
 
-    public ModuleInfo(String moduleName, String versionName, String artifactName, String downloadUri) {
-        this.module = moduleName;
-        this.version = versionName;
-        this.artifact = artifactName;
-        this.uri = downloadUri;
-    }
+    URL getDownloadUrl();
 
-    public ModuleInfo(String uri) {
-        String[] parts = uri.split("/");
-        int count = parts.length;
-        artifact = parts[count - 1];
-        version = parts[count - 2];
-        module = parts[count - 3];
+    String getArtifact();
 
-        this.uri = uri;
-    }
+    String getLastUpdated();
 
-    public String getUri() {
-        return uri;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public String getArtifact() {
-        return artifact;
-    }
-
-    public String getModule() {
-        return module;
-    }
-
-    @Override
-    public int compareTo(ModuleInfo o) {
-        return String.CASE_INSENSITIVE_ORDER.compare(version, o.version);
-    }
+    long getFileSize();
 }
