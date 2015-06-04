@@ -14,33 +14,36 @@
  * limitations under the License.
  */
 
-package org.terasology.web.model;
+package org.terasology.web.artifactory;
 
 /**
  * Describes a module based on its URL in Artifactory.
  */
 public class ModuleInfo implements Comparable<ModuleInfo> {
     private final String uri;
-    private String filename;
-    private String version;
-    private String artifact;
+    private final String version;
+    private final String artifact;
+    private final String module;
+
+    public ModuleInfo(String moduleName, String versionName, String artifactName, String downloadUri) {
+        this.module = moduleName;
+        this.version = versionName;
+        this.artifact = artifactName;
+        this.uri = downloadUri;
+    }
 
     public ModuleInfo(String uri) {
         String[] parts = uri.split("/");
         int count = parts.length;
-        filename = parts[count - 1];
+        artifact = parts[count - 1];
         version = parts[count - 2];
-        artifact = parts[count - 3];
+        module = parts[count - 3];
 
         this.uri = uri;
     }
 
     public String getUri() {
         return uri;
-    }
-
-    public String getFilename() {
-        return filename;
     }
 
     public String getVersion() {
@@ -51,8 +54,12 @@ public class ModuleInfo implements Comparable<ModuleInfo> {
         return artifact;
     }
 
+    public String getModule() {
+        return module;
+    }
+
     @Override
     public int compareTo(ModuleInfo o) {
-        return String.CASE_INSENSITIVE_ORDER.compare(getFilename(), o.getFilename());
+        return String.CASE_INSENSITIVE_ORDER.compare(version, o.version);
     }
 }

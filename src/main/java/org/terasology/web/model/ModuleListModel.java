@@ -19,6 +19,8 @@ package org.terasology.web.model;
 import java.io.IOException;
 import java.util.List;
 
+import org.terasology.web.artifactory.ModuleInfo;
+
 /**
  * Provides a list of modules.
  */

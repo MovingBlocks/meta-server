@@ -13,6 +13,9 @@ mainClassName = "org.terasology.web.JettyMain"
 group = 'org.terasology.web'
 
 repositories {
+    maven {
+        url "http://artifactory.terasology.org/artifactory/virtual-repo-live"
+    }
     mavenCentral()
 }
 
@@ -32,6 +35,8 @@ dependencies {
     compile 'com.squareup.retrofit:retrofit:1.9.0'
 
     compile 'org.slf4j:slf4j-api:1.7.12'
+	
+    compile 'org.terasology:gestalt-module:2.3.0-RC1'
 
     testCompile 'org.jsoup:jsoup:1.8.2'
     testCompile 'com.jcabi:jcabi-w3c:1.2'

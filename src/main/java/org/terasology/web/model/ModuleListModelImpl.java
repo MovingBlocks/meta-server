@@ -17,55 +17,41 @@
 package org.terasology.web.model;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
+import java.nio.file.Paths;
+import java.util.AbstractList;
 import java.util.List;
 
-import org.terasology.web.model.ModuleListModelImpl.SearchResult.Entry;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import org.terasology.web.artifactory.ArtifactoryItem;
+import org.terasology.web.artifactory.ArtifactoryRepo;
+import org.terasology.web.artifactory.ModuleInfo;
 
 /**
  * Provides a list of modules.
  */
 public class ModuleListModelImpl implements ModuleListModel {
 
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private ArtifactoryRepo a;
+
+    public ModuleListModelImpl() throws IOException {
+        String host = "http://artifactory.terasology.org/artifactory";
+        a = new ArtifactoryRepo(host, "terasology-snapshot-local", Paths.get("cache").normalize());
+    }
 
     @Override
     public List<ModuleInfo> findModules() throws IOException {
-        URL url = new URL("http://artifactory.terasology.org/artifactory/api/search/gavc" +
-                "?g=org.terasology.modules&repos=terasology-release-local,terasology-snapshot-local");
+        return new AbstractList<ModuleInfo>() {
 
-        Charset cs = StandardCharsets.UTF_8;
-        List<ModuleInfo> uris = new ArrayList<>();
-        try (Reader reader = new InputStreamReader(url.openStream(), cs)) {
-            SearchResult result = GSON.fromJson(reader, SearchResult.class);
-            for (Entry entry : result.results) {
-                String uri = entry.uri;
-                if (uri.endsWith(".jar")) {
-                    if (!uri.endsWith("-sources.jar") && !uri.endsWith("-javadoc.jar")) {
-                        String dlUri = uri.replace("/api/storage", "");
-                        ModuleInfo mod = new ModuleInfo(dlUri);
-                        uris.add(mod);
-                    }
-                }
+            @Override
+            public ModuleInfo get(int index) {
+                ArtifactoryItem artifactoryItem = a.getModules().get(index);
+                return new ModuleInfo(artifactoryItem.downloadUri);
             }
-        }
 
-        return uris;
+            @Override
+            public int size() {
+                return a.getModules().size();
+            }
+        };
     }
 
-    class SearchResult {
-        List<Entry> results;
-
-        class Entry {
-            String uri;
-        }
-    }
 }

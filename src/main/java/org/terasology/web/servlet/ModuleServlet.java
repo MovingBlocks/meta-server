@@ -29,7 +29,7 @@ import org.glassfish.jersey.server.mvc.Viewable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.version.Version;
-import org.terasology.web.model.ModuleInfo;
+import org.terasology.web.artifactory.ModuleInfo;
 import org.terasology.web.model.ModuleListModel;
 
 import com.google.common.collect.ImmutableMap;
@@ -63,7 +63,7 @@ public class ModuleServlet {
 
             List<ModuleInfo> mods = model.findModules();
             for (ModuleInfo mod : mods) {
-                map.put(mod.getArtifact(), mod);
+                map.put(mod.getModule(), mod);
             }
 
             return map.asMap();
