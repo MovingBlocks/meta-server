@@ -36,7 +36,7 @@
            none
            <#else>
     <#list meta.dependencies as dep>
-           ${dep.id} between ${dep.minVersion} and ${dep.maxVersion}
+           <a href="/modules/show/${dep.id}">${dep.id}</a> between ${dep.minVersion} and ${dep.maxVersion}
       <#if dep.optional>
            (optional)
       </#if>

@@ -30,7 +30,7 @@
                     <td class="module-version">
 
     <#list items[key] as artifact>
-                      <a href="info/${key}/${artifact}">${artifact}</a>
+                      <a href="/modules/show/${key}/${artifact}">${artifact}</a>
     </#list>
 
                     </td>

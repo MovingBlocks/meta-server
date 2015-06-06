@@ -16,9 +16,9 @@
 
 package org.terasology.web.servlet;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.ws.rs.GET;
@@ -86,9 +86,25 @@ public class ModuleServlet {
     }
 
     @GET
-    @Path("info/{module}/{version}")
+    @Path("show/{module}")
     @Produces(MediaType.TEXT_HTML)
-    public Viewable info(@PathParam("module") String module, @PathParam("version") String version) throws IOException {
+    public Viewable showModule(@PathParam("module") String module) {
+        logger.info("Requested module list as HTML");
+
+        Name name = new Name(module);
+        Map<String, Set<org.terasology.naming.Version>> map = Collections.singletonMap(module, model.findVersions(name));
+
+        ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
+                .put("items", map)
+                .put("version", Version.getVersion())
+                .build();
+        return new Viewable("/module-list.ftl", dataModel);
+    }
+
+    @GET
+    @Path("show/{module}/{version}")
+    @Produces(MediaType.TEXT_HTML)
+    public Viewable showModuleVersion(@PathParam("module") String module, @PathParam("version") String version) {
         logger.info("Requested module info");
 
         List<ModuleMetadata> metas = model.findMetadata(new Name(module), new org.terasology.naming.Version(version));
