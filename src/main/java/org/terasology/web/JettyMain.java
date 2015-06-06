@@ -17,6 +17,7 @@
 package org.terasology.web;
 
 import java.net.URI;
+import java.util.Locale;
 import java.util.Properties;
 
 import org.eclipse.jetty.server.Server;
@@ -62,6 +63,8 @@ public final class JettyMain {
 
         Integer port = Integer.valueOf(System.getenv("PORT"));
         URI dbUri = new URI(System.getenv("DATABASE_URL"));
+
+        Locale.setDefault(Locale.ENGLISH);
 
         String secret = System.getenv("EDIT_SECRET");
 
