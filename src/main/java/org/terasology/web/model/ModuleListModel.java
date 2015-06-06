@@ -16,7 +16,6 @@
 
 package org.terasology.web.model;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
@@ -29,14 +28,9 @@ import org.terasology.naming.Version;
  */
 public interface ModuleListModel {
 
-    /**
-     * @return
-     * @throws IOException
-     */
     Set<Name> findModules();
 
     Set<Version> findVersions(Name module);
 
-    ModuleMetadata findMetadata(Name module, Version version);
-
+    List<ModuleMetadata> findMetadata(Name module, Version version);
 }

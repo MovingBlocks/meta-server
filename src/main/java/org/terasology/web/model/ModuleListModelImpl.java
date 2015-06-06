@@ -19,11 +19,13 @@ package org.terasology.web.model;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -31,7 +33,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.module.ModuleMetadata;
-import org.terasology.module.ModuleMetadataIO;
+import org.terasology.module.ModuleMetadataJsonAdapter;
 import org.terasology.module.RemoteModuleExtension;
 import org.terasology.naming.Name;
 import org.terasology.naming.Version;
@@ -49,8 +51,8 @@ public class ModuleListModelImpl implements ModuleListModel {
 
     private static final Logger logger = LoggerFactory.getLogger(ModuleListModelImpl.class);
 
-    private final ModuleMetadataIO metadataIO = new ModuleMetadataIO();
-    private final Table<Name, Version, ModuleMetadata> moduleMetas = HashBasedTable.create();
+    private final ModuleMetadataJsonAdapter metadataIO = new ModuleMetadataJsonAdapter();
+    private final Table<Name, Version, List<ModuleMetadata>> moduleMetas = HashBasedTable.create();
 
     public ModuleListModelImpl() throws IOException {
         String host = "http://artifactory.terasology.org/artifactory";
@@ -63,34 +65,33 @@ public class ModuleListModelImpl implements ModuleListModel {
 
         List<ModuleMetadata> releases = retrieveMetadata(host, "terasology-release-local", cacheFolder);
         for (ModuleMetadata meta : releases) {
-            ModuleMetadata prev = moduleMetas.get(meta.getId(), meta.getVersion());
-            if (prev != null) {
+            List<ModuleMetadata> list = moduleMetas.get(meta.getId(), meta.getVersion());
+            if (list != null) {
                 logger.error("Duplicate entry for {}/{}", meta.getId(), meta.getVersion());
             }
-            moduleMetas.put(meta.getId(), meta.getVersion(), meta);
+            moduleMetas.put(meta.getId(), meta.getVersion(), Collections.singletonList(meta));
         }
 
         List<ModuleMetadata> snapshots = retrieveMetadata(host, "terasology-snapshot-local", cacheFolder);
         for (ModuleMetadata meta : snapshots) {
             Version ov = meta.getVersion();
             Version snapshotVersion = new Version(ov.getMajor(), ov.getMinor(), ov.getPatch(), true);
-            ModuleMetadata prev = moduleMetas.get(meta.getId(), snapshotVersion);
-            if (prev != null) {
-//                Date prevTimestamp = RemoteModuleExtension.getLastUpdated(prev);
-//                Date thisTimestamp = RemoteModuleExtension.getLastUpdated(meta);
-//                if (thisTimestamp.after(prevTimestamp)) {
-//                    moduleMetas.put(meta.getId(), snapshotVersion, meta);
-//                }
-            } else {
-                moduleMetas.put(meta.getId(), snapshotVersion, meta);
+            List<ModuleMetadata> list = moduleMetas.get(meta.getId(), snapshotVersion);
+            if (list == null) {
+                list = new ArrayList<>();
+                moduleMetas.put(meta.getId(), snapshotVersion, list);
             }
+            list.add(meta);
         }
 
     }
 
-    private List<ModuleMetadata> retrieveMetadata(String host, String repo, Path cacheFolder) throws IOException {
+    private List<ModuleMetadata> retrieveMetadata(String host, String repo, Path cacheFolderBase) throws IOException {
         ZipExtractor extractor = new ZipExtractor("module.txt");
-        ArtifactoryRepo repository = new ArtifactoryRepo(host, repo, cacheFolder);
+        Path cacheFolder = cacheFolderBase.resolve(repo);
+        cacheFolder.toFile().mkdirs();
+
+        ArtifactoryRepo repository = new ArtifactoryRepo(host, repo, cacheFolderBase);
         List<ModuleMetadata> result = new ArrayList<>();
 
         Set<String> usedCacheFiles = new HashSet<>();
@@ -133,7 +134,7 @@ public class ModuleListModelImpl implements ModuleListModel {
     }
 
     @Override
-    public ModuleMetadata findMetadata(Name module, Version version) {
+    public List<ModuleMetadata> findMetadata(Name module, Version version) {
         return moduleMetas.get(module, version);
     }
 }

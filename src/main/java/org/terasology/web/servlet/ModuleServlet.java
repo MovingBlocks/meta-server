@@ -16,6 +16,9 @@
 
 package org.terasology.web.servlet;
 
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import javax.ws.rs.GET;
@@ -28,6 +31,7 @@ import org.glassfish.jersey.server.mvc.Viewable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.module.ModuleMetadata;
+import org.terasology.module.RemoteModuleExtension;
 import org.terasology.naming.Name;
 import org.terasology.version.Version;
 import org.terasology.web.model.ModuleListModel;
@@ -84,15 +88,23 @@ public class ModuleServlet {
     @GET
     @Path("info/{module}/{version}")
     @Produces(MediaType.TEXT_HTML)
-    public Viewable info(@PathParam("module") String module, @PathParam("version") String version) {
+    public Viewable info(@PathParam("module") String module, @PathParam("version") String version) throws IOException {
         logger.info("Requested module info");
 
-        ModuleMetadata meta = model.findMetadata(new Name(module), new org.terasology.naming.Version(version));
+        List<ModuleMetadata> metas = model.findMetadata(new Name(module), new org.terasology.naming.Version(version));
+
+        ModuleMetadata latest = Collections.max(metas, (m1, m2) ->
+                RemoteModuleExtension.getLastUpdated(m1).compareTo(
+                RemoteModuleExtension.getLastUpdated(m2)));
 
         ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
-                .put("meta", meta)
+                .put("meta", latest)
+                .put("updated", RemoteModuleExtension.getLastUpdated(latest))
+                .put("downloadUrl", RemoteModuleExtension.getDownloadUrl(latest))
+                .put("downloadSize", RemoteModuleExtension.getArtifactSize(latest) / 1024)
                 .put("version", Version.getVersion())
                 .build();
         return new Viewable("/module-info.ftl", dataModel);
     }
+
 }
