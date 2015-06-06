@@ -17,6 +17,8 @@
 package org.terasology.web.artifactory;
 
 import java.net.URL;
+import java.time.Instant;
+import java.util.Date;
 
 /**
  * Describes a module.
@@ -27,7 +29,7 @@ public interface ModuleInfo extends Comparable<ModuleInfo> {
 
     String getArtifact();
 
-    String getLastUpdated();
+    Date getLastUpdated();
 
     long getFileSize();
 }

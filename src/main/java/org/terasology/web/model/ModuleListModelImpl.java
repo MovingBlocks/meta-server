@@ -24,7 +24,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -77,9 +76,14 @@ public class ModuleListModelImpl implements ModuleListModel {
             Version snapshotVersion = new Version(ov.getMajor(), ov.getMinor(), ov.getPatch(), true);
             ModuleMetadata prev = moduleMetas.get(meta.getId(), snapshotVersion);
             if (prev != null) {
-                System.err.println("REPLACING " + prev);
+//                Date prevTimestamp = RemoteModuleExtension.getLastUpdated(prev);
+//                Date thisTimestamp = RemoteModuleExtension.getLastUpdated(meta);
+//                if (thisTimestamp.after(prevTimestamp)) {
+//                    moduleMetas.put(meta.getId(), snapshotVersion, meta);
+//                }
+            } else {
+                moduleMetas.put(meta.getId(), snapshotVersion, meta);
             }
-            moduleMetas.put(meta.getId(), snapshotVersion, meta);
         }
 
     }

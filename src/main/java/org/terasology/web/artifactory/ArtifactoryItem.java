@@ -17,6 +17,7 @@
 package org.terasology.web.artifactory;
 
 import java.net.URL;
+import java.util.Date;
 import java.util.List;
 
 class ArtifactoryItem {
@@ -24,9 +25,9 @@ class ArtifactoryItem {
     String path;                  // "/org",
     String created;               // "2014-11-10T00:57:29.124-05:00",
     String createdBy;             // "gooey",
-    String lastModified;          // "2014-11-10T00:57:29.124-05:00",
+    Date lastModified;          // "2014-11-10T00:57:29.124-05:00",
     String modifiedBy;            // "gooey",
-    String lastUpdated;             // "2014-11-10T00:57:29.124-05:00",
+    Date lastUpdated;             // "2014-11-10T00:57:29.124-05:00",
     List<Entry> children;
     String uri;                   // "http://artifactory.terasology.org/artifactory/api/storage/terasology-release-local/org"
     URL downloadUri;              // "http://a.t.o/a/t-s-l/o/t/m/BlockPicker/0.1.0-SNAPSHOT/BP-0.1.0-20150124.022632-3.jar",

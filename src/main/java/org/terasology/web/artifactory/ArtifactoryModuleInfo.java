@@ -17,6 +17,8 @@
 package org.terasology.web.artifactory;
 
 import java.net.URL;
+import java.time.Instant;
+import java.util.Date;
 
 import com.google.common.base.Preconditions;
 
@@ -52,7 +54,7 @@ public class ArtifactoryModuleInfo implements ModuleInfo {
     }
 
     @Override
-    public String getLastUpdated() {
+    public Date getLastUpdated() {
         return item.lastUpdated;
     }
 

@@ -17,6 +17,7 @@
 package org.terasology.module;
 
 import java.net.URL;
+import java.util.Date;
 
 /**
  * A set of module extensions for remote modules.
@@ -24,7 +25,7 @@ import java.net.URL;
 public enum RemoteModuleExtension {
 
     ARTIFACT_SIZE("artifactSize", long.class),
-    LAST_UPDATED("lastUpdated", String.class),
+    LAST_UPDATED("lastUpdated", Date.class),
     DOWNLOAD_URL("downloadUri", URL.class);
 
     private final String key;
@@ -51,11 +52,11 @@ public enum RemoteModuleExtension {
         meta.setExtension(DOWNLOAD_URL.getKey(), url);
     }
 
-    public static String getLastUpdated(ModuleMetadata meta) {
-        return meta.getExtension(LAST_UPDATED.getKey(), String.class);
+    public static Date getLastUpdated(ModuleMetadata meta) {
+        return meta.getExtension(LAST_UPDATED.getKey(), Date.class);
     }
 
-    public static void setLastUpdated(ModuleMetadata meta, String date) {
+    public static void setLastUpdated(ModuleMetadata meta, Date date) {
         meta.setExtension(LAST_UPDATED.getKey(), date);
     }
 

@@ -16,15 +16,11 @@
 
 package org.terasology.web.servlet;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
@@ -36,7 +32,6 @@ import org.terasology.naming.Name;
 import org.terasology.version.Version;
 import org.terasology.web.model.ModuleListModel;
 
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
@@ -84,5 +79,20 @@ public class ModuleServlet {
                 .put("version", Version.getVersion())
                 .build();
         return new Viewable("/module-list.ftl", dataModel);
+    }
+
+    @GET
+    @Path("info/{module}/{version}")
+    @Produces(MediaType.TEXT_HTML)
+    public Viewable info(@PathParam("module") String module, @PathParam("version") String version) {
+        logger.info("Requested module info");
+
+        ModuleMetadata meta = model.findMetadata(new Name(module), new org.terasology.naming.Version(version));
+
+        ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
+                .put("meta", meta)
+                .put("version", Version.getVersion())
+                .build();
+        return new Viewable("/module-info.ftl", dataModel);
     }
 }

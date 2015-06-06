@@ -25,6 +25,8 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
 
 import org.terasology.i18n.I18nMap;
@@ -150,7 +152,7 @@ public class ModuleMetadataIO {
         cachedGson.toJson(data, writer);
     }
 
-    private class ModuleMetadataTypeAdapter implements JsonDeserializer<ModuleMetadata> {
+    private class ModuleMetadataTypeAdapter implements JsonDeserializer<ModuleMetadata>, JsonSerializer<ModuleMetadata> {
 
         @SuppressWarnings("unchecked")
         @Override
@@ -187,6 +189,24 @@ public class ModuleMetadataIO {
                 }
             }
             return metadata;
+        }
+
+        @Override
+        public JsonElement serialize(ModuleMetadata src, Type typeOfSrc, JsonSerializationContext context) {
+            JsonObject json = new JsonObject();
+            json.add(ModuleMetadata.ID, context.serialize(src.getId()));
+            json.add(ModuleMetadata.VERSION, context.serialize(src.getVersion()));
+            json.add(ModuleMetadata.DISPLAY_NAME, context.serialize(src.getDisplayName()));
+            json.add(ModuleMetadata.DESCRIPTION, context.serialize(src.getDescription()));
+            json.add(ModuleMetadata.DEPENDENCIES, context.serialize(src.getDependencies()));
+            json.add(ModuleMetadata.REQUIRED_PERMISSIONS, context.serialize(src.getDependencies()));
+            for (String extKey : extensionMap.keySet()) {
+                Object extValue = src.getExtension(extKey, Object.class);
+                if (extValue != null) {
+                    json.add(extKey, context.serialize(extValue));
+                }
+            }
+            return json;
         }
     }
 

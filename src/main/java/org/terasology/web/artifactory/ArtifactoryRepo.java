@@ -25,6 +25,8 @@ import java.lang.reflect.Type;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,8 +47,8 @@ public class ArtifactoryRepo {
     private static final Logger logger = LoggerFactory.getLogger(ArtifactoryRepo.class);
 
     private static final Gson GSON = new GsonBuilder()
-            .setPrettyPrinting() // "2014-11-10T00:57:29.124-05:00"
-//            .setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+            .setPrettyPrinting()
+            .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
             .create();
 
     private final File cacheFile;
