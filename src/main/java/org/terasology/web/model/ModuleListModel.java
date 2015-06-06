@@ -33,4 +33,6 @@ public interface ModuleListModel {
     Set<Version> findVersions(Name module);
 
     List<ModuleMetadata> findMetadata(Name module, Version version);
+
+    ModuleMetadata findLatestMetadata(Name name, Version version);
 }

@@ -19,7 +19,6 @@ package org.terasology.web.model;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
-import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -136,5 +135,16 @@ public class ModuleListModelImpl implements ModuleListModel {
     @Override
     public List<ModuleMetadata> findMetadata(Name module, Version version) {
         return moduleMetas.get(module, version);
+    }
+
+    @Override
+    public ModuleMetadata findLatestMetadata(Name name, Version version) {
+        List<ModuleMetadata> metas = findMetadata(name, version);
+
+        ModuleMetadata latest = Collections.max(metas, (m1, m2) ->
+                RemoteModuleExtension.getLastUpdated(m1).compareTo(
+                RemoteModuleExtension.getLastUpdated(m2)));
+
+        return latest;
     }
 }

@@ -16,8 +16,9 @@
 
 package org.terasology.web.servlet;
 
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,11 +27,14 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
 
 import org.glassfish.jersey.server.mvc.Viewable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.module.ModuleMetadata;
+import org.terasology.module.ModuleMetadataJsonAdapter;
 import org.terasology.module.RemoteModuleExtension;
 import org.terasology.naming.Name;
 import org.terasology.version.Version;
@@ -51,25 +55,43 @@ public class ModuleServlet {
 
     private final ModuleListModel model;
 
+    private final ModuleMetadataJsonAdapter metadataWriter;
+
     public ModuleServlet(ModuleListModel model) {
         this.model = model;
+        this.metadataWriter = new ModuleMetadataJsonAdapter();
+        for (RemoteModuleExtension ext : RemoteModuleExtension.values()) {
+            metadataWriter.registerExtension(ext.getKey(), ext.getValueType());
+        }
     }
 
 
     @GET
-    @Path("list")
+    @Path("list/all")
     @Produces(MediaType.APPLICATION_JSON)
-    public Object list() {
+    public Response list() {
         logger.info("Requested module list");
 
-        Set<Name> names = model.findModules();
-        // the key needs to be string, so that FreeMarker can use it for lookups
-        Multimap<String, org.terasology.naming.Version> map = TreeMultimap.create();
-        for (Name name : names) {
-            map.putAll(name.toString(), model.findVersions(name));
-        }
-
-        return map.asMap();
+        StreamingOutput stream = os -> {
+            try (Writer writer = new OutputStreamWriter(os)) {
+                writer.write("[\n");
+                boolean first = true;
+                for (Name name : model.findModules()) {
+                    for (org.terasology.naming.Version version : model.findVersions(name)) {
+                        ModuleMetadata meta = model.findLatestMetadata(name, version);
+                        if (first) {
+                            first = false;
+                        } else {
+                            writer.write(',');
+                            writer.write('\n');
+                        }
+                        metadataWriter.write(meta, writer);
+                    }
+                }
+                writer.write("\n]");
+            }
+        };
+        return Response.ok(stream).build();
     }
 
     @GET
@@ -78,8 +100,16 @@ public class ModuleServlet {
     public Viewable show() {
         logger.info("Requested module list as HTML");
 
+        Set<Name> names = model.findModules();
+
+        // the key needs to be string, so that FreeMarker can use it for lookups
+        Multimap<String, org.terasology.naming.Version> map = TreeMultimap.create();
+        for (Name name : names) {
+            map.putAll(name.toString(), model.findVersions(name));
+        }
+
         ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
-                .put("items", list())
+                .put("items", map.asMap())
                 .put("version", Version.getVersion())
                 .build();
         return new Viewable("/module-list.ftl", dataModel);
@@ -107,11 +137,7 @@ public class ModuleServlet {
     public Viewable showModuleVersion(@PathParam("module") String module, @PathParam("version") String version) {
         logger.info("Requested module info");
 
-        List<ModuleMetadata> metas = model.findMetadata(new Name(module), new org.terasology.naming.Version(version));
-
-        ModuleMetadata latest = Collections.max(metas, (m1, m2) ->
-                RemoteModuleExtension.getLastUpdated(m1).compareTo(
-                RemoteModuleExtension.getLastUpdated(m2)));
+        ModuleMetadata latest = model.findLatestMetadata(new Name(module), new org.terasology.naming.Version(version));
 
         ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                 .put("meta", latest)
@@ -120,6 +146,7 @@ public class ModuleServlet {
                 .put("downloadSize", RemoteModuleExtension.getArtifactSize(latest) / 1024)
                 .put("version", Version.getVersion())
                 .build();
+
         return new Viewable("/module-info.ftl", dataModel);
     }
 
