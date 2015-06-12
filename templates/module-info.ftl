@@ -46,7 +46,7 @@
         </p>
 
         <br>
-        <p><b>Last Updated:</b> ${updated?datetime}</p>
+        <p><b>Last Updated:</b> ${updated?datetime?string.long_long}</p>
 
         <br>
         <p><a style="font-size:20px" href="${downloadUrl}">

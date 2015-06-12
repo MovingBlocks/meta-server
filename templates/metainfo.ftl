@@ -1,3 +1,6 @@
+<#setting locale="en_US">
+<#setting time_zone="UTC">
+
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta charset="utf-8">

@@ -27,7 +27,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.terasology.module.ModuleMetadata;
-import org.terasology.module.ModuleMetadataReader;
+import org.terasology.module.ModuleMetadataJsonAdapter;
 
 /**
  * Extracts the module info file from a ZIP archive that is described by an URL.
@@ -36,7 +36,7 @@ import org.terasology.module.ModuleMetadataReader;
 public class ZipExtractor {
 
     private final String filename;
-    private final ModuleMetadataReader metaReader = new ModuleMetadataReader();
+    private final ModuleMetadataJsonAdapter metaReader = new ModuleMetadataJsonAdapter();
 
     /**
      * @param filename the file to
