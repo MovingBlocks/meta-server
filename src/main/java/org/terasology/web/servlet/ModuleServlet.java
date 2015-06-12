@@ -17,7 +17,6 @@
 package org.terasology.web.servlet;
 
 import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -43,6 +42,7 @@ import org.terasology.web.model.ModuleListModel;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
+import com.google.gson.stream.JsonWriter;
 
 /**
  * TODO Type description
@@ -65,30 +65,23 @@ public class ModuleServlet {
         }
     }
 
-
     @GET
-    @Path("list/all")
+    @Path("list")
     @Produces(MediaType.APPLICATION_JSON)
     public Response list() {
         logger.info("Requested module list");
 
         StreamingOutput stream = os -> {
-            try (Writer writer = new OutputStreamWriter(os)) {
-                writer.write("[\n");
-                boolean first = true;
+            try (JsonWriter writer = new JsonWriter(new OutputStreamWriter(os))) {
+                writer.beginArray();
+                writer.setIndent("  "); // enable pretty printing
                 for (Name name : model.findModules()) {
                     for (org.terasology.naming.Version version : model.findVersions(name)) {
                         ModuleMetadata meta = model.findLatestMetadata(name, version);
-                        if (first) {
-                            first = false;
-                        } else {
-                            writer.write(',');
-                            writer.write('\n');
-                        }
                         metadataWriter.write(meta, writer);
                     }
                 }
-                writer.write("\n]");
+                writer.endArray();
             }
         };
         return Response.ok(stream).build();
