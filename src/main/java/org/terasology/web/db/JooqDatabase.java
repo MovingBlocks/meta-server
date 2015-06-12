@@ -18,7 +18,6 @@ package org.terasology.web.db;
 
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -27,7 +26,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
+
+import javax.sql.DataSource;
 
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -51,28 +51,21 @@ import org.terasology.web.geo.dbip.GeoLocationServiceDbIp;
 public final class JooqDatabase implements DataBase {
 
     private static final Logger logger = LoggerFactory.getLogger(JooqDatabase.class);
-    private final String dbUri;
-    private final Properties props;
+
+    private final DataSource ds;
 
 
     /**
-     * @param dbUri the database URI in the form <code>jdbc:mysql://server/db?user=[user]&password=[pass]</code>.
+     * @param ds the database URI in the form <code>jdbc:mysql://server/db?user=[user]&password=[pass]</code>.
      */
-    public JooqDatabase(String dbUri) {
-        this(dbUri, new Properties());
-    }
-
-    public JooqDatabase(String dbUri, Properties props) {
-        this.dbUri = dbUri;
-        this.props = props;
-
-        logger.info("SQL dialect detected: {}", DSL.using(dbUri, props).configuration().dialect());
+    public JooqDatabase(DataSource ds) {
+        this.ds = ds;
     }
 
     @Override
     public boolean remove(String tableName, String address, int port) throws SQLException {
 
-        try (Connection conn = DriverManager.getConnection(dbUri, props)) {
+        try (Connection conn = ds.getConnection()) {
             DSLContext context = DSL.using(conn);
             Table<Record> table = DSL.table(DSL.name(tableName));
 
@@ -91,7 +84,7 @@ public final class JooqDatabase implements DataBase {
     @Override
     public List<Map<String, Object>> readAll(String tableName) throws SQLException {
 
-        try (Connection conn = DriverManager.getConnection(dbUri, props)) {
+        try (Connection conn = ds.getConnection()) {
             DSLContext context = DSL.using(conn);
             Table<Record> table = DSL.table(DSL.name(tableName));
 
@@ -113,7 +106,7 @@ public final class JooqDatabase implements DataBase {
 
     @Override
     public void createTable(String tableName) throws SQLException {
-        try (Connection conn = DriverManager.getConnection(dbUri, props)) {
+        try (Connection conn = ds.getConnection()) {
             DSLContext context = DSL.using(conn);
             Table<?> table = tableExists(context, tableName);
             if (table == null) {
@@ -128,7 +121,7 @@ public final class JooqDatabase implements DataBase {
             return true;
         }
 
-        try (Connection conn = DriverManager.getConnection(dbUri, props)) {
+        try (Connection conn = ds.getConnection()) {
             DSLContext context = DSL.using(conn);
             Table<?> table = DSL.table(DSL.name(tableName));
 
@@ -151,7 +144,7 @@ public final class JooqDatabase implements DataBase {
     @Override
     public boolean insert(String tableName, String name, String address, int port, String owner) throws SQLException {
 
-        try (Connection conn = DriverManager.getConnection(dbUri, props)) {
+        try (Connection conn = ds.getConnection()) {
             DSLContext context = DSL.using(conn);
             Table<?> table = DSL.table(DSL.name(tableName));
 
@@ -219,7 +212,7 @@ public final class JooqDatabase implements DataBase {
     @Override
     public boolean update(String tableName, String name, String address, int port, String owner) throws SQLException {
 
-        try (Connection conn = DriverManager.getConnection(dbUri, props)) {
+        try (Connection conn = ds.getConnection()) {
             DSLContext context = DSL.using(conn);
             Table<Record> table = DSL.table(DSL.name(tableName));
 

@@ -18,6 +18,7 @@ package org.terasology.master;
 
 import java.util.Map;
 
+import org.h2.jdbcx.JdbcDataSource;
 import org.junit.Assert;
 import org.junit.Test;
 import org.terasology.web.db.JooqDatabase;
@@ -30,7 +31,9 @@ public class JooqDbTest {
     @Test
     public void testConnection() throws Exception {
 
-        JooqDatabase db = new JooqDatabase(DB_URL);
+        JdbcDataSource ds = new JdbcDataSource();
+        ds.setURL(DB_URL);
+        JooqDatabase db = new JooqDatabase(ds);
         String tableName = "servers";
 
         db.createTable(tableName);

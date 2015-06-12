@@ -18,7 +18,6 @@ package org.terasology.web;
 
 import java.net.URI;
 import java.util.Locale;
-import java.util.Properties;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandler;
@@ -29,7 +28,6 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.mvc.freemarker.FreemarkerMvcFeature;
 import org.glassfish.jersey.servlet.ServletContainer;
-import org.postgresql.PGProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.web.db.DataBase;
@@ -42,6 +40,9 @@ import org.terasology.web.model.ServerListModelImpl;
 import org.terasology.web.servlet.AboutServlet;
 import org.terasology.web.servlet.ModuleServlet;
 import org.terasology.web.servlet.ServerServlet;
+
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
 
 /**
@@ -72,19 +73,23 @@ public final class JettyMain {
         String password = dbUri.getUserInfo().split(":")[1];
         int dbPort = dbUri.getPort();
 
-        String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ":" + dbPort + dbUri.getPath();
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl("jdbc:postgresql://" + dbUri.getHost() + ":" + dbPort + dbUri.getPath());
+        config.setUsername(username);
+        config.setPassword(password);
+        config.addDataSourceProperty("sslmode", "require");
+        config.setMaximumPoolSize(5);
 
-        Properties props = new Properties();
-        props.setProperty(PGProperty.USER.getName(), username);
-        props.setProperty(PGProperty.PASSWORD.getName(), password);
-        props.setProperty(PGProperty.SSL_MODE.getName(), "require");
-        DataBase dataBase = new JooqDatabase(dbUrl, props);
+        try (HikariDataSource ds = new HikariDataSource(config)) {
 
-        ServerListModel serverListModel = new ServerListModelImpl(dataBase, "servers", secret);
-        ModuleListModel moduleListModel = new ModuleListModelImpl();
+            DataBase dataBase = new JooqDatabase(ds);
 
-        Server server = start(port.intValue(), serverListModel, moduleListModel);
-        server.join();
+            ServerListModel serverListModel = new ServerListModelImpl(dataBase, "servers", secret);
+            ModuleListModel moduleListModel = new ModuleListModelImpl();
+
+            Server server = start(port.intValue(), serverListModel, moduleListModel);
+            server.join();
+        }
     }
 
     public static Server start(int port, ServerListModel serverListModel, ModuleListModel moduleListModel) throws Exception {

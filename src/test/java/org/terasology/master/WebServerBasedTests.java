@@ -21,6 +21,7 @@ import java.sql.DriverManager;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.jetty.server.Server;
+import org.h2.jdbcx.JdbcDataSource;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.terasology.web.JettyMain;
@@ -52,9 +53,12 @@ public abstract class WebServerBasedTests {
         // make a unique database for each testing class
         String dbUri = "jdbc:h2:mem:test_" + atomCount.getAndIncrement();
 
+        JdbcDataSource ds = new JdbcDataSource();
+        ds.setURL(dbUri);
+
         // Open a dummy connection to the in-memory database to keep it alive
         dummyConn = DriverManager.getConnection(dbUri);
-        dataBase = new JooqDatabase(dbUri);
+        dataBase = new JooqDatabase(new JdbcDataSource());
 
         ServerListModel serverListModel = new ServerListModelImpl(dataBase, SERVER_TABLE, secret);
         ModuleListModel moduleListModel = new ModuleListModelImpl();
