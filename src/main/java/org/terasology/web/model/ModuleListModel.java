@@ -16,11 +16,10 @@
 
 package org.terasology.web.model;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Set;
 
 import org.terasology.module.Module;
-import org.terasology.module.ModuleMetadata;
 import org.terasology.naming.Name;
 import org.terasology.naming.Version;
 
@@ -29,13 +28,13 @@ import org.terasology.naming.Version;
  */
 public interface ModuleListModel {
 
-    Set<Name> findModules();
+    Set<Name> getModuleIds();
 
-    Set<Version> findVersions(Name module);
+    Collection<Module> getModuleVersions(Name module);
 
-    List<ModuleMetadata> findMetadata(Name module, Version version);
+    Module getModule(Name module, Version version);
 
-    ModuleMetadata findLatestMetadata(Name name, Version version);
+    Module getLatestModuleVersion(Name name);
 
     Set<Module> resolve(Name name);
 }

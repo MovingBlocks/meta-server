@@ -16,7 +16,7 @@
 
       <div>
         <p><a href="/modules/show">Modules</a> / <a href="/modules/show/${meta.id}">${meta.id}</a> / ${meta.version}</p>
-        <h2>${meta.displayName}</h4>
+        <h2>${meta.displayName}</h2>
         <h4>${meta.version}</h4>
 
         <br>
@@ -26,7 +26,7 @@
         <h4>Last Updated</h4>
         <p>
           ${updated?date?string.long}<br>
-          ${updated?time?string.long}</p>
+          ${updated?time?string.long}
         </p>
 
         <br>
@@ -73,6 +73,7 @@
         </p>
 
         <br>
+      </div>
 
 <#include "footer.ftl">
 

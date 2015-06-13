@@ -9,12 +9,11 @@
         </encoder>
     </appender>
 
-    <root level="DEBUG">
+    <root level="INFO">
         <appender-ref ref="CONSOLE"/>
     </root>
 
-    <logger name="org.eclipse.jetty" level="INFO" />
-    <logger name="org.jooq" level="INFO" />
+    <logger name="org.terasology" level="DEBUG" />
     <logger name="org.jooq.Constants" level="WARN" />
 
 </configuration>

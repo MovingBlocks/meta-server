@@ -49,13 +49,23 @@ public class ValidatorTests extends WebServerBasedTests {
     }
 
     @Test
+    public void testShowModuleListPage() throws IOException {
+        analyzePage(new URL(URL_BASE + "/modules/show"));
+    }
+
+    @Test
+    public void testShowModuleInfoPage() throws IOException {
+        analyzePage(new URL(URL_BASE + "/modules/show/Core/0.53.0"));
+    }
+
+    @Test
     public void testShowServerListPage() throws IOException {
         analyzePage(new URL(URL_BASE + "/servers/show"));
     }
 
     @Test
     public void testShowAboutPage() throws IOException {
-        analyzePage(new URL(URL_BASE + "/servers/about"));
+        analyzePage(new URL(URL_BASE + "/home"));
     }
 
     @Test

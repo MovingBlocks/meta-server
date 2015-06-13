@@ -17,6 +17,7 @@
 package org.terasology.web.servlet;
 
 import java.io.OutputStreamWriter;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -76,9 +77,9 @@ public class ModuleServlet {
             try (JsonWriter writer = new JsonWriter(new OutputStreamWriter(os))) {
                 writer.beginArray();
                 writer.setIndent("  "); // enable pretty printing
-                for (Name name : model.findModules()) {
-                    for (org.terasology.naming.Version version : model.findVersions(name)) {
-                        ModuleMetadata meta = model.findLatestMetadata(name, version);
+                for (Name name : model.getModuleIds()) {
+                    for (Module module : model.getModuleVersions(name)) {
+                        ModuleMetadata meta = module.getMetadata();
                         metadataWriter.write(meta, writer);
                     }
                 }
@@ -94,12 +95,15 @@ public class ModuleServlet {
     public Viewable show() {
         logger.info("Requested module list as HTML");
 
-        Set<Name> names = model.findModules();
+        Set<Name> names = model.getModuleIds();
 
         // the key needs to be string, so that FreeMarker can use it for lookups
-        Multimap<String, org.terasology.naming.Version> map = TreeMultimap.create();
+        Multimap<String, Module> map = TreeMultimap.create(
+                String.CASE_INSENSITIVE_ORDER,
+                (m1, m2) -> m1.getVersion().compareTo(m2.getVersion()));
+
         for (Name name : names) {
-            map.putAll(name.toString(), model.findVersions(name));
+            map.putAll(name.toString(), model.getModuleVersions(name));
         }
 
         ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
@@ -116,7 +120,7 @@ public class ModuleServlet {
         logger.info("Requested module list as HTML");
 
         Name name = new Name(module);
-        Map<String, Set<org.terasology.naming.Version>> map = Collections.singletonMap(module, model.findVersions(name));
+        Map<String, Collection<Module>> map = Collections.singletonMap(module, model.getModuleVersions(name));
 
         ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                 .put("items", map)
@@ -133,15 +137,16 @@ public class ModuleServlet {
         logger.info("Requested module info");
 
         Name moduleName = new Name(module);
-        ModuleMetadata latest = model.findLatestMetadata(moduleName, new org.terasology.naming.Version(version));
+        Module latest = model.getModule(moduleName, new org.terasology.naming.Version(version));
+        ModuleMetadata meta = latest.getMetadata();
 
         Set<Module> deps = model.resolve(moduleName);
 
         ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
-                .put("meta", latest)
-                .put("updated", RemoteModuleExtension.getLastUpdated(latest))
-                .put("downloadUrl", RemoteModuleExtension.getDownloadUrl(latest))
-                .put("downloadSize", RemoteModuleExtension.getArtifactSize(latest) / 1024)
+                .put("meta", meta)
+                .put("updated", RemoteModuleExtension.getLastUpdated(meta))
+                .put("downloadUrl", RemoteModuleExtension.getDownloadUrl(meta))
+                .put("downloadSize", RemoteModuleExtension.getArtifactSize(meta) / 1024)
                 .put("dependencies", deps)
                 .put("version", Version.getVersion())
                 .build();

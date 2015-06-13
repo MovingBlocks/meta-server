@@ -58,10 +58,13 @@ public abstract class WebServerBasedTests {
 
         // Open a dummy connection to the in-memory database to keep it alive
         dummyConn = DriverManager.getConnection(dbUri);
-        dataBase = new JooqDatabase(new JdbcDataSource());
+        dataBase = new JooqDatabase(ds);
 
+        String host = "http://artifactory.terasology.org/artifactory";
+        String releaseRepo = "terasology-release-local";
+        String snapshotRepo = "terasology-snapshot-local";
+        ModuleListModel moduleListModel = new ModuleListModelImpl(host, releaseRepo, snapshotRepo);
         ServerListModel serverListModel = new ServerListModelImpl(dataBase, SERVER_TABLE, secret);
-        ModuleListModel moduleListModel = new ModuleListModelImpl();
 
         webServer = JettyMain.start(PORT, serverListModel, moduleListModel);
 

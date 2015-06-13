@@ -24,7 +24,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -44,8 +46,6 @@ import org.terasology.naming.Version;
 import org.terasology.web.artifactory.ArtifactoryRepo;
 import org.terasology.web.artifactory.ModuleInfo;
 
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Table;
 import com.google.common.io.Files;
 
 /**
@@ -56,13 +56,11 @@ public class ModuleListModelImpl implements ModuleListModel {
     private static final Logger logger = LoggerFactory.getLogger(ModuleListModelImpl.class);
 
     private final ModuleMetadataJsonAdapter metadataAdapter = new ModuleMetadataJsonAdapter();
-    private final Table<Name, Version, List<ModuleMetadata>> moduleMetas = HashBasedTable.create();
 
     private final ModuleRegistry moduleRegistry = new TableModuleRegistry();
     private final DependencyResolver dependencyResolver = new DependencyResolver(moduleRegistry);
 
-    public ModuleListModelImpl() throws IOException {
-        String host = "http://artifactory.terasology.org/artifactory";
+    public ModuleListModelImpl(String host, String releaseRepo, String snapshotRepo) throws IOException {
         Path cacheFolder = Paths.get("cache", "modules");
         cacheFolder.toFile().mkdirs();
 
@@ -70,27 +68,29 @@ public class ModuleListModelImpl implements ModuleListModel {
             metadataAdapter.registerExtension(ext.getKey(), ext.getValueType());
         }
 
-        List<ModuleMetadata> snapshots = retrieveMetadata(host, "terasology-snapshot-local", cacheFolder);
-        for (ModuleMetadata meta : snapshots) {
-            Version ov = meta.getVersion();
-//            Version snapshotVersion = new Version(ov.getMajor(), ov.getMinor(), ov.getPatch(), true);
-            List<ModuleMetadata> list = moduleMetas.get(meta.getId(), ov);
-            if (list == null) {
-                list = new ArrayList<>();
-                moduleMetas.put(meta.getId(), ov, list);
-            }
-            list.add(meta);
-            moduleRegistry.add(new RemoteModule(meta));
-        }
-
-        List<ModuleMetadata> releases = retrieveMetadata(host, "terasology-release-local", cacheFolder);
+        List<ModuleMetadata> releases = retrieveMetadata(host, releaseRepo, cacheFolder);
         for (ModuleMetadata meta : releases) {
-            List<ModuleMetadata> list = moduleMetas.get(meta.getId(), meta.getVersion());
-            if (list != null) {
+            if (!moduleRegistry.add(new RemoteModule(meta))) {
                 logger.error("Duplicate entry for {}/{}", meta.getId(), meta.getVersion());
             }
-            moduleMetas.put(meta.getId(), meta.getVersion(), Collections.singletonList(meta));
-            moduleRegistry.add(new RemoteModule(meta));
+        }
+
+        List<ModuleMetadata> snapshots = retrieveMetadata(host, snapshotRepo, cacheFolder);
+        for (ModuleMetadata meta : snapshots) {
+            Module prev = moduleRegistry.getModule(meta.getId(), meta.getVersion());
+            if (prev != null) {
+                Date prevUpdated = RemoteModuleExtension.getLastUpdated(prev.getMetadata());
+                Date thisUpdated = RemoteModuleExtension.getLastUpdated(meta);
+
+                if (thisUpdated.after(prevUpdated)) {
+
+                    // remove the old one first so the new one can be added
+                    moduleRegistry.remove(prev);
+                    moduleRegistry.add(new RemoteModule(meta));
+                }
+            } else {
+                moduleRegistry.add(new RemoteModule(meta));
+            }
         }
     }
 
@@ -132,29 +132,23 @@ public class ModuleListModelImpl implements ModuleListModel {
     }
 
     @Override
-    public Set<Name> findModules() {
-        return moduleMetas.rowKeySet();
+    public Set<Name> getModuleIds() {
+        return moduleRegistry.getModuleIds();
     }
 
     @Override
-    public Set<Version> findVersions(Name module) {
-        return moduleMetas.row(module).keySet();
+    public Collection<Module> getModuleVersions(Name module) {
+        return moduleRegistry.getModuleVersions(module);
     }
 
     @Override
-    public List<ModuleMetadata> findMetadata(Name module, Version version) {
-        return moduleMetas.get(module, version);
+    public Module getModule(Name module, Version version) {
+        return moduleRegistry.getModule(module, version);
     }
 
     @Override
-    public ModuleMetadata findLatestMetadata(Name name, Version version) {
-        List<ModuleMetadata> metas = findMetadata(name, version);
-
-        ModuleMetadata latest = Collections.max(metas, (m1, m2) ->
-                RemoteModuleExtension.getLastUpdated(m1).compareTo(
-                RemoteModuleExtension.getLastUpdated(m2)));
-
-        return latest;
+    public Module getLatestModuleVersion(Name name) {
+        return moduleRegistry.getLatestModuleVersion(name);
     }
 
     @Override

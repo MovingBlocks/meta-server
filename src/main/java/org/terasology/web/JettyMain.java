@@ -17,6 +17,7 @@
 package org.terasology.web;
 
 import java.net.URI;
+
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
@@ -81,7 +82,11 @@ public final class JettyMain {
             DataBase dataBase = new JooqDatabase(ds);
 
             ServerListModel serverListModel = new ServerListModelImpl(dataBase, "servers", secret);
-            ModuleListModel moduleListModel = new ModuleListModelImpl();
+
+            String host = "http://artifactory.terasology.org/artifactory";
+            String releaseRepo = "terasology-release-local";
+            String snapshotRepo = "terasology-snapshot-local";
+            ModuleListModel moduleListModel = new ModuleListModelImpl(host, releaseRepo, snapshotRepo);
 
             Server server = start(port.intValue(), serverListModel, moduleListModel);
             server.join();
