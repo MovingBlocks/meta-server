@@ -25,7 +25,7 @@ class ArtifactoryItem {
     String path;                  // "/org",
     String created;               // "2014-11-10T00:57:29.124-05:00",
     String createdBy;             // "gooey",
-    Date lastModified;          // "2014-11-10T00:57:29.124-05:00",
+    Date lastModified;            // "2014-11-10T00:57:29.124-05:00",
     String modifiedBy;            // "gooey",
     Date lastUpdated;             // "2014-11-10T00:57:29.124-05:00",
     List<Entry> children;
@@ -35,7 +35,7 @@ class ArtifactoryItem {
     int size;                     // "14063",
 
     static class Entry {
-          String uri; // : "/terasology",
+          String uri;             // "/terasology",
           boolean folder;
     }
 }

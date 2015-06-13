@@ -61,14 +61,34 @@ public final class JettyMain {
      */
     public static void main(String[] args) throws Exception {
 
-        Integer port = Integer.valueOf(System.getenv("PORT"));
-        URI dbUri = new URI(System.getenv("DATABASE_URL"));
+        String portEnv = System.getenv("PORT");
+        if (portEnv == null) {
+            portEnv = "8080";
+            logger.warn("Environment variable 'PORT' not defined - using default {}", portEnv);
+        }
+        Integer port = Integer.valueOf(portEnv);
+
+        String dbEnv = System.getenv("DATABASE_URL");
+        if (dbEnv == null) {
+            logger.error("Environment variable 'DATABASE_URL' not defined!");
+            return;
+        }
+        URI dbUri = new URI(dbEnv);
 
         String secret = System.getenv("EDIT_SECRET");
+        if (secret == null) {
+            logger.error("Environment variable 'EDIT_SECRET' not defined!");
+            return;
+        }
 
         String username = dbUri.getUserInfo().split(":")[0];
         String password = dbUri.getUserInfo().split(":")[1];
         int dbPort = dbUri.getPort();
+
+        String host = "http://artifactory.terasology.org/artifactory";
+        String releaseRepo = "terasology-release-local";
+        String snapshotRepo = "terasology-snapshot-local";
+        ModuleListModel moduleListModel = new ModuleListModelImpl(host, releaseRepo, snapshotRepo);
 
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:postgresql://" + dbUri.getHost() + ":" + dbPort + dbUri.getPath());
@@ -80,13 +100,7 @@ public final class JettyMain {
         try (HikariDataSource ds = new HikariDataSource(config)) {
 
             DataBase dataBase = new JooqDatabase(ds);
-
             ServerListModel serverListModel = new ServerListModelImpl(dataBase, "servers", secret);
-
-            String host = "http://artifactory.terasology.org/artifactory";
-            String releaseRepo = "terasology-release-local";
-            String snapshotRepo = "terasology-snapshot-local";
-            ModuleListModel moduleListModel = new ModuleListModelImpl(host, releaseRepo, snapshotRepo);
 
             Server server = start(port.intValue(), serverListModel, moduleListModel);
             server.join();

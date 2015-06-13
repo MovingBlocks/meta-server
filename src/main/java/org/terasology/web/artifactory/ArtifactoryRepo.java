@@ -25,10 +25,12 @@ import java.lang.reflect.Type;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,17 +54,19 @@ public class ArtifactoryRepo {
             .create();
 
     private final File cacheFile;
-    private final List<ModuleInfo> artifactInfo;
+    private final List<ArtifactInfo> artifactInfo;
+    private final Map<String, ArtifactoryModule> moduleInfo;
 
     public ArtifactoryRepo(String uri, String repo, Path cacheFolder) throws IOException {
         cacheFile = cacheFolder.resolve(repo + "_cache.json").toFile();
 
         if (cacheFile.exists()) {
             try (Reader reader = Files.newReader(cacheFile, StandardCharsets.UTF_8)) {
-                Type listType = new TypeToken<List<ArtifactoryModuleInfo>>() { }.getType();
-                artifactInfo = GSON.fromJson(reader, listType);
-                return;
+                Type listType = new TypeToken<Map<String, ArtifactoryModule>>() { }.getType();
+                moduleInfo = GSON.fromJson(reader, listType);
             }
+        } else {
+            moduleInfo = new HashMap<>();
         }
 
         artifactInfo = new ArrayList<>();
@@ -72,39 +76,58 @@ public class ArtifactoryRepo {
                 + "/" + repo
                 + "/org/terasology/modules";
 
-        ArtifactoryItem folder = readFolder(url);
+        ArtifactoryItem folder = readItem(url);
         for (ArtifactoryItem.Entry child : folder.children) {
             if (child.folder) {
                 String moduleUrl = url + child.uri;
-                ArtifactoryItem moduleFolder = readFolder(moduleUrl);
-                for (ArtifactoryItem.Entry child2 : moduleFolder.children) {
-                    if (child2.folder) {
-                        String versionUrl = moduleUrl + child2.uri;
-                        ArtifactoryItem versionFolder = readFolder(versionUrl);
-                        for (ArtifactoryItem.Entry child3 : versionFolder.children) {
-                            if (matches(child3.uri)) {
-                                String artifactUrl = versionUrl + child3.uri;
-                                ArtifactoryItem artifact = readFolder(artifactUrl);
-                                artifactInfo.add(new ArtifactoryModuleInfo(artifact));
-                                logger.debug("Added " + artifactUrl);
+                String moduleName = child.uri.substring(1);
+
+                ArtifactoryItem mavenMeta = readItem(moduleUrl + "/maven-metadata.xml");
+                ArtifactoryModule cachedMod = moduleInfo.get(moduleName);
+                if (cachedMod == null) {
+                    cachedMod = new ArtifactoryModule();
+                    cachedMod.lastModified = new Date(0);
+                    cachedMod.items = new ArrayList<>();
+                    moduleInfo.put(moduleName, cachedMod);
+                }
+                if (mavenMeta.lastModified.after(cachedMod.lastModified)) {
+                    cachedMod.lastModified = mavenMeta.lastModified;
+                    cachedMod.items.clear();
+
+                    ArtifactoryItem moduleFolder = readItem(moduleUrl);
+                    for (ArtifactoryItem.Entry child2 : moduleFolder.children) {
+                        if (child2.folder) {
+                            String versionUrl = moduleUrl + child2.uri;
+                            ArtifactoryItem versionFolder = readItem(versionUrl);
+                            for (ArtifactoryItem.Entry child3 : versionFolder.children) {
+                                if (matches(child3.uri)) {
+                                    String artifactUrl = versionUrl + child3.uri;
+                                    ArtifactoryItem artifact = readItem(artifactUrl);
+                                    artifactInfo.add(new ArtifactoryArtifactInfo(artifact));
+                                    cachedMod.items.add(new ArtifactoryArtifactInfo(artifact));
+                                    logger.debug("Added " + artifactUrl);
+                                }
                             }
                         }
                     }
+                    logger.info("Updated " + moduleName);
+                } else {
+                    artifactInfo.addAll(cachedMod.items);
                 }
             }
         }
 
         try (Writer writer = Files.newWriter(cacheFile, StandardCharsets.UTF_8)) {
-            GSON.toJson(artifactInfo, writer);
+            GSON.toJson(moduleInfo, writer);
         }
     }
 
-    public List<ModuleInfo> getModules() {
+    public Collection<ArtifactInfo> getModuleArtifacts() {
         return artifactInfo;
     }
 
-    private static ArtifactoryItem readFolder(String uri) throws IOException {
-        try (Reader reader = new InputStreamReader(new URL(uri).openStream(), StandardCharsets.UTF_8)) {
+    private static ArtifactoryItem readItem(String url) throws IOException {
+        try (Reader reader = new InputStreamReader(new URL(url).openStream(), StandardCharsets.UTF_8)) {
             ArtifactoryItem folder = GSON.fromJson(reader, ArtifactoryItem.class);
             return folder;
         }

@@ -44,7 +44,7 @@ import org.terasology.module.TableModuleRegistry;
 import org.terasology.naming.Name;
 import org.terasology.naming.Version;
 import org.terasology.web.artifactory.ArtifactoryRepo;
-import org.terasology.web.artifactory.ModuleInfo;
+import org.terasology.web.artifactory.ArtifactInfo;
 
 import com.google.common.io.Files;
 
@@ -103,7 +103,7 @@ public class ModuleListModelImpl implements ModuleListModel {
         List<ModuleMetadata> result = new ArrayList<>();
 
         Set<String> usedCacheFiles = new HashSet<>();
-        for (ModuleInfo info : repository.getModules()) {
+        for (ArtifactInfo info : repository.getModuleArtifacts()) {
             ModuleMetadata meta;
             File cacheFile = cacheFolder.resolve(info.getArtifact() + "_info.json").toFile();
             if (cacheFile.exists()) {

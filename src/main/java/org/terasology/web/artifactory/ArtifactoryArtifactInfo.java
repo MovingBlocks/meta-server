@@ -17,7 +17,6 @@
 package org.terasology.web.artifactory;
 
 import java.net.URL;
-import java.time.Instant;
 import java.util.Date;
 
 import com.google.common.base.Preconditions;
@@ -25,11 +24,11 @@ import com.google.common.base.Preconditions;
 /**
  * Describes a module based on its URL in Artifactory.
  */
-public class ArtifactoryModuleInfo implements ModuleInfo {
+public class ArtifactoryArtifactInfo implements ArtifactInfo {
     private final String artifact;
     private ArtifactoryItem item;
 
-    public ArtifactoryModuleInfo(ArtifactoryItem item) {
+    public ArtifactoryArtifactInfo(ArtifactoryItem item) {
         Preconditions.checkArgument(item != null);
 
         this.item = item;
@@ -49,7 +48,7 @@ public class ArtifactoryModuleInfo implements ModuleInfo {
     }
 
     @Override
-    public int compareTo(ModuleInfo o) {
+    public int compareTo(ArtifactInfo o) {
         return String.CASE_INSENSITIVE_ORDER.compare(artifact, o.getArtifact());
     }
 

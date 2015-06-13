@@ -16,20 +16,15 @@
 
 package org.terasology.web.artifactory;
 
-import java.net.URL;
-import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 
 /**
- * Describes a module.
+ * TODO Type description
+ * @author Martin Steiger
  */
-public interface ModuleInfo extends Comparable<ModuleInfo> {
+class ArtifactoryModule {
 
-    URL getDownloadUrl();
-
-    String getArtifact();
-
-    Date getLastUpdated();
-
-    long getFileSize();
+    Date lastModified;
+    List<ArtifactoryArtifactInfo> items;
 }
