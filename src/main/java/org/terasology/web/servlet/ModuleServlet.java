@@ -32,6 +32,7 @@ import javax.ws.rs.core.StreamingOutput;
 import org.glassfish.jersey.server.mvc.Viewable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.terasology.module.Module;
 import org.terasology.module.ModuleMetadata;
 import org.terasology.module.ModuleMetadataJsonAdapter;
 import org.terasology.module.RemoteModuleExtension;
@@ -119,6 +120,7 @@ public class ModuleServlet {
 
         ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                 .put("items", map)
+                .put("moduleId", module)
                 .put("version", Version.getVersion())
                 .build();
         return new Viewable("/module-list.ftl", dataModel);
@@ -130,13 +132,17 @@ public class ModuleServlet {
     public Viewable showModuleVersion(@PathParam("module") String module, @PathParam("version") String version) {
         logger.info("Requested module info");
 
-        ModuleMetadata latest = model.findLatestMetadata(new Name(module), new org.terasology.naming.Version(version));
+        Name moduleName = new Name(module);
+        ModuleMetadata latest = model.findLatestMetadata(moduleName, new org.terasology.naming.Version(version));
+
+        Set<Module> deps = model.resolve(moduleName);
 
         ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                 .put("meta", latest)
                 .put("updated", RemoteModuleExtension.getLastUpdated(latest))
                 .put("downloadUrl", RemoteModuleExtension.getDownloadUrl(latest))
                 .put("downloadSize", RemoteModuleExtension.getArtifactSize(latest) / 1024)
+                .put("dependencies", deps)
                 .put("version", Version.getVersion())
                 .build();
 

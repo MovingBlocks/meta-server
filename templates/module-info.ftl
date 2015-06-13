@@ -15,11 +15,19 @@
 </#if>
 
       <div>
+        <p><a href="/modules/show">Modules</a> / <a href="/modules/show/${meta.id}">${meta.id}</a> / ${meta.version}</p>
         <h2>${meta.displayName}</h4>
         <h4>${meta.version}</h4>
 
         <br>
         <p>${meta.description}</p>
+
+        <br>
+        <h4>Last Updated</h4>
+        <p>
+          ${updated?date?string.long}<br>
+          ${updated?time?string.long}</p>
+        </p>
 
         <br>
         <h4>Required Permissions</h4>
@@ -46,11 +54,21 @@
         </p>
 
         <br>
-        <p><b>Last Updated:</b> ${updated?datetime?string.long_long}</p>
+        <h4>Resolved by</h4>
+        <p>
+<#if dependencies?size == 0>
+          <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span> Unresolved
+<#else>
+  <#list dependencies as dep>
+          <a href="/modules/show/${dep.id}/${dep.version}">${dep.id} ${dep.version}</a><br>
+  </#list>
+          (there may be other combinations)
+</#if>
+        </p>
 
         <br>
         <p><a style="font-size:20px" href="${downloadUrl}">
-          <span class="glyphicon glyphicon-download" aria-hidden="true" title="Download"></span>
+          <span class="glyphicon glyphicon-download-alt" aria-hidden="true" title="Download"></span>
           Download (${downloadSize} kB)</a>
         </p>
 

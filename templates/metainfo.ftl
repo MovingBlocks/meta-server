@@ -1,4 +1,4 @@
-<#setting locale="en_US">
+<#setting locale="en">
 <#setting time_zone="UTC">
 
   <head>

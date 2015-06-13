@@ -31,9 +31,14 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.terasology.module.DependencyResolver;
+import org.terasology.module.Module;
 import org.terasology.module.ModuleMetadata;
 import org.terasology.module.ModuleMetadataJsonAdapter;
+import org.terasology.module.ModuleRegistry;
 import org.terasology.module.RemoteModuleExtension;
+import org.terasology.module.ResolutionResult;
+import org.terasology.module.TableModuleRegistry;
 import org.terasology.naming.Name;
 import org.terasology.naming.Version;
 import org.terasology.web.artifactory.ArtifactoryRepo;
@@ -50,8 +55,11 @@ public class ModuleListModelImpl implements ModuleListModel {
 
     private static final Logger logger = LoggerFactory.getLogger(ModuleListModelImpl.class);
 
-    private final ModuleMetadataJsonAdapter metadataIO = new ModuleMetadataJsonAdapter();
+    private final ModuleMetadataJsonAdapter metadataAdapter = new ModuleMetadataJsonAdapter();
     private final Table<Name, Version, List<ModuleMetadata>> moduleMetas = HashBasedTable.create();
+
+    private final ModuleRegistry moduleRegistry = new TableModuleRegistry();
+    private final DependencyResolver dependencyResolver = new DependencyResolver(moduleRegistry);
 
     public ModuleListModelImpl() throws IOException {
         String host = "http://artifactory.terasology.org/artifactory";
@@ -59,7 +67,20 @@ public class ModuleListModelImpl implements ModuleListModel {
         cacheFolder.toFile().mkdirs();
 
         for (RemoteModuleExtension ext : RemoteModuleExtension.values()) {
-            metadataIO.registerExtension(ext.getKey(), ext.getValueType());
+            metadataAdapter.registerExtension(ext.getKey(), ext.getValueType());
+        }
+
+        List<ModuleMetadata> snapshots = retrieveMetadata(host, "terasology-snapshot-local", cacheFolder);
+        for (ModuleMetadata meta : snapshots) {
+            Version ov = meta.getVersion();
+//            Version snapshotVersion = new Version(ov.getMajor(), ov.getMinor(), ov.getPatch(), true);
+            List<ModuleMetadata> list = moduleMetas.get(meta.getId(), ov);
+            if (list == null) {
+                list = new ArrayList<>();
+                moduleMetas.put(meta.getId(), ov, list);
+            }
+            list.add(meta);
+            moduleRegistry.add(new RemoteModule(meta));
         }
 
         List<ModuleMetadata> releases = retrieveMetadata(host, "terasology-release-local", cacheFolder);
@@ -69,20 +90,8 @@ public class ModuleListModelImpl implements ModuleListModel {
                 logger.error("Duplicate entry for {}/{}", meta.getId(), meta.getVersion());
             }
             moduleMetas.put(meta.getId(), meta.getVersion(), Collections.singletonList(meta));
+            moduleRegistry.add(new RemoteModule(meta));
         }
-
-        List<ModuleMetadata> snapshots = retrieveMetadata(host, "terasology-snapshot-local", cacheFolder);
-        for (ModuleMetadata meta : snapshots) {
-            Version ov = meta.getVersion();
-            Version snapshotVersion = new Version(ov.getMajor(), ov.getMinor(), ov.getPatch(), true);
-            List<ModuleMetadata> list = moduleMetas.get(meta.getId(), snapshotVersion);
-            if (list == null) {
-                list = new ArrayList<>();
-                moduleMetas.put(meta.getId(), snapshotVersion, list);
-            }
-            list.add(meta);
-        }
-
     }
 
     private List<ModuleMetadata> retrieveMetadata(String host, String repo, Path cacheFolderBase) throws IOException {
@@ -99,7 +108,7 @@ public class ModuleListModelImpl implements ModuleListModel {
             File cacheFile = cacheFolder.resolve(info.getArtifact() + "_info.json").toFile();
             if (cacheFile.exists()) {
                 try (Reader reader = Files.newReader(cacheFile, StandardCharsets.UTF_8)) {
-                    meta = metadataIO.read(reader);
+                    meta = metadataAdapter.read(reader);
                 }
             } else {
                 meta = extractor.loadMetaData(info.getDownloadUrl());
@@ -107,7 +116,7 @@ public class ModuleListModelImpl implements ModuleListModel {
                 RemoteModuleExtension.setArtifactSize(meta, info.getFileSize());
                 RemoteModuleExtension.setLastUpdated(meta, info.getLastUpdated());
                 try (Writer writer = Files.newWriter(cacheFile, StandardCharsets.UTF_8)) {
-                    metadataIO.write(meta, writer);
+                    metadataAdapter.write(meta, writer);
                 }
             }
             usedCacheFiles.add(cacheFile.getName());
@@ -146,5 +155,15 @@ public class ModuleListModelImpl implements ModuleListModel {
                 RemoteModuleExtension.getLastUpdated(m2)));
 
         return latest;
+    }
+
+    @Override
+    public Set<Module> resolve(Name name) {
+        ResolutionResult result = dependencyResolver.resolve(name);
+        if (result.isSuccess()) {
+            return result.getModules();
+        } else {
+            return Collections.emptySet();
+        }
     }
 }

@@ -16,26 +16,36 @@
 
 package org.terasology.web.model;
 
-import java.util.List;
-import java.util.Set;
+import java.net.URL;
+import java.util.Collections;
 
-import org.terasology.module.Module;
+import org.terasology.module.BaseModule;
 import org.terasology.module.ModuleMetadata;
-import org.terasology.naming.Name;
-import org.terasology.naming.Version;
+import com.google.common.collect.ImmutableList;
 
 /**
- * Provides a list of modules.
+ * TODO Type description
+ * @author Martin Steiger
  */
-public interface ModuleListModel {
+public class RemoteModule extends BaseModule {
 
-    Set<Name> findModules();
+    public RemoteModule(ModuleMetadata meta) {
+        super(Collections.emptyList(), meta);
+    }
 
-    Set<Version> findVersions(Name module);
+    @Override
+    public ImmutableList<URL> getClasspaths() {
+        return ImmutableList.of();
+    }
 
-    List<ModuleMetadata> findMetadata(Name module, Version version);
+    @Override
+    public boolean isOnClasspath() {
+        return false;
+    }
 
-    ModuleMetadata findLatestMetadata(Name name, Version version);
+    @Override
+    public boolean isCodeModule() {
+        return true;
+    }
 
-    Set<Module> resolve(Name name);
 }
