@@ -38,7 +38,7 @@ dependencies {
 
     compile 'com.zaxxer:HikariCP:2.3.8'
 
-    compile 'org.terasology:gestalt-module:2.3.0-RC1'
+    compile 'org.terasology:gestalt-module:4.0.3'
 
     testCompile 'org.jsoup:jsoup:1.8.2'
     testCompile 'com.jcabi:jcabi-w3c:1.2'
