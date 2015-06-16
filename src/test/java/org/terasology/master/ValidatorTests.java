@@ -55,7 +55,7 @@ public class ValidatorTests extends WebServerBasedTests {
 
     @Test
     public void testShowModuleInfoPage() throws IOException {
-        analyzePage(new URL(URL_BASE + "/modules/show/Core/0.53.0"));
+        analyzePage(new URL(URL_BASE + "/modules/show/Core/0.53.1"));
     }
 
     @Test

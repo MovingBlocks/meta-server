@@ -1,0 +1,21 @@
+{
+  "id": "ChrisVolume1OST",
+  "version": "0.2.1-SNAPSHOT",
+  "displayName": {
+    "de-DE": "ChrisVolume1OST"
+  },
+  "description": {
+    "de-DE": "Official Terasology soundtrack by Chris Köbke, Volume I"
+  },
+  "dependencies": [
+    {
+      "id": "MusicDirector",
+      "minVersion": "0.2.0",
+      "optional": false
+    }
+  ],
+  "requiredPermissions": [],
+  "lastUpdated": "2015-06-08T05:47:12.666+02:00",
+  "downloadUri": "http://artifactory.terasology.org/artifactory/terasology-snapshot-local/org/terasology/modules/ChrisVolume1OST/0.2.1-SNAPSHOT/ChrisVolume1OST-0.2.1-20150608.034649-1.jar",
+  "artifactSize": 13911285
+}

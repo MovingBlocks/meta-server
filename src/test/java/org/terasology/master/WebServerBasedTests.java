@@ -28,7 +28,6 @@ import org.terasology.web.JettyMain;
 import org.terasology.web.db.DataBase;
 import org.terasology.web.db.JooqDatabase;
 import org.terasology.web.model.ModuleListModel;
-import org.terasology.web.model.ModuleListModelImpl;
 import org.terasology.web.model.ServerEntry;
 import org.terasology.web.model.ServerListModel;
 import org.terasology.web.model.ServerListModelImpl;
@@ -60,10 +59,7 @@ public abstract class WebServerBasedTests {
         dummyConn = DriverManager.getConnection(dbUri);
         dataBase = new JooqDatabase(ds);
 
-        String host = "http://artifactory.terasology.org/artifactory";
-        String releaseRepo = "terasology-release-local";
-        String snapshotRepo = "terasology-snapshot-local";
-        ModuleListModel moduleListModel = new ModuleListModelImpl(host, releaseRepo, snapshotRepo);
+        ModuleListModel moduleListModel = new DummyModuleListModel();
         ServerListModel serverListModel = new ServerListModelImpl(dataBase, SERVER_TABLE, secret);
 
         webServer = JettyMain.start(PORT, serverListModel, moduleListModel);

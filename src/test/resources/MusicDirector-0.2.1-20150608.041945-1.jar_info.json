@@ -1,0 +1,15 @@
+{
+  "id": "MusicDirector",
+  "version": "0.2.1-SNAPSHOT",
+  "displayName": {
+    "de-DE": "MusicDirector"
+  },
+  "description": {
+    "de-DE": "A module that controls music assets from other modules"
+  },
+  "dependencies": [],
+  "requiredPermissions": [],
+  "lastUpdated": "2015-06-08T06:20:17.525+02:00",
+  "downloadUri": "http://artifactory.terasology.org/artifactory/terasology-snapshot-local/org/terasology/modules/MusicDirector/0.2.1-SNAPSHOT/MusicDirector-0.2.1-20150608.041945-1.jar",
+  "artifactSize": 10943
+}

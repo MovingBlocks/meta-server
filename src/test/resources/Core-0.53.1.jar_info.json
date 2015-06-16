@@ -1,0 +1,15 @@
+{
+  "id": "Core",
+  "version": "0.53.1",
+  "displayName": {
+    "und": "Core Content"
+  },
+  "description": {
+    "und": "This module adds a set of base content for Terasology"
+  },
+  "dependencies": [],
+  "requiredPermissions": [],
+  "lastUpdated": "2015-05-04T04:43:09.870+02:00",
+  "downloadUri": "http://artifactory.terasology.org/artifactory/terasology-release-local/org/terasology/modules/Core/0.53.1/Core-0.53.1.jar",
+  "artifactSize": 1660792
+}
