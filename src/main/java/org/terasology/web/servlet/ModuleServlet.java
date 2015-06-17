@@ -22,7 +22,9 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -40,6 +42,7 @@ import org.terasology.module.RemoteModuleExtension;
 import org.terasology.naming.Name;
 import org.terasology.version.Version;
 import org.terasology.web.model.ModuleListModel;
+import org.terasology.web.model.jenkins.Job;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
@@ -154,4 +157,14 @@ public class ModuleServlet {
         return new Viewable("/module-info.ftl", dataModel);
     }
 
+    @POST
+    @Path("update")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response updateModulePost(Job jobState) {
+        logger.info("Requested module update through POST");
+
+        logger.info(jobState.getBuild().getArtifacts().toString());
+
+        return Response.ok().build();
+    }
 }
