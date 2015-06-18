@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,29 +14,15 @@
  * limitations under the License.
  */
 
-package org.terasology.web.model;
+package org.terasology.web.artifactory;
 
+import java.io.IOException;
 import java.util.Collection;
-import java.util.Set;
 
-import org.terasology.module.Module;
-import org.terasology.naming.Name;
-import org.terasology.naming.Version;
+public interface ArtifactRepository {
+    Collection<String> getModuleNames();
 
-/**
- * Provides a list of modules.
- */
-public interface ModuleListModel {
+    void updateModule(String moduleName) throws IOException;
 
-    Set<Name> getModuleIds();
-
-    Collection<Module> getModuleVersions(Name module);
-
-    Module getModule(Name module, Version version);
-
-    Module getLatestModuleVersion(Name name);
-
-    Set<Module> resolve(Name name);
-
-    void updateModule(Name module);
+    Collection<? extends ArtifactInfo> getModuleArtifacts(String moduleName);
 }

@@ -21,16 +21,17 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
-import java.lang.reflect.Type;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,13 +39,11 @@ import org.slf4j.LoggerFactory;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 
 /**
- * TODO Type description
- * @author Martin Steiger
+ * Implements {@link ArtifactRepository} for Artifactory.
  */
-public class ArtifactoryRepo {
+public class ArtifactoryRepo implements ArtifactRepository {
 
     private static final Logger logger = LoggerFactory.getLogger(ArtifactoryRepo.class);
 
@@ -53,77 +52,113 @@ public class ArtifactoryRepo {
             .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
             .create();
 
-    private final File cacheFile;
-    private final List<ArtifactInfo> artifactInfo;
-    private final Map<String, ArtifactoryModule> moduleInfo;
+    private final Map<String, Collection<ArtifactoryArtifactInfo>> artifactInfo = new LinkedHashMap<>();
 
-    public ArtifactoryRepo(String uri, String repo, Path cacheFolder) throws IOException {
-        cacheFile = cacheFolder.resolve(repo + "_cache.json").toFile();
+    private String baseUrl;
+    private final Path cacheFolder;
 
-        if (cacheFile.exists()) {
-            try (Reader reader = Files.newReader(cacheFile, StandardCharsets.UTF_8)) {
-                Type listType = new TypeToken<Map<String, ArtifactoryModule>>() { }.getType();
-                moduleInfo = GSON.fromJson(reader, listType);
-            }
-        } else {
-            moduleInfo = new HashMap<>();
-        }
 
-        artifactInfo = new ArrayList<>();
+    public ArtifactoryRepo(String uri, String repoName, Path cacheFolder) throws IOException {
+        this.cacheFolder = cacheFolder;
 
-        String url = uri
+        baseUrl = uri
                 + "/api/storage"
-                + "/" + repo
+                + "/" + repoName
                 + "/org/terasology/modules";
 
-        ArtifactoryItem folder = readItem(url);
+        ArtifactoryItem folder = readItem(baseUrl);
         for (ArtifactoryItem.Entry child : folder.children) {
             if (child.folder) {
-                String moduleUrl = url + child.uri;
                 String moduleName = child.uri.substring(1);
 
-                ArtifactoryItem mavenMeta = readItem(moduleUrl + "/maven-metadata.xml");
-                ArtifactoryModule cachedMod = moduleInfo.get(moduleName);
-                if (cachedMod == null) {
-                    cachedMod = new ArtifactoryModule();
-                    cachedMod.lastModified = new Date(0);
-                    cachedMod.items = new ArrayList<>();
-                    moduleInfo.put(moduleName, cachedMod);
-                }
-                if (mavenMeta.lastModified.after(cachedMod.lastModified)) {
-                    cachedMod.lastModified = mavenMeta.lastModified;
-                    cachedMod.items.clear();
-
-                    ArtifactoryItem moduleFolder = readItem(moduleUrl);
-                    for (ArtifactoryItem.Entry child2 : moduleFolder.children) {
-                        if (child2.folder) {
-                            String versionUrl = moduleUrl + child2.uri;
-                            ArtifactoryItem versionFolder = readItem(versionUrl);
-                            for (ArtifactoryItem.Entry child3 : versionFolder.children) {
-                                if (matches(child3.uri)) {
-                                    String artifactUrl = versionUrl + child3.uri;
-                                    ArtifactoryItem artifact = readItem(artifactUrl);
-                                    artifactInfo.add(new ArtifactoryArtifactInfo(artifact));
-                                    cachedMod.items.add(new ArtifactoryArtifactInfo(artifact));
-                                    logger.debug("Added " + artifactUrl);
-                                }
-                            }
-                        }
-                    }
-                    logger.info("Updated " + moduleName);
-                } else {
-                    artifactInfo.addAll(cachedMod.items);
-                }
+                updateModule(moduleName);
             }
-        }
-
-        try (Writer writer = Files.newWriter(cacheFile, StandardCharsets.UTF_8)) {
-            GSON.toJson(moduleInfo, writer);
         }
     }
 
-    public Collection<ArtifactInfo> getModuleArtifacts() {
-        return artifactInfo;
+    private ArtifactoryModule loadModuleFromCache(String moduleName) throws IOException {
+        File cacheFile = getCacheFile(moduleName);
+
+        if (cacheFile.exists()) {
+            try (Reader reader = Files.newReader(cacheFile, StandardCharsets.UTF_8)) {
+                ArtifactoryModule meta = GSON.fromJson(reader, ArtifactoryModule.class);
+                return meta;
+            }
+            catch (RuntimeException e) {
+                logger.warn("Could not read {}", cacheFile, e);
+                cacheFile.delete();
+            }
+        }
+        return null;
+    }
+
+    private File getCacheFile(String moduleName) {
+        return cacheFolder.resolve(moduleName).resolve("artifactory.json").toFile();
+    }
+
+    @Override
+    public Set<String> getModuleNames() {
+        return artifactInfo.keySet();
+    }
+
+    @Override
+    public void updateModule(String moduleName) throws IOException {
+        String moduleUrl = baseUrl + "/" + moduleName;
+
+        ArtifactoryItem mavenMeta = readItem(moduleUrl + "/maven-metadata.xml");
+        ArtifactoryModule module = loadModuleFromCache(moduleName);
+
+        if (module == null) {
+            module = new ArtifactoryModule();
+            module.lastModified = new Date(0);
+            module.items = new ArrayList<>();
+        }
+        if (mavenMeta.lastModified.after(module.lastModified)) {
+            module.lastModified = mavenMeta.lastModified;
+            module.items.clear();
+
+            ArtifactoryItem moduleFolder = readItem(moduleUrl);
+            for (ArtifactoryItem.Entry child2 : moduleFolder.children) {
+                if (child2.folder) {
+                    String versionUrl = moduleUrl + child2.uri;
+                    Set<ArtifactoryArtifactInfo> entries = findArtifacts(versionUrl);
+
+                    artifactInfo.put(moduleName, entries);
+                    module.items.addAll(entries);
+
+                }
+            }
+            logger.info("Updated " + moduleName);
+        } else {
+            logger.debug("No updates for " + moduleName);
+        }
+        artifactInfo.put(moduleName, module.items);
+
+        File cacheFile = getCacheFile(moduleName);
+        cacheFile.getParentFile().mkdirs();
+        try (Writer writer = Files.newWriter(cacheFile, StandardCharsets.UTF_8)) {
+            GSON.toJson(module, writer);
+        }
+    }
+
+    private Set<ArtifactoryArtifactInfo> findArtifacts(String versionUrl) throws IOException {
+        Set<ArtifactoryArtifactInfo> hits = new HashSet<>();
+
+        ArtifactoryItem versionFolder = readItem(versionUrl);
+        for (ArtifactoryItem.Entry child3 : versionFolder.children) {
+            if (matches(child3.uri)) {
+                String artifactUrl = versionUrl + child3.uri;
+                ArtifactoryItem artifact = readItem(artifactUrl);
+                hits.add(new ArtifactoryArtifactInfo(artifact));
+                logger.debug("Added " + artifactUrl);
+            }
+        }
+        return hits;
+    }
+
+    @Override
+    public Collection<? extends ArtifactInfo> getModuleArtifacts(String moduleName) {
+        return Collections.unmodifiableCollection(artifactInfo.getOrDefault(moduleName, Collections.emptySet()));
     }
 
     private static ArtifactoryItem readItem(String url) throws IOException {

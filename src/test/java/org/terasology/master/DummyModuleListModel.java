@@ -94,4 +94,9 @@ public class DummyModuleListModel implements ModuleListModel {
             return Collections.emptySet();
         }
     }
+
+    @Override
+    public void updateModule(Name module) {
+        // ignore
+    }
 }

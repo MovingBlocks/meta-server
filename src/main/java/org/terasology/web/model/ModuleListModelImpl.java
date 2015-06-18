@@ -43,8 +43,9 @@ import org.terasology.module.ResolutionResult;
 import org.terasology.module.TableModuleRegistry;
 import org.terasology.naming.Name;
 import org.terasology.naming.Version;
-import org.terasology.web.artifactory.ArtifactoryRepo;
 import org.terasology.web.artifactory.ArtifactInfo;
+import org.terasology.web.artifactory.ArtifactRepository;
+import org.terasology.web.artifactory.ArtifactoryRepo;
 
 import com.google.common.io.Files;
 
@@ -59,8 +60,16 @@ public class ModuleListModelImpl implements ModuleListModel {
 
     private final ModuleRegistry moduleRegistry = new TableModuleRegistry();
     private final DependencyResolver dependencyResolver = new DependencyResolver(moduleRegistry);
+    private final ZipExtractor extractor = new ZipExtractor("module.txt");
 
-    public ModuleListModelImpl(String host, String releaseRepo, String snapshotRepo) throws IOException {
+    private final ArtifactoryRepo releaseRepository;
+    private final ArtifactoryRepo snapshotRepository;
+
+    private final Path releaseRepoCacheFolder;
+    private final Path snapshotRepoCacheFolder;
+
+    public ModuleListModelImpl(String host, String releaseRepoName, String snapshotRepoName) throws IOException {
+
         Path cacheFolder = Paths.get("cache", "modules");
         cacheFolder.toFile().mkdirs();
 
@@ -68,14 +77,30 @@ public class ModuleListModelImpl implements ModuleListModel {
             metadataAdapter.registerExtension(ext.getKey(), ext.getValueType());
         }
 
-        List<ModuleMetadata> releases = retrieveMetadata(host, releaseRepo, cacheFolder);
+        releaseRepoCacheFolder = cacheFolder.resolve(releaseRepoName);
+        releaseRepository = new ArtifactoryRepo(host, releaseRepoName, releaseRepoCacheFolder);
+        for (String moduleName : releaseRepository.getModuleNames()) {
+            updateReleaseModule(moduleName);
+        }
+
+        snapshotRepoCacheFolder = cacheFolder.resolve(snapshotRepoName);
+        snapshotRepository = new ArtifactoryRepo(host, snapshotRepoName, snapshotRepoCacheFolder);
+        for (String moduleName : snapshotRepository.getModuleNames()) {
+            updateSnapshotModule(moduleName);
+        }
+    }
+
+    private void updateReleaseModule(String moduleName) throws IOException {
+        List<ModuleMetadata> releases = retrieveMetadata(releaseRepository, releaseRepoCacheFolder, moduleName);
         for (ModuleMetadata meta : releases) {
             if (!moduleRegistry.add(new RemoteModule(meta))) {
                 logger.error("Duplicate entry for {}/{}", meta.getId(), meta.getVersion());
             }
         }
+    }
 
-        List<ModuleMetadata> snapshots = retrieveMetadata(host, snapshotRepo, cacheFolder);
+    private void updateSnapshotModule(String moduleName) throws IOException {
+        List<ModuleMetadata> snapshots = retrieveMetadata(snapshotRepository, snapshotRepoCacheFolder, moduleName);
         for (ModuleMetadata meta : snapshots) {
             Module prev = moduleRegistry.getModule(meta.getId(), meta.getVersion());
             if (prev != null) {
@@ -94,23 +119,37 @@ public class ModuleListModelImpl implements ModuleListModel {
         }
     }
 
-    private List<ModuleMetadata> retrieveMetadata(String host, String repo, Path cacheFolderBase) throws IOException {
-        ZipExtractor extractor = new ZipExtractor("module.txt");
-        Path cacheFolder = cacheFolderBase.resolve(repo);
-        cacheFolder.toFile().mkdirs();
+    @Override
+    public void updateModule(Name moduleName) {
+        moduleRegistry.removeIf(mod -> mod.getId().equals(moduleName));
 
-        ArtifactoryRepo repository = new ArtifactoryRepo(host, repo, cacheFolderBase);
+        try {
+            updateReleaseModule(moduleName.toString());
+            updateSnapshotModule(moduleName.toString());
+        } catch (IOException e) {
+            logger.warn("Could not update module {}", moduleName, e);
+        }
+    }
+
+    private List<ModuleMetadata> retrieveMetadata(ArtifactRepository repository, Path cacheFolder, String moduleName) throws IOException {
+        Path moduleCacheFolder = cacheFolder.resolve(moduleName);
+        moduleCacheFolder.toFile().mkdirs();
+
         List<ModuleMetadata> result = new ArrayList<>();
 
+        logger.debug("Checking " + moduleName);
+
         Set<String> usedCacheFiles = new HashSet<>();
-        for (ArtifactInfo info : repository.getModuleArtifacts()) {
+        for (ArtifactInfo info : repository.getModuleArtifacts(moduleName)) {
             ModuleMetadata meta;
-            File cacheFile = cacheFolder.resolve(info.getArtifact() + "_info.json").toFile();
+            File cacheFile = moduleCacheFolder.resolve(info.getArtifact() + "_info.json").toFile();
             if (cacheFile.exists()) {
                 try (Reader reader = Files.newReader(cacheFile, StandardCharsets.UTF_8)) {
                     meta = metadataAdapter.read(reader);
                 }
             } else {
+                logger.debug("Downloading " + info.getDownloadUrl());
+
                 meta = extractor.loadMetaData(info.getDownloadUrl());
                 RemoteModuleExtension.setDownloadUrl(meta, info.getDownloadUrl());
                 RemoteModuleExtension.setArtifactSize(meta, info.getFileSize());
@@ -123,11 +162,12 @@ public class ModuleListModelImpl implements ModuleListModel {
             result.add(meta);
         }
 
-        for (String fname : cacheFolder.toFile().list()) {
-            if (!usedCacheFiles.contains(fname)) {
-                System.out.println("ModuleListModelImpl: Would delete " + fname);
+        for (String fname : moduleCacheFolder.toFile().list()) {
+            if (fname.endsWith("_info.json") && !usedCacheFiles.contains(fname)) {
+                logger.info("Would delete " + fname);
             }
         }
+
         return result;
     }
 
