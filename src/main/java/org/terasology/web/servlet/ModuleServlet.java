@@ -74,7 +74,7 @@ public class ModuleServlet {
     @Path("list")
     @Produces(MediaType.APPLICATION_JSON)
     public Response list() {
-        logger.info("Requested module list");
+        logger.info("Requested module list as json");
 
         StreamingOutput stream = os -> {
             try (JsonWriter writer = new JsonWriter(new OutputStreamWriter(os))) {
@@ -117,10 +117,32 @@ public class ModuleServlet {
     }
 
     @GET
+    @Path("list/{module}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response listModule(@PathParam("module") String moduleName) {
+        logger.info("Requested module versions as json");
+
+        Name name = new Name(moduleName);
+
+        StreamingOutput stream = os -> {
+            try (JsonWriter writer = new JsonWriter(new OutputStreamWriter(os))) {
+                writer.beginArray();
+                writer.setIndent("  "); // enable pretty printing
+                for (Module module : model.getModuleVersions(name)) {
+                    ModuleMetadata meta = module.getMetadata();
+                    metadataWriter.write(meta, writer);
+                }
+                writer.endArray();
+            }
+        };
+        return Response.ok(stream).build();
+    }
+
+    @GET
     @Path("show/{module}")
     @Produces(MediaType.TEXT_HTML)
     public Viewable showModule(@PathParam("module") String module) {
-        logger.info("Requested module list as HTML");
+        logger.info("Requested module versions as HTML");
 
         Name name = new Name(module);
         Map<String, Collection<Module>> map = Collections.singletonMap(module, model.getModuleVersions(name));
@@ -134,10 +156,27 @@ public class ModuleServlet {
     }
 
     @GET
+    @Path("list/{module}/{version}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response listModuleVersion(@PathParam("module") String moduleName, @PathParam("version") String version) {
+        logger.info("Requested single module info as json");
+
+        Module module = model.getModule(new Name(moduleName), new org.terasology.naming.Version(version));
+        ModuleMetadata meta = module.getMetadata();
+
+        StreamingOutput stream = os -> {
+            try (OutputStreamWriter writer = new OutputStreamWriter(os)) {
+                metadataWriter.write(meta, writer);
+            }
+        };
+        return Response.ok(stream).build();
+    }
+
+    @GET
     @Path("show/{module}/{version}")
     @Produces(MediaType.TEXT_HTML)
     public Viewable showModuleVersion(@PathParam("module") String module, @PathParam("version") String version) {
-        logger.info("Requested module info");
+        logger.info("Requested module info as HTML");
 
         Name moduleName = new Name(module);
         Module latest = model.getModule(moduleName, new org.terasology.naming.Version(version));
@@ -161,9 +200,11 @@ public class ModuleServlet {
     @Path("update")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateModulePost(Job jobState) {
-        logger.info("Requested module update through POST");
+        String job = jobState.getName();
 
-        logger.info(jobState.getBuild().getArtifacts().toString());
+        logger.info("Requested module update for {}", job);
+
+        model.updateModule(new Name(job));
 
         return Response.ok().build();
     }
