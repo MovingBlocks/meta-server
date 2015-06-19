@@ -43,7 +43,7 @@ import com.google.gson.GsonBuilder;
 /**
  * Implements {@link ArtifactRepository} for Artifactory.
  */
-public class ArtifactoryRepo implements ArtifactRepository {
+public final class ArtifactoryRepo implements ArtifactRepository {
 
     private static final Logger logger = LoggerFactory.getLogger(ArtifactoryRepo.class);
 
@@ -54,12 +54,15 @@ public class ArtifactoryRepo implements ArtifactRepository {
 
     private final Map<String, Collection<ArtifactoryArtifactInfo>> artifactInfo = new LinkedHashMap<>();
 
-    private String baseUrl;
+    private final String baseUrl;
     private final Path cacheFolder;
+    private final String repoName;
+    private final RepoType type;
 
-
-    public ArtifactoryRepo(String uri, String repoName, Path cacheFolder) throws IOException {
+    private ArtifactoryRepo(String uri, String repoName, Path cacheFolder, RepoType type) throws IOException {
         this.cacheFolder = cacheFolder;
+        this.repoName = repoName;
+        this.type = type;
 
         baseUrl = uri
                 + "/api/storage"
@@ -74,6 +77,14 @@ public class ArtifactoryRepo implements ArtifactRepository {
                 updateModule(moduleName);
             }
         }
+    }
+
+    public static ArtifactoryRepo snapshot(String uri, String repoName, Path cacheFolder) throws IOException {
+        return new ArtifactoryRepo(uri, repoName, cacheFolder, RepoType.SNAPSHOT);
+    }
+
+    public static ArtifactoryRepo release(String uri, String repoName, Path cacheFolder) throws IOException {
+        return new ArtifactoryRepo(uri, repoName, cacheFolder, RepoType.RELEASE);
     }
 
     private ArtifactoryModule loadModuleFromCache(String moduleName) throws IOException {
@@ -94,6 +105,16 @@ public class ArtifactoryRepo implements ArtifactRepository {
 
     private File getCacheFile(String moduleName) {
         return cacheFolder.resolve(moduleName).resolve("artifactory.json").toFile();
+    }
+
+    @Override
+    public String getName() {
+        return repoName;
+    }
+
+    @Override
+    public RepoType getType() {
+        return type;
     }
 
     @Override

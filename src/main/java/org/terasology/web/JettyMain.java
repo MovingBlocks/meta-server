@@ -17,6 +17,8 @@
 package org.terasology.web;
 
 import java.net.URI;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandler;
@@ -29,6 +31,7 @@ import org.glassfish.jersey.server.mvc.freemarker.FreemarkerMvcFeature;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.terasology.web.artifactory.ArtifactoryRepo;
 import org.terasology.web.db.DataBase;
 import org.terasology.web.db.JooqDatabase;
 import org.terasology.web.io.GsonMessageBodyHandler;
@@ -88,7 +91,17 @@ public final class JettyMain {
         String host = "http://artifactory.terasology.org/artifactory";
         String releaseRepo = "terasology-release-local";
         String snapshotRepo = "terasology-snapshot-local";
-        ModuleListModel moduleListModel = new ModuleListModelImpl(host, releaseRepo, snapshotRepo);
+
+        Path cacheFolder = Paths.get("cache", "modules");
+
+        Path releaseRepoCacheFolder = cacheFolder.resolve(releaseRepo);
+        Path snapshotRepoCacheFolder = cacheFolder.resolve(snapshotRepo);
+        ArtifactoryRepo releaseRepository = ArtifactoryRepo.release(host, releaseRepo, releaseRepoCacheFolder);
+        ArtifactoryRepo snapshotRepository = ArtifactoryRepo.snapshot(host, snapshotRepo, snapshotRepoCacheFolder);
+
+        ModuleListModelImpl moduleListModel = new ModuleListModelImpl(cacheFolder);
+        moduleListModel.addRepository(releaseRepository);
+        moduleListModel.addRepository(snapshotRepository);
 
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:postgresql://" + dbUri.getHost() + ":" + dbPort + dbUri.getPath());

@@ -22,7 +22,6 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -45,7 +44,6 @@ import org.terasology.naming.Name;
 import org.terasology.naming.Version;
 import org.terasology.web.artifactory.ArtifactInfo;
 import org.terasology.web.artifactory.ArtifactRepository;
-import org.terasology.web.artifactory.ArtifactoryRepo;
 
 import com.google.common.io.Files;
 
@@ -62,59 +60,59 @@ public class ModuleListModelImpl implements ModuleListModel {
     private final DependencyResolver dependencyResolver = new DependencyResolver(moduleRegistry);
     private final ZipExtractor extractor = new ZipExtractor("module.txt");
 
-    private final ArtifactoryRepo releaseRepository;
-    private final ArtifactoryRepo snapshotRepository;
+    private final Collection<ArtifactRepository> repositories = new ArrayList<>();
 
-    private final Path releaseRepoCacheFolder;
-    private final Path snapshotRepoCacheFolder;
+    private final Path cacheFolder;
 
-    public ModuleListModelImpl(String host, String releaseRepoName, String snapshotRepoName) throws IOException {
-
-        Path cacheFolder = Paths.get("cache", "modules");
-        cacheFolder.toFile().mkdirs();
+    public ModuleListModelImpl(Path cacheFolder) {
+        this.cacheFolder = cacheFolder;
+        this.cacheFolder.toFile().mkdirs();
 
         for (RemoteModuleExtension ext : RemoteModuleExtension.values()) {
             metadataAdapter.registerExtension(ext.getKey(), ext.getValueType());
         }
-
-        releaseRepoCacheFolder = cacheFolder.resolve(releaseRepoName);
-        releaseRepository = new ArtifactoryRepo(host, releaseRepoName, releaseRepoCacheFolder);
-        for (String moduleName : releaseRepository.getModuleNames()) {
-            updateReleaseModule(moduleName);
-        }
-
-        snapshotRepoCacheFolder = cacheFolder.resolve(snapshotRepoName);
-        snapshotRepository = new ArtifactoryRepo(host, snapshotRepoName, snapshotRepoCacheFolder);
-        for (String moduleName : snapshotRepository.getModuleNames()) {
-            updateSnapshotModule(moduleName);
-        }
     }
 
-    private void updateReleaseModule(String moduleName) throws IOException {
-        List<ModuleMetadata> releases = retrieveMetadata(releaseRepository, releaseRepoCacheFolder, moduleName);
+    public void addRepository(ArtifactRepository repo) throws IOException {
+
+        for (String moduleName : repo.getModuleNames()) {
+            updateModule(repo, moduleName);
+        }
+
+        repositories.add(repo);
+    }
+
+    private void updateModule(ArtifactRepository repo, String moduleName) throws IOException {
+        Path repoCacheFolder = cacheFolder.resolve(repo.getName());
+        List<ModuleMetadata> releases = retrieveMetadata(repo, repoCacheFolder, moduleName);
         for (ModuleMetadata meta : releases) {
-            if (!moduleRegistry.add(new RemoteModule(meta))) {
-                logger.error("Duplicate entry for {}/{}", meta.getId(), meta.getVersion());
-            }
-        }
-    }
+            switch (repo.getType()) {
+                case RELEASE:
+                    if (!moduleRegistry.add(new RemoteModule(meta))) {
+                        logger.error("Duplicate entry for {}/{}", meta.getId(), meta.getVersion());
+                    }
+                    break;
 
-    private void updateSnapshotModule(String moduleName) throws IOException {
-        List<ModuleMetadata> snapshots = retrieveMetadata(snapshotRepository, snapshotRepoCacheFolder, moduleName);
-        for (ModuleMetadata meta : snapshots) {
-            Module prev = moduleRegistry.getModule(meta.getId(), meta.getVersion());
-            if (prev != null) {
-                Date prevUpdated = RemoteModuleExtension.getLastUpdated(prev.getMetadata());
-                Date thisUpdated = RemoteModuleExtension.getLastUpdated(meta);
+                case SNAPSHOT:
+                    Module prev = moduleRegistry.getModule(meta.getId(), meta.getVersion());
+                    if (prev != null) {
+                        Date prevUpdated = RemoteModuleExtension.getLastUpdated(prev.getMetadata());
+                        Date thisUpdated = RemoteModuleExtension.getLastUpdated(meta);
 
-                if (thisUpdated.after(prevUpdated)) {
+                        if (thisUpdated.after(prevUpdated)) {
 
-                    // remove the old one first so the new one can be added
-                    moduleRegistry.remove(prev);
-                    moduleRegistry.add(new RemoteModule(meta));
-                }
-            } else {
-                moduleRegistry.add(new RemoteModule(meta));
+                            // remove the old one first so the new one can be added
+                            moduleRegistry.remove(prev);
+                            moduleRegistry.add(new RemoteModule(meta));
+                        }
+                    } else {
+                        moduleRegistry.add(new RemoteModule(meta));
+                    }
+                    break;
+
+                default:
+                    logger.warn("Ignoring unknown repository type!");
+                    break;
             }
         }
     }
@@ -123,16 +121,17 @@ public class ModuleListModelImpl implements ModuleListModel {
     public void updateModule(Name moduleName) {
         moduleRegistry.removeIf(mod -> mod.getId().equals(moduleName));
 
-        try {
-            updateReleaseModule(moduleName.toString());
-            updateSnapshotModule(moduleName.toString());
-        } catch (IOException e) {
-            logger.warn("Could not update module {}", moduleName, e);
+        for (ArtifactRepository repo : repositories) {
+            try {
+                updateModule(repo, moduleName.toString());
+            } catch (IOException e) {
+                logger.warn("Could not update module {}", moduleName, e);
+            }
         }
     }
 
-    private List<ModuleMetadata> retrieveMetadata(ArtifactRepository repository, Path cacheFolder, String moduleName) throws IOException {
-        Path moduleCacheFolder = cacheFolder.resolve(moduleName);
+    private List<ModuleMetadata> retrieveMetadata(ArtifactRepository repository, Path repoCacheFolder, String moduleName) throws IOException {
+        Path moduleCacheFolder = repoCacheFolder.resolve(moduleName);
         moduleCacheFolder.toFile().mkdirs();
 
         List<ModuleMetadata> result = new ArrayList<>();

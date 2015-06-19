@@ -20,6 +20,16 @@ import java.io.IOException;
 import java.util.Collection;
 
 public interface ArtifactRepository {
+
+    public enum RepoType {
+        RELEASE,
+        SNAPSHOT
+    }
+
+    String getName();
+
+    RepoType getType();
+
     Collection<String> getModuleNames();
 
     void updateModule(String moduleName) throws IOException;
