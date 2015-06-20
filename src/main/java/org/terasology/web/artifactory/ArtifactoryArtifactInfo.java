@@ -48,11 +48,6 @@ public class ArtifactoryArtifactInfo implements ArtifactInfo {
     }
 
     @Override
-    public int compareTo(ArtifactInfo o) {
-        return String.CASE_INSENSITIVE_ORDER.compare(artifact, o.getArtifact());
-    }
-
-    @Override
     public Date getLastUpdated() {
         return item.lastUpdated;
     }

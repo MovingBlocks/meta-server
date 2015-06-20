@@ -34,7 +34,7 @@ public class ModuleTest extends WebServerBasedTests {
 
     @Test
     public void testUpdate() throws MalformedURLException, IOException {
-        String classpathFile = "/CommonWorld-0.1.3-SNAPSHOT_jenkins-notification.json";
+        String classpathFile = "/jenkins/CommonWorld-0.1.3-SNAPSHOT_jenkins-notification.json";
         int responseCode = postNotification(new URL(URL_BASE + "/modules/update"), classpathFile);
 
         Assert.assertEquals(Status.OK.getStatusCode(), responseCode);

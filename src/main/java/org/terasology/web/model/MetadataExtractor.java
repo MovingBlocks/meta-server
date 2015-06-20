@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-package org.terasology.web.artifactory;
+package org.terasology.web.model;
 
+import java.io.IOException;
 import java.net.URL;
-import java.util.Date;
 
-/**
- * Describes a module.
- */
-public interface ArtifactInfo {
+import org.terasology.module.ModuleMetadata;
 
-    URL getDownloadUrl();
+public interface MetadataExtractor {
 
-    String getArtifact();
-
-    Date getLastUpdated();
-
-    long getFileSize();
+    /**
+     * @param url the URL that describes the archive
+     * @return the module metadata
+     * @throws IOException if the file is not found or reading from the archive failed
+     */
+    ModuleMetadata loadMetaData(URL url) throws IOException;
 }

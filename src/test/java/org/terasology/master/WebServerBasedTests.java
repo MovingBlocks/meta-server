@@ -16,6 +16,7 @@
 
 package org.terasology.master;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -24,15 +25,21 @@ import org.eclipse.jetty.server.Server;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.rules.TemporaryFolder;
 import org.terasology.web.JettyMain;
+import org.terasology.web.artifactory.ArtifactRepository.RepoType;
 import org.terasology.web.db.DataBase;
 import org.terasology.web.db.JooqDatabase;
-import org.terasology.web.model.ModuleListModel;
+import org.terasology.web.model.ModuleListModelImpl;
 import org.terasology.web.model.ServerEntry;
 import org.terasology.web.model.ServerListModel;
 import org.terasology.web.model.ServerListModelImpl;
 
 public abstract class WebServerBasedTests {
+
+    @ClassRule
+    public static TemporaryFolder tempFolder = new TemporaryFolder();
 
     protected static final int PORT = 8082;
     protected static final String URL_BASE = "http://localhost:" + PORT;
@@ -59,7 +66,19 @@ public abstract class WebServerBasedTests {
         dummyConn = DriverManager.getConnection(dbUri);
         dataBase = new JooqDatabase(ds);
 
-        ModuleListModel moduleListModel = new DummyModuleListModel();
+        File cacheFolder = tempFolder.newFolder("module", "cache");
+        ModuleListModelImpl moduleListModel = new ModuleListModelImpl(cacheFolder.toPath(), new DummyExtractor());
+
+        DummyArtifactRepo releaseRepo = new DummyArtifactRepo(RepoType.RELEASE);
+        releaseRepo.addArtifact("Core", new ClasspathArtifactInfo("/metas/Core-0.53.1.jar_info.json"));
+
+        DummyArtifactRepo snapshotRepo = new DummyArtifactRepo(RepoType.SNAPSHOT);
+        snapshotRepo.addArtifact("ChrisVolume1OST", new ClasspathArtifactInfo("/metas/ChrisVolume1OST-0.2.1-20150608.034649-1.jar_info.json"));
+        snapshotRepo.addArtifact("MusicDirector", new ClasspathArtifactInfo("/metas/MusicDirector-0.2.1-20150608.041945-1.jar_info.json"));
+
+        moduleListModel.addRepository(releaseRepo);
+        moduleListModel.addRepository(snapshotRepo);
+
         ServerListModel serverListModel = new ServerListModelImpl(dataBase, SERVER_TABLE, secret);
 
         webServer = JettyMain.start(PORT, serverListModel, moduleListModel);

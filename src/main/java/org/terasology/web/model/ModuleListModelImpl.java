@@ -58,15 +58,20 @@ public class ModuleListModelImpl implements ModuleListModel {
 
     private final ModuleRegistry moduleRegistry = new TableModuleRegistry();
     private final DependencyResolver dependencyResolver = new DependencyResolver(moduleRegistry);
-    private final ZipExtractor extractor = new ZipExtractor("module.txt");
+    private final MetadataExtractor extractor;
 
     private final Collection<ArtifactRepository> repositories = new ArrayList<>();
 
     private final Path cacheFolder;
 
     public ModuleListModelImpl(Path cacheFolder) {
+        this (cacheFolder, new ZipExtractor("module.txt"));
+    }
+
+    public ModuleListModelImpl(Path cacheFolder, MetadataExtractor extractor) {
         this.cacheFolder = cacheFolder;
         this.cacheFolder.toFile().mkdirs();
+        this.extractor = extractor;
 
         for (RemoteModuleExtension ext : RemoteModuleExtension.values()) {
             metadataAdapter.registerExtension(ext.getKey(), ext.getValueType());

@@ -33,7 +33,7 @@ import org.terasology.module.ModuleMetadataJsonAdapter;
  * Extracts the module info file from a ZIP archive that is described by an URL.
  * The stream is closed as soon as the file has been read.
  */
-public class ZipExtractor {
+public class ZipExtractor implements MetadataExtractor {
 
     private final String filename;
     private final ModuleMetadataJsonAdapter metaReader = new ModuleMetadataJsonAdapter();
@@ -45,11 +45,7 @@ public class ZipExtractor {
         this.filename = filename;
     }
 
-    /**
-     * @param url the URL that describes the archive
-     * @return the module metadata
-     * @throws IOException if the file is not found or reading from the archive failed
-     */
+    @Override
     public ModuleMetadata loadMetaData(URL url) throws IOException {
         try (InputStream in = url.openStream();
                 ZipInputStream zipStream = new ZipInputStream(in)) {
