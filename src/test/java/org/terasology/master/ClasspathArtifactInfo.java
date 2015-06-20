@@ -32,9 +32,12 @@ public class ClasspathArtifactInfo implements ArtifactInfo {
 
     private ModuleMetadata meta;
     private URL url;
+    private String artifactName;
 
     public ClasspathArtifactInfo(String cpUrl) throws IOException {
         ModuleMetadataJsonAdapter metadataAdapter = new ModuleMetadataJsonAdapter();
+
+        artifactName = cpUrl.substring(cpUrl.lastIndexOf("/") + 1);
 
         for (RemoteModuleExtension ext : RemoteModuleExtension.values()) {
             metadataAdapter.registerExtension(ext.getKey(), ext.getValueType());
@@ -53,7 +56,7 @@ public class ClasspathArtifactInfo implements ArtifactInfo {
 
     @Override
     public String getArtifact() {
-        return "artifact";
+        return artifactName;
     }
 
     @Override

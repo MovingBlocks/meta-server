@@ -124,7 +124,20 @@ public class ModuleListModelImpl implements ModuleListModel {
 
     @Override
     public void updateModule(Name moduleName) {
-        moduleRegistry.removeIf(mod -> mod.getId().equals(moduleName));
+//        TODO: use removeIf as soon as gestalt-4.0.4 is out (#32)
+//        moduleRegistry.removeIf(mod -> mod.getId().equals(moduleName));
+
+        ArrayList<Module> deletes = new ArrayList<>();
+        for (Module mod : moduleRegistry) {
+            if (mod.getId().equals(moduleName)) {
+                deletes.add(mod);
+            }
+        }
+        for (Module mod : deletes) {
+            moduleRegistry.remove(mod);
+        }
+
+        // -------------
 
         for (ArtifactRepository repo : repositories) {
             try {

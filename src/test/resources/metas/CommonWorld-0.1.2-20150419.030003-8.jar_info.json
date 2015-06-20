@@ -1,0 +1,15 @@
+{
+  "id": "CommonWorld",
+  "version": "0.1.2",
+  "displayName": {
+    "de-DE": "CommonWorld"
+  },
+  "description": {
+    "de-DE": "Provides common classes for different world generators"
+  },
+  "dependencies": [],
+  "requiredPermissions": [],
+  "lastUpdated": "2015-04-19T05:01:06.665+02:00",
+  "downloadUri": "http://artifactory.terasology.org/artifactory/terasology-snapshot-local/org/terasology/modules/CommonWorld/0.1.2-SNAPSHOT/CommonWorld-0.1.2-20150419.030003-8.jar",
+  "artifactSize": 81990
+}

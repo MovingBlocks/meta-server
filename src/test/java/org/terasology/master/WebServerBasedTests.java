@@ -17,6 +17,7 @@
 package org.terasology.master;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -53,6 +54,9 @@ public abstract class WebServerBasedTests {
     private static Connection dummyConn;
     private static AtomicInteger atomCount = new AtomicInteger();
 
+    private static DummyArtifactRepo releaseRepo;
+    private static DummyArtifactRepo snapshotRepo;
+
     @BeforeClass
     public static void setup() throws Exception {
 
@@ -73,12 +77,12 @@ public abstract class WebServerBasedTests {
         File cacheFolder = tempFolder.newFolder("module", "cache");
         ModuleListModelImpl moduleListModel = new ModuleListModelImpl(cacheFolder.toPath(), new DummyExtractor());
 
-        DummyArtifactRepo releaseRepo = new DummyArtifactRepo(RepoType.RELEASE);
-        releaseRepo.addArtifact("Core", new ClasspathArtifactInfo("/metas/Core-0.53.1.jar_info.json"));
+        releaseRepo = new DummyArtifactRepo(RepoType.RELEASE);
+        addRelease("Core", "Core-0.53.1.jar_info.json");
 
-        DummyArtifactRepo snapshotRepo = new DummyArtifactRepo(RepoType.SNAPSHOT);
-        snapshotRepo.addArtifact("ChrisVolume1OST", new ClasspathArtifactInfo("/metas/ChrisVolume1OST-0.2.1-20150608.034649-1.jar_info.json"));
-        snapshotRepo.addArtifact("MusicDirector", new ClasspathArtifactInfo("/metas/MusicDirector-0.2.1-20150608.041945-1.jar_info.json"));
+        snapshotRepo = new DummyArtifactRepo(RepoType.SNAPSHOT);
+        addSnapshot("ChrisVolume1OST", "ChrisVolume1OST-0.2.1-20150608.034649-1.jar_info.json");
+        addSnapshot("MusicDirector", "MusicDirector-0.2.1-20150608.041945-1.jar_info.json");
 
         moduleListModel.addRepository(releaseRepo);
         moduleListModel.addRepository(snapshotRepo);
@@ -97,6 +101,14 @@ public abstract class WebServerBasedTests {
         firstEntry.setStateprov(geo.getStateOrProvince());
         firstEntry.setCity(geo.getCity());
         dataBase.insert(SERVER_TABLE, firstEntry);
+    }
+
+    protected static void addRelease(String modName, String fname) throws IOException {
+        releaseRepo.addArtifact(modName, new ClasspathArtifactInfo("/metas/" + fname));
+    }
+
+    protected static void addSnapshot(String modName, String fname) throws IOException {
+        snapshotRepo.addArtifact(modName, new ClasspathArtifactInfo("/metas/" + fname));
     }
 
     @AfterClass
