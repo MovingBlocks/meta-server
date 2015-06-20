@@ -31,6 +31,8 @@ import org.terasology.web.JettyMain;
 import org.terasology.web.artifactory.ArtifactRepository.RepoType;
 import org.terasology.web.db.DataBase;
 import org.terasology.web.db.JooqDatabase;
+import org.terasology.web.geo.GeoLocation;
+import org.terasology.web.geo.GeoLocationService;
 import org.terasology.web.model.ModuleListModelImpl;
 import org.terasology.web.model.ServerEntry;
 import org.terasology.web.model.ServerListModel;
@@ -62,9 +64,11 @@ public abstract class WebServerBasedTests {
         JdbcDataSource ds = new JdbcDataSource();
         ds.setURL(dbUri);
 
+        GeoLocationService geoService = new DummyGeoLocationService();
+
         // Open a dummy connection to the in-memory database to keep it alive
         dummyConn = DriverManager.getConnection(dbUri);
-        dataBase = new JooqDatabase(ds);
+        dataBase = new JooqDatabase(ds, geoService);
 
         File cacheFolder = tempFolder.newFolder("module", "cache");
         ModuleListModelImpl moduleListModel = new ModuleListModelImpl(cacheFolder.toPath(), new DummyExtractor());
@@ -85,9 +89,13 @@ public abstract class WebServerBasedTests {
 
         dataBase.createTable(SERVER_TABLE);
 
+        GeoLocation geo = geoService.resolve("localhost");
         firstEntry = new ServerEntry("localhost", 25000);
         firstEntry.setName("myName");
         firstEntry.setOwner("Tester");
+        firstEntry.setCountry(geo.getCountry());
+        firstEntry.setStateprov(geo.getStateOrProvince());
+        firstEntry.setCity(geo.getCity());
         dataBase.insert(SERVER_TABLE, firstEntry);
     }
 

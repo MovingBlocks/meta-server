@@ -22,6 +22,7 @@ import org.h2.jdbcx.JdbcDataSource;
 import org.junit.Assert;
 import org.junit.Test;
 import org.terasology.web.db.JooqDatabase;
+import org.terasology.web.geo.GeoLocationService;
 
 public class JooqDbTest {
 
@@ -33,7 +34,9 @@ public class JooqDbTest {
 
         JdbcDataSource ds = new JdbcDataSource();
         ds.setURL(DB_URL);
-        JooqDatabase db = new JooqDatabase(ds);
+
+        GeoLocationService geoService = new DummyGeoLocationService();
+        JooqDatabase db = new JooqDatabase(ds, geoService);
         String tableName = "servers";
 
         db.createTable(tableName);

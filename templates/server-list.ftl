@@ -36,7 +36,7 @@
                     <td class="server-owner">${item.owner}</td>
                     <td class="server-location">
                     <#if item.country??>
-                        <img src="/img/flags/${item.country?lower_case}.png" title="${item.country}"/>
+                        <img src="/img/flags/${item.country?lower_case}.png" alt="${item.country}" title="${item.country}"/>
                     </#if>
                     ${item.city!}
                     </td>

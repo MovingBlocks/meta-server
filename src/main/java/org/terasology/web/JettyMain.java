@@ -34,6 +34,8 @@ import org.slf4j.LoggerFactory;
 import org.terasology.web.artifactory.ArtifactoryRepo;
 import org.terasology.web.db.DataBase;
 import org.terasology.web.db.JooqDatabase;
+import org.terasology.web.geo.GeoLocationService;
+import org.terasology.web.geo.dbip.GeoLocationServiceDbIp;
 import org.terasology.web.io.GsonMessageBodyHandler;
 import org.terasology.web.model.ModuleListModel;
 import org.terasology.web.model.ModuleListModelImpl;
@@ -84,6 +86,11 @@ public final class JettyMain {
             return;
         }
 
+        String dbIpApiKey = System.getenv("DBIP_API_KEY");
+        if (dbIpApiKey != null) {
+            logger.warn("Environment variable 'DBIP_API_KEY' not defined - using default {}");
+        }
+
         String username = dbUri.getUserInfo().split(":")[0];
         String password = dbUri.getUserInfo().split(":")[1];
         int dbPort = dbUri.getPort();
@@ -110,9 +117,11 @@ public final class JettyMain {
         config.addDataSourceProperty("sslmode", "require");
         config.setMaximumPoolSize(5);
 
+        GeoLocationService geoService = new GeoLocationServiceDbIp(dbIpApiKey);
+
         try (HikariDataSource ds = new HikariDataSource(config)) {
 
-            DataBase dataBase = new JooqDatabase(ds);
+            DataBase dataBase = new JooqDatabase(ds, geoService);
             ServerListModel serverListModel = new ServerListModelImpl(dataBase, "servers", secret);
 
             Server server = start(port.intValue(), serverListModel, moduleListModel);

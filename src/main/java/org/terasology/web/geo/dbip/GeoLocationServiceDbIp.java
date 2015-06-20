@@ -31,6 +31,12 @@ import retrofit.RestAdapter;
  */
 public class GeoLocationServiceDbIp implements GeoLocationService {
 
+    private final String apiKey;
+
+    public GeoLocationServiceDbIp(String apiKey) {
+        this.apiKey = apiKey;
+    }
+
     @Override
     public GeoLocation resolve(String hostnameOrIp) throws IOException {
         String url = "http://api.db-ip.com/";
@@ -41,7 +47,6 @@ public class GeoLocationServiceDbIp implements GeoLocationService {
         InetAddress inet = InetAddress.getByName(hostnameOrIp);
         String ipAddress = inet.getHostAddress();
 
-        String apiKey = System.getenv("DBIP_API_KEY");
         DbIpQueryResponse response = service.getGeoLocation(ipAddress, apiKey);
         if (response.isSuccess()) {
             return response;

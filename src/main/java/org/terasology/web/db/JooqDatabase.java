@@ -43,7 +43,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.web.geo.GeoLocation;
 import org.terasology.web.geo.GeoLocationService;
-import org.terasology.web.geo.dbip.GeoLocationServiceDbIp;
 
 /**
  * @author Martin Steiger
@@ -54,11 +53,14 @@ public final class JooqDatabase implements DataBase {
 
     private final DataSource ds;
 
+    private final GeoLocationService geoService;
 
     /**
-     * @param ds the database URI in the form <code>jdbc:mysql://server/db?user=[user]&password=[pass]</code>.
+     * @param ds the datasource
+     * @param geoService the geo-location service
      */
-    public JooqDatabase(DataSource ds) {
+    public JooqDatabase(DataSource ds, GeoLocationService geoService) {
+        this.geoService = geoService;
         this.ds = ds;
     }
 
@@ -154,7 +156,6 @@ public final class JooqDatabase implements DataBase {
                 .set(DSL.field(DSL.name("port")), port)
                 .set(DSL.field(DSL.name("owner")), owner);
 
-            GeoLocationService geoService = new GeoLocationServiceDbIp();
             try {
                 GeoLocation geoLoc = geoService.resolve(address);
                 String country = geoLoc.getCountry();
@@ -220,7 +221,6 @@ public final class JooqDatabase implements DataBase {
                 .set(DSL.field(DSL.name("name")), name)
                 .set(DSL.field(DSL.name("owner")), owner);
 
-            GeoLocationService geoService = new GeoLocationServiceDbIp();
             try {
                 GeoLocation geoLoc = geoService.resolve(address);
                 String country = geoLoc.getCountry();
