@@ -35,6 +35,7 @@ import org.jooq.InsertSetMoreStep;
 import org.jooq.Query;
 import org.jooq.Record;
 import org.jooq.Result;
+import org.jooq.SortField;
 import org.jooq.Table;
 import org.jooq.UpdateSetMoreStep;
 import org.jooq.impl.DSL;
@@ -90,7 +91,9 @@ public final class JooqDatabase implements DataBase {
             DSLContext context = DSL.using(conn);
             Table<Record> table = DSL.table(DSL.name(tableName));
 
-            Result<Record> content = context.select().from(table).fetch();
+            SortField<?> activeDesc = DSL.field(DSL.name("active")).desc();
+            SortField<?> modTimeDesc = DSL.field(DSL.name("modtime")).desc();
+            Result<Record> content = context.select().from(table).orderBy(activeDesc, modTimeDesc).fetch();
             List<Map<String, Object>> entries = new ArrayList<>(content.size());
 
             for (Record record : content) {
@@ -227,7 +230,8 @@ public final class JooqDatabase implements DataBase {
             UpdateSetMoreStep<Record> statement = context.update(table)
                 .set(DSL.field(DSL.name("name")), name)
                 .set(DSL.field(DSL.name("owner")), owner)
-                .set(DSL.field(DSL.name("active")), active);
+                .set(DSL.field(DSL.name("active")), active)
+                .set(DSL.field(DSL.name("modtime")), DSL.defaultValue(Timestamp.class));
 
             try {
                 GeoLocation geoLoc = geoService.resolve(address);
