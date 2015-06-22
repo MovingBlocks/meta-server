@@ -17,8 +17,11 @@
 package org.terasology.web.servlet;
 
 import java.io.OutputStreamWriter;
+import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,9 +31,13 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.StreamingOutput;
+import javax.ws.rs.core.UriInfo;
 
 import org.glassfish.jersey.server.mvc.Viewable;
 import org.slf4j.Logger;
@@ -46,6 +53,7 @@ import org.terasology.web.model.jenkins.Job;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Ordering;
 import com.google.common.collect.TreeMultimap;
 import com.google.gson.stream.JsonWriter;
 
@@ -77,10 +85,12 @@ public class ModuleServlet {
         logger.info("Requested module list as json");
 
         StreamingOutput stream = os -> {
+            List<Name> sortedModuleIds = new ArrayList<>(model.getModuleIds());
+            sortedModuleIds.sort(null);
             try (JsonWriter writer = new JsonWriter(new OutputStreamWriter(os))) {
                 writer.beginArray();
                 writer.setIndent("  "); // enable pretty printing
-                for (Name name : model.getModuleIds()) {
+                for (Name name : sortedModuleIds) {
                     for (Module module : model.getModuleVersions(name)) {
                         ModuleMetadata meta = module.getMetadata();
                         metadataWriter.write(meta, writer);
@@ -103,7 +113,7 @@ public class ModuleServlet {
         // the key needs to be string, so that FreeMarker can use it for lookups
         Multimap<String, Module> map = TreeMultimap.create(
                 String.CASE_INSENSITIVE_ORDER,
-                (m1, m2) -> m1.getVersion().compareTo(m2.getVersion()));
+                (m1, m2) -> m2.getVersion().compareTo(m1.getVersion()));
 
         for (Name name : names) {
             map.putAll(name.toString(), model.getModuleVersions(name));
@@ -114,6 +124,29 @@ public class ModuleServlet {
                 .put("version", Version.getVersion())
                 .build();
         return new Viewable("/module-list.ftl", dataModel);
+    }
+
+    @GET
+    @Path("list/latest")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response listLatest(@Context UriInfo uriInfo) {
+        logger.info("Requested lastest info as json");
+
+        StreamingOutput stream = os -> {
+            List<Name> sortedModuleIds = new ArrayList<>(model.getModuleIds());
+            sortedModuleIds.sort(null);
+            try (JsonWriter writer = new JsonWriter(new OutputStreamWriter(os))) {
+                writer.beginArray();
+                writer.setIndent("  "); // enable pretty printing
+                for (Name name : sortedModuleIds) {
+                    Module module = model.getLatestModuleVersion(name);
+                    ModuleMetadata meta = module.getMetadata();
+                    metadataWriter.write(meta, writer);
+                }
+                writer.endArray();
+            }
+        };
+        return Response.ok(stream).build();
     }
 
     @GET
@@ -156,6 +189,22 @@ public class ModuleServlet {
     }
 
     @GET
+    @Path("list/{module}/latest")
+    @Produces(MediaType.TEXT_HTML)
+    public Response listModuleLatest(@Context UriInfo uriInfo, @PathParam("module") String module) {
+        logger.info("Requested lastest module info as HTML");
+        int pathLen = uriInfo.getPath().length();
+        String path = uriInfo.getPath().substring(0, pathLen - "latest".length());
+        Module latest = model.getLatestModuleVersion(new Name(module));
+        if (latest == null) {
+            return Response.status(Status.NOT_FOUND).build();
+        }
+        String ver = latest.getVersion().toString();
+        URI redirect = URI.create(uriInfo.getBaseUri() + path + ver);
+        return Response.temporaryRedirect(redirect).build();
+    }
+
+    @GET
     @Path("list/{module}/{version}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response listModuleVersion(@PathParam("module") String moduleName, @PathParam("version") String version) {
@@ -170,6 +219,22 @@ public class ModuleServlet {
             }
         };
         return Response.ok(stream).build();
+    }
+
+    @GET
+    @Path("show/{module}/latest")
+    @Produces(MediaType.TEXT_HTML)
+    public Response showModuleLatest(@Context UriInfo uriInfo, @PathParam("module") String module) {
+        logger.info("Requested lastest module info as HTML");
+        int pathLen = uriInfo.getPath().length();
+        String path = uriInfo.getPath().substring(0, pathLen - "latest".length());
+        Module latest = model.getLatestModuleVersion(new Name(module));
+        if (latest == null) {
+            return Response.status(Status.NOT_FOUND).build();
+        }
+        String ver = latest.getVersion().toString();
+        URI redirect = URI.create(uriInfo.getBaseUri() + path + ver);
+        return Response.temporaryRedirect(redirect).build();
     }
 
     @GET
