@@ -75,6 +75,7 @@ public class ServerServlet {
                 .put("address", "")
                 .put("port", 25777)
                 .put("owner", "")
+                .put("active", false)
                 .put("version", Version.getVersion())
                 .build();
         return new Viewable("/add.ftl", dataModel);
@@ -97,6 +98,7 @@ public class ServerServlet {
                 .put("address", server.getAddress())
                 .put("port", server.getPort())
                 .put("owner", server.getOwner())
+                .put("active", server.isActive())
                 .put("version", Version.getVersion())
                 .build();
 
@@ -120,11 +122,12 @@ public class ServerServlet {
     @Path("add")
     @Produces(MediaType.TEXT_HTML)
     public Viewable add(@FormParam("name") String name, @FormParam("address") String address, @FormParam("port") int port,
-            @FormParam("owner") String owner, @FormParam("secret") String secret) {
+            @FormParam("owner") String owner, @FormParam("active") String activeOn, @FormParam("secret") String secret) {
 
-        logger.info("Requested addition: name: {}, address: {}, port:{}, owner:{}", name, address, port, owner);
+        boolean active = "on".equals(activeOn);
+        logger.info("Requested addition: name: {}, address: {}, port:{}, owner:{}, active:{}", name, address, port, owner, active);
 
-        Result response = model.addServer(name, address, port, owner, secret);
+        Result response = model.addServer(name, address, port, owner, active, secret);
 
         if (response.isSuccess()) {
             ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
@@ -139,6 +142,7 @@ public class ServerServlet {
                     .put("address", address)
                     .put("port", port)
                     .put("owner", owner)
+                    .put("active", active)
                     .put("error", response.getMessage())
                     .put("version", Version.getVersion())
                     .build();
@@ -150,8 +154,9 @@ public class ServerServlet {
     @Path("remove")
     @Produces(MediaType.TEXT_HTML)
     public Viewable remove(@FormParam("name") String name, @FormParam("address") String address, @FormParam("port") int port,
-            @FormParam("owner") String owner, @FormParam("secret") String secret) {
+            @FormParam("owner") String owner, @FormParam("active") String activeOn, @FormParam("secret") String secret) {
 
+        boolean active = "on".equals(activeOn);
         Result response = model.removeServer(address, port, secret);
         if (response.isSuccess()) {
             ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
@@ -166,6 +171,7 @@ public class ServerServlet {
                     .put("address", address)
                     .put("port", port)
                     .put("owner", owner)
+                    .put("active", active)
                     .put("error", response.getMessage())
                     .put("version", Version.getVersion())
                     .build();
@@ -177,9 +183,10 @@ public class ServerServlet {
     @Path("update")
     @Produces(MediaType.TEXT_HTML)
     public Viewable update(@FormParam("name") String name, @FormParam("address") String address, @FormParam("port") int port,
-            @FormParam("owner") String owner, @FormParam("secret") String secret) {
+            @FormParam("owner") String owner, @FormParam("active") String activeOn, @FormParam("secret") String secret) {
 
-        Result response = model.updateServer(name, address, port, owner, secret);
+        boolean active = "on".equals(activeOn);
+        Result response = model.updateServer(name, address, port, owner, active, secret);
         if (response.isSuccess()) {
             ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                     .put("items", list())
@@ -193,6 +200,7 @@ public class ServerServlet {
                     .put("address", address)
                     .put("port", port)
                     .put("owner", owner)
+                    .put("active", active)
                     .put("error", response.getMessage())
                     .put("version", Version.getVersion())
                     .build();

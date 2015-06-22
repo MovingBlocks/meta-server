@@ -45,13 +45,13 @@ public interface DataBase {
      */
     List<Map<String, Object>> readAll(String tableName) throws SQLException;
 
-    boolean insert(String tableName, String name, String address, int port, String owner) throws SQLException;
+    boolean insert(String tableName, String name, String address, int port, String owner, boolean active) throws SQLException;
 
-    boolean update(String tableName, String name, String address, int port, String owner) throws SQLException;
+    boolean update(String tableName, String name, String address, int port, String owner, boolean active) throws SQLException;
 
     void createTable(String tableName) throws SQLException;
 
     default void insert(String tableName, ServerEntry entry) throws SQLException {
-        insert(tableName, entry.getName(), entry.getAddress(), entry.getPort(), entry.getOwner());
+        insert(tableName, entry.getName(), entry.getAddress(), entry.getPort(), entry.getOwner(), entry.isActive());
     }
 }

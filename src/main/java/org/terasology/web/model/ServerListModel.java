@@ -23,9 +23,9 @@ public interface ServerListModel {
 
     List<ServerEntry> getServers() throws IOException;
 
-    Result addServer(String name, String address, int port, String owner, String secret);
+    Result addServer(String name, String address, int port, String owner, boolean active, String secret);
 
-    Result updateServer(String name, String address, int port, String owner, String secret);
+    Result updateServer(String name, String address, int port, String owner, boolean active, String secret);
 
     Result removeServer(String address, int port, String secret);
 

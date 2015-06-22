@@ -87,8 +87,8 @@ public final class JettyMain {
         }
 
         String dbIpApiKey = System.getenv("DBIP_API_KEY");
-        if (dbIpApiKey != null) {
-            logger.warn("Environment variable 'DBIP_API_KEY' not defined - using default {}");
+        if (dbIpApiKey == null) {
+            logger.warn("Environment variable 'DBIP_API_KEY' not defined - geo location lookup not available");
         }
 
         String username = dbUri.getUserInfo().split(":")[0];

@@ -144,7 +144,7 @@ public final class JooqDatabase implements DataBase {
     }
 
     @Override
-    public boolean insert(String tableName, String name, String address, int port, String owner) throws SQLException {
+    public boolean insert(String tableName, String name, String address, int port, String owner, boolean active) throws SQLException {
 
         try (Connection conn = ds.getConnection()) {
             DSLContext context = DSL.using(conn);
@@ -154,7 +154,8 @@ public final class JooqDatabase implements DataBase {
                 .set(DSL.field(DSL.name("name")), name)
                 .set(DSL.field(DSL.name("address")), address)
                 .set(DSL.field(DSL.name("port")), port)
-                .set(DSL.field(DSL.name("owner")), owner);
+                .set(DSL.field(DSL.name("owner")), owner)
+                .set(DSL.field(DSL.name("active")), active);
 
             try {
                 GeoLocation geoLoc = geoService.resolve(address);
@@ -187,7 +188,13 @@ public final class JooqDatabase implements DataBase {
             .column("stateprov", SQLDataType.VARCHAR.length(256))
             .column("city", SQLDataType.VARCHAR.length(256))
             .column("owner", SQLDataType.VARCHAR.length(256))
+            .column("active", SQLDataType.BOOLEAN.nullable(false))
             .column("modtime", SQLDataType.TIMESTAMP)
+            .execute();
+
+        // set default value for active
+        context.alterTable(table)
+            .alter(DSL.field(DSL.name("active"), Boolean.class)).defaultValue(Boolean.FALSE)
             .execute();
 
         // modtime timestamp DEFAULT current_timestamp
@@ -211,7 +218,7 @@ public final class JooqDatabase implements DataBase {
     }
 
     @Override
-    public boolean update(String tableName, String name, String address, int port, String owner) throws SQLException {
+    public boolean update(String tableName, String name, String address, int port, String owner, boolean active) throws SQLException {
 
         try (Connection conn = ds.getConnection()) {
             DSLContext context = DSL.using(conn);
@@ -219,7 +226,8 @@ public final class JooqDatabase implements DataBase {
 
             UpdateSetMoreStep<Record> statement = context.update(table)
                 .set(DSL.field(DSL.name("name")), name)
-                .set(DSL.field(DSL.name("owner")), owner);
+                .set(DSL.field(DSL.name("owner")), owner)
+                .set(DSL.field(DSL.name("active")), active);
 
             try {
                 GeoLocation geoLoc = geoService.resolve(address);

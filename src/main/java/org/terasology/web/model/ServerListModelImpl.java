@@ -19,6 +19,7 @@ package org.terasology.web.model;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +38,7 @@ public class ServerListModelImpl implements ServerListModel {
     private final String tableName;
     private final String editSecret;
 
-    public ServerListModelImpl(DataBase dataBase, String tableName, String editSecret) {
+    public ServerListModelImpl(DataBase dataBase, String tableName, String editSecret) throws SQLException {
         Preconditions.checkArgument(dataBase != null, "dataSource must not be null");
         Preconditions.checkArgument(tableName != null, "tableName must not be null");
         Preconditions.checkArgument(editSecret != null, "editSecret must not be null");
@@ -45,6 +46,8 @@ public class ServerListModelImpl implements ServerListModel {
         this.dataBase = dataBase;
         this.tableName = tableName;
         this.editSecret = editSecret;
+
+        dataBase.createTable(tableName);
     }
 
     @Override
@@ -61,6 +64,7 @@ public class ServerListModelImpl implements ServerListModel {
                 server.setCity(orNull(entry.get("city")));
                 server.setStateprov(orNull(entry.get("stateprov")));
                 server.setCountry(orNull(entry.get("country")));
+                server.setActive((Boolean) entry.get("active"));
                 servers.add(server);
             }
             return servers;
@@ -74,14 +78,14 @@ public class ServerListModelImpl implements ServerListModel {
     }
 
     @Override
-    public Result addServer(String name, String address, int port, String owner, String secret) {
+    public Result addServer(String name, String address, int port, String owner, boolean active, String secret) {
 
         try {
             Result response = verify(name, address, port, owner, secret);
             if (!response.isSuccess()) {
                 return response;
             } else {
-                dataBase.insert(tableName, name, address, port, owner);
+                dataBase.insert(tableName, name, address, port, owner, active);
                 return Result.success("Entry added!");
             }
         } catch (Exception e) {
@@ -117,7 +121,7 @@ public class ServerListModelImpl implements ServerListModel {
     }
 
     @Override
-    public Result updateServer(String name, String address, int port, String owner, String secret) {
+    public Result updateServer(String name, String address, int port, String owner, boolean active, String secret) {
 
         Result response = verify(name, address, port, owner, secret);
         if (!response.isSuccess()) {
@@ -125,7 +129,7 @@ public class ServerListModelImpl implements ServerListModel {
         }
 
         try {
-            if (dataBase.update(tableName, name, address, port, owner)) {
+            if (dataBase.update(tableName, name, address, port, owner, active)) {
                 return Result.success("Entry updated!");
             } else {
                 return Result.fail("Entry not found");

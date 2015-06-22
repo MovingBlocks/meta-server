@@ -30,6 +30,7 @@ public class ServerEntry {
     private String stateprov;
     private String city;
     private int port;
+    private boolean active;
 
     ServerEntry() {
         // required for marshalling
@@ -88,14 +89,22 @@ public class ServerEntry {
         this.name = name;
     }
 
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
     @Override
     public String toString() {
-        return "ServerEntry [name=" + name + ", address=" + address + ", port=" + port + ", owner=" + owner + "]";
+        return "ServerEntry [name=" + name + ", address=" + address + ", port=" + port + ", owner=" + owner + ", active=" + active + "]";
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, address, port, owner, country, stateprov, city);
+        return Objects.hash(name, address, port, owner, country, stateprov, city, active);
     }
 
     @Override
@@ -117,7 +126,8 @@ public class ServerEntry {
             && Objects.equals(owner, other.owner)
             && Objects.equals(city, other.city)
             && Objects.equals(stateprov, other.stateprov)
-            && Objects.equals(country, other.country);
+            && Objects.equals(country, other.country)
+            && Objects.equals(active, other.active);
     }
 
 }

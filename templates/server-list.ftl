@@ -29,7 +29,7 @@
             </thead>
             <tbody>
 <#list items as item>
-                <tr class="entry">
+                <tr class="entry <#if item.active == true><#else>disabled</#if>">
                     <td class="server-name" >${item.name}</td>
                     <td class="server-address">${item.address}</td>
                     <td class="server-port">${item.port?c}</td>

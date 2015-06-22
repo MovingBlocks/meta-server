@@ -27,4 +27,9 @@
       <input type="password" name="secret" class="form-control" id="inputSecret" placeholder="secret key">
     </div>
   </div>
-
+  <div class="form-group">
+    <label class="col-sm-2 control-label" for="inputActive">Active</label>
+    <div class="col-sm-10">
+       <input type="checkbox" name="active" id="inputActive" style="zoom:1.5" <#if active>checked="checked"</#if>>
+    </div>
+  </div>

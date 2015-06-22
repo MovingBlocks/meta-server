@@ -40,7 +40,7 @@ public class JooqDbTest {
         String tableName = "servers";
 
         db.createTable(tableName);
-        db.insert(tableName, "myName", "localhost", 25000, "Tester");
+        db.insert(tableName, "myName", "localhost", 25000, "Tester", true);
 
         Map<String, Object> data = db.readAll(tableName).get(0);
 
@@ -48,5 +48,6 @@ public class JooqDbTest {
         Assert.assertTrue(data.get("owner").equals("Tester"));
         Assert.assertTrue(data.get("port").equals(25000));
         Assert.assertTrue(data.get("address").equals("localhost"));
+        Assert.assertTrue(data.get("active").equals(true));
     }
 }
