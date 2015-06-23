@@ -10,7 +10,85 @@
 <#assign tab = "about">
 <#include "navigation.ftl">
 
-      <h3>About Terasology</h3>
+<h3>Services</h3>
+
+This is the Terasology meta service. It provides live information about game servers, available modules, etc.
+More precisely, this instance serves the following data sets in JSON format.
+<br><br>
+
+<h4><a href="modules/list">/modules/list</a></h4>
+<p>Provides all listed module metadata.</p>
+
+<pre>
+[
+  {
+    "id": "myModuleId",
+    "version": "0.1.1-SNAPSHOT",
+    "displayName": "My Great Module",
+    "description": "This is what it's about!",
+    "dependencies": [],
+    "requiredPermissions": [],
+    "lastUpdated": "2015-06-08T05:39:40.811+02:00",
+    "downloadUri": "http://artifactory.terasology.org/artifactory/...",
+    "artifactSize": 1337
+  },
+  ...
+]
+</pre>      
+<br>
+
+<h4><a href="modules/list/latest">/modules/list/latest</a></h4>
+<p>Provides a list of metadata of the latest module versions. There is only one entry per module.</p>
+<br>
+
+<h4><a href="modules/list/myModule">/modules/list/myModule</a></h4>
+<p>Provides a list of metadata of a specified module for all versions.</p>
+<br>
+
+<h4><a href="modules/list/myModule/latest">/modules/list/myModule/latest</a></h4>
+<p>Provides the latest metadata of a specified module version, if available. Status 404 otherwise.</p>
+<br>
+
+<h4><a href="modules/list/myModule/myVersion">/modules/list/myModule/myVersion</a></h4>
+<p>Provides the metadata of a specified module version, if available. Status 404 otherwise.</p>
+<br>
+
+
+<h4><a href="servers/list">/servers/list</a></h4>
+<p>Provides a list of game servers</p>
+
+<pre>
+[
+  {
+    "address": "myserver.org",
+    "name": "My Server",
+    "owner": "nickname",
+    "country": "KY",
+    "stateprov": "George Town",
+    "city": "Whitehall Estate",
+    "port": 25777,
+    "active": true
+  },
+  ...
+]
+</pre>
+<br>
+
+
+<h4><a href="modules/update">/modules/update</a> (POST)</h4>
+<p>Triggers updating a specified module, for example through 
+the <a href="https://wiki.jenkins-ci.org/display/JENKINS/Notification+Plugin">Jenkins Notification Plugin</a>.</p>
+<pre>
+{  
+  "name": "myModuleId",
+}
+</pre>
+<br>
+
+
+<hr>
+
+<h3>About Terasology</h3>
 
 <p>Terasology is a game that pays ample tribute to <a href="http://www.minecraft.net">Minecraft</a> in 
 initial look and origin, but stakes out its own niche by aiming for the NPC-helper and caretaker focus 
