@@ -37,7 +37,6 @@ import org.terasology.web.db.JooqDatabase;
 import org.terasology.web.geo.GeoLocationService;
 import org.terasology.web.geo.dbip.GeoLocationServiceDbIp;
 import org.terasology.web.io.GsonMessageBodyHandler;
-import org.terasology.web.model.ModuleListModel;
 import org.terasology.web.model.ModuleListModelImpl;
 import org.terasology.web.model.ServerListModel;
 import org.terasology.web.model.ServerListModelImpl;
@@ -124,12 +123,18 @@ public final class JettyMain {
             DataBase dataBase = new JooqDatabase(ds, geoService);
             ServerListModel serverListModel = new ServerListModelImpl(dataBase, "servers", secret);
 
-            Server server = start(port.intValue(), serverListModel, moduleListModel);
+            Server server = createServer(port.intValue(),
+                    new AboutServlet(),
+                    new ServerServlet(serverListModel),          // the server list servlet
+                    new ModuleServlet(moduleListModel));         // the module list servlet
+
+            server.start();
+            logger.info("Server started on port {}!", port);
             server.join();
         }
     }
 
-    public static Server start(int port, ServerListModel serverListModel, ModuleListModel moduleListModel) throws Exception {
+    public static Server createServer(int port, Object... servlets) throws Exception {
         Server server = new Server(port);
 
         ResourceHandler logFileResourceHandler = new ResourceHandler();
@@ -149,9 +154,10 @@ public final class JettyMain {
         ResourceConfig rc = new ResourceConfig();
         rc.register(new GsonMessageBodyHandler());               // register JSON serializer
         rc.register(FreemarkerMvcFeature.class);
-        rc.register(new AboutServlet());
-        rc.register(new ServerServlet(serverListModel));         // register the server list servlet
-        rc.register(new ModuleServlet(moduleListModel));         // register the module list servlet
+
+        for (Object servlet : servlets) {
+            rc.register(servlet);
+        }
 
         ServletContextHandler jerseyContext = new ServletContextHandler(ServletContextHandler.SESSIONS);
         jerseyContext.setContextPath("/");
@@ -164,9 +170,6 @@ public final class JettyMain {
         handlers.addHandler(jerseyContext);
 
         server.setHandler(handlers);
-        server.start();
-
-        logger.info("Server started on port {}!", port);
 
         return server;
     }

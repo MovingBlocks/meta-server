@@ -38,6 +38,9 @@ import org.terasology.web.model.ModuleListModelImpl;
 import org.terasology.web.model.ServerEntry;
 import org.terasology.web.model.ServerListModel;
 import org.terasology.web.model.ServerListModelImpl;
+import org.terasology.web.servlet.AboutServlet;
+import org.terasology.web.servlet.ModuleServlet;
+import org.terasology.web.servlet.ServerServlet;
 
 public abstract class WebServerBasedTests {
 
@@ -89,7 +92,12 @@ public abstract class WebServerBasedTests {
 
         ServerListModel serverListModel = new ServerListModelImpl(dataBase, SERVER_TABLE, secret);
 
-        webServer = JettyMain.start(PORT, serverListModel, moduleListModel);
+        webServer = JettyMain.createServer(PORT,
+                new AboutServlet(),
+                new ServerServlet(serverListModel),          // the server list servlet
+                new ModuleServlet(moduleListModel));         // the module list servlet
+
+        webServer.start();
 
         dataBase.createTable(SERVER_TABLE);
 
