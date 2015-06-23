@@ -73,8 +73,7 @@ public final class ArtifactoryRepo implements ArtifactRepository {
         for (ArtifactoryItem.Entry child : folder.children) {
             if (child.folder) {
                 String moduleName = child.uri.substring(1);
-
-                updateModule(moduleName);
+                artifactInfo.put(moduleName, Collections.emptySet());
             }
         }
     }

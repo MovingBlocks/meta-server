@@ -90,6 +90,8 @@ public abstract class WebServerBasedTests {
         moduleListModel.addRepository(releaseRepo);
         moduleListModel.addRepository(snapshotRepo);
 
+        moduleListModel.updateAllModules();
+
         ServerListModel serverListModel = new ServerListModelImpl(dataBase, SERVER_TABLE, secret);
 
         webServer = JettyMain.createServer(PORT,

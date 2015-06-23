@@ -130,6 +130,9 @@ public final class JettyMain {
 
             server.start();
             logger.info("Server started on port {}!", port);
+
+            new Thread(moduleListModel::updateAllModules).start();
+
             server.join();
         }
     }

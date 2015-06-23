@@ -29,6 +29,10 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +55,7 @@ import com.google.common.io.Files;
 /**
  * Provides a list of modules.
  */
+@ThreadSafe
 public class ModuleListModelImpl implements ModuleListModel {
 
     private static final Logger logger = LoggerFactory.getLogger(ModuleListModelImpl.class);
@@ -61,9 +66,11 @@ public class ModuleListModelImpl implements ModuleListModel {
     private final DependencyResolver dependencyResolver = new DependencyResolver(moduleRegistry);
     private final MetadataExtractor extractor;
 
-    private final Collection<ArtifactRepository> repositories = new ArrayList<>();
+    private final Collection<ArtifactRepository> repositories = new CopyOnWriteArrayList<>();
 
     private final Path cacheFolder;
+
+    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
 
     public ModuleListModelImpl(Path cacheFolder) {
         this (cacheFolder, new ZipExtractor("module.txt"));
@@ -80,72 +87,103 @@ public class ModuleListModelImpl implements ModuleListModel {
     }
 
     public void addRepository(ArtifactRepository repo) throws IOException {
-
-        for (String moduleName : repo.getModuleNames()) {
-            updateModule(repo, moduleName);
-        }
-
         repositories.add(repo);
     }
 
-    private void updateModule(ArtifactRepository repo, String moduleName) throws IOException {
-        Path repoCacheFolder = cacheFolder.resolve(repo.getName());
-        List<ModuleMetadata> releases = retrieveMetadata(repo, repoCacheFolder, moduleName);
-        for (ModuleMetadata meta : releases) {
-            switch (repo.getType()) {
-                case RELEASE:
-                    if (!moduleRegistry.add(new RemoteModule(meta))) {
-                        logger.error("Duplicate entry for {}/{}", meta.getId(), meta.getVersion());
-                    }
-                    break;
+    @Override
+    public void updateAllModules() {
+        lock.writeLock().lock();
+        try {
+            moduleRegistry.clear();
+        } finally {
+            lock.writeLock().unlock();
+        }
 
-                case SNAPSHOT:
-                    Module prev = moduleRegistry.getModule(meta.getId(), meta.getVersion());
-                    if (prev != null) {
-                        Date prevUpdated = RemoteModuleExtension.getLastUpdated(prev.getMetadata());
-                        Date thisUpdated = RemoteModuleExtension.getLastUpdated(meta);
-
-                        if (thisUpdated.after(prevUpdated)) {
-
-                            // remove the old one first so the new one can be added
-                            moduleRegistry.remove(prev);
-                            moduleRegistry.add(new RemoteModule(meta));
-                        }
-                    } else {
-                        moduleRegistry.add(new RemoteModule(meta));
-                    }
-                    break;
-
-                default:
-                    logger.warn("Ignoring unknown repository type!");
-                    break;
+        for (ArtifactRepository repo : repositories) {
+            for (String moduleName : repo.getModuleNames()) {
+                try {
+                    repo.updateModule(moduleName.toString());
+                    updateModule(repo, moduleName);
+                } catch (IOException e) {
+                    logger.warn("Could not update module {}", moduleName);
+                }
             }
         }
     }
 
     @Override
     public void updateModule(Name moduleName) {
+
+        lock.writeLock().lock();
+        try {
+
 //        TODO: use removeIf as soon as gestalt-4.0.4 is out (#32)
 //        moduleRegistry.removeIf(mod -> mod.getId().equals(moduleName));
 
-        ArrayList<Module> deletes = new ArrayList<>();
-        for (Module mod : moduleRegistry) {
-            if (mod.getId().equals(moduleName)) {
-                deletes.add(mod);
+            ArrayList<Module> deletes = new ArrayList<>();
+            for (Module mod : moduleRegistry) {
+                if (mod.getId().equals(moduleName)) {
+                    deletes.add(mod);
+                }
             }
-        }
-        for (Module mod : deletes) {
-            moduleRegistry.remove(mod);
+            for (Module mod : deletes) {
+                moduleRegistry.remove(mod);
+            }
+        } finally {
+            lock.writeLock().unlock();
         }
 
         // -------------
 
+        String module = moduleName.toString();
         for (ArtifactRepository repo : repositories) {
             try {
-                updateModule(repo, moduleName.toString());
+                repo.updateModule(module);
+                updateModule(repo, module);
             } catch (IOException e) {
                 logger.warn("Could not update module {}", moduleName, e);
             }
+        }
+    }
+
+    private void updateModule(ArtifactRepository repo, String moduleName) throws IOException {
+        lock.writeLock().lock();
+
+        try {
+            Path repoCacheFolder = cacheFolder.resolve(repo.getName());
+            List<ModuleMetadata> releases = retrieveMetadata(repo, repoCacheFolder, moduleName);
+            for (ModuleMetadata meta : releases) {
+                switch (repo.getType()) {
+                    case RELEASE:
+                        if (!moduleRegistry.add(new RemoteModule(meta))) {
+                            logger.error("Duplicate entry for {}/{}", meta.getId(), meta.getVersion());
+                        }
+                        break;
+
+                    case SNAPSHOT:
+                        Module prev = moduleRegistry.getModule(meta.getId(), meta.getVersion());
+                        if (prev != null) {
+                            Date prevUpdated = RemoteModuleExtension.getLastUpdated(prev.getMetadata());
+                            Date thisUpdated = RemoteModuleExtension.getLastUpdated(meta);
+
+                            if (thisUpdated.after(prevUpdated)) {
+
+                                // remove the old one first so the new one can be added
+                                moduleRegistry.remove(prev);
+                                moduleRegistry.add(new RemoteModule(meta));
+                            }
+                        } else {
+                            moduleRegistry.add(new RemoteModule(meta));
+                        }
+                        break;
+
+                    default:
+                        logger.warn("Ignoring unknown repository type!");
+                        break;
+                }
+            }
+        } finally {
+            lock.writeLock().unlock();
         }
     }
 
@@ -191,49 +229,74 @@ public class ModuleListModelImpl implements ModuleListModel {
 
     @Override
     public Set<Name> getModuleIds() {
-        return moduleRegistry.getModuleIds();
+        lock.readLock().lock();
+        try {
+            return new HashSet<>(moduleRegistry.getModuleIds());
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     @Override
     public Collection<Module> getModuleVersions(Name module) {
-        return moduleRegistry.getModuleVersions(module);
+        lock.readLock().lock();
+        try {
+            return new ArrayList<>(moduleRegistry.getModuleVersions(module));
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     @Override
     public Module getModule(Name module, Version version) {
-        return moduleRegistry.getModule(module, version);
+        lock.readLock().lock();
+        try {
+            return moduleRegistry.getModule(module, version);
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     @Override
     public Module getLatestModuleVersion(Name name) {
-        return moduleRegistry.getLatestModuleVersion(name);
+        lock.readLock().lock();
+        try {
+            return moduleRegistry.getLatestModuleVersion(name);
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     @Override
     public Set<Module> resolve(Name name, Version version) {
+        lock.readLock().lock();
+        try {
+            ModuleMetadata meta = new ModuleMetadata();
+            Name fakeName = new Name("fake");
+            meta.setId(fakeName);
+            meta.setVersion(new Version(1, 0, 0));
+            DependencyInfo di = new DependencyInfo();
+            di.setId(name);
+            di.setMinVersion(version);
+            di.setMaxVersion(version.getNextPatchVersion());
+            meta.getDependencies().add(di);
+            RemoteModule fakeMod = new RemoteModule(meta);
+            moduleRegistry.add(fakeMod);
 
-        ModuleMetadata meta = new ModuleMetadata();
-        Name fakeName = new Name("fake");
-        meta.setId(fakeName);
-        meta.setVersion(new Version(1, 0, 0));
-        DependencyInfo di = new DependencyInfo();
-        di.setId(name);
-        di.setMinVersion(version);
-        di.setMaxVersion(version.getNextPatchVersion());
-        meta.getDependencies().add(di);
-        RemoteModule fakeMod = new RemoteModule(meta);
-        moduleRegistry.add(fakeMod);
+            ResolutionResult result = dependencyResolver.resolve(fakeName);
 
-        ResolutionResult result = dependencyResolver.resolve(fakeName);
+            moduleRegistry.remove(fakeMod);
 
-        moduleRegistry.remove(fakeMod);
-
-        if (result.isSuccess()) {
-            Set<Module> modules = new HashSet<>(result.getModules());
-            modules.remove(fakeMod);
-            return modules;
-        } else {
-            return Collections.emptySet();
+            if (result.isSuccess()) {
+                Set<Module> modules = new HashSet<>(result.getModules());
+                modules.remove(fakeMod);
+                return modules;
+            } else {
+                return Collections.emptySet();
+            }
+        } finally {
+            lock.readLock().unlock();
         }
+
     }
 }
