@@ -21,6 +21,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -70,6 +71,12 @@ public class ModuleServlet {
 
     private final ModuleMetadataJsonAdapter metadataWriter;
 
+    /**
+     * Sorts modules descending by version - id is ignored
+     */
+    private final Comparator<Module> versionComparator = (m1, m2) -> m2.getVersion().compareTo(m1.getVersion());
+
+
     public ModuleServlet(ModuleListModel model) {
         this.model = model;
         this.metadataWriter = new ModuleMetadataJsonAdapter();
@@ -111,9 +118,7 @@ public class ModuleServlet {
         Set<Name> names = model.getModuleIds();
 
         // the key needs to be string, so that FreeMarker can use it for lookups
-        Multimap<String, Module> map = TreeMultimap.create(
-                String.CASE_INSENSITIVE_ORDER,
-                (m1, m2) -> m2.getVersion().compareTo(m1.getVersion()));
+        Multimap<String, Module> map = TreeMultimap.create(String.CASE_INSENSITIVE_ORDER, versionComparator);
 
         for (Name name : names) {
             map.putAll(name.toString(), model.getModuleVersions(name));
@@ -178,7 +183,11 @@ public class ModuleServlet {
         logger.info("Requested module versions as HTML");
 
         Name name = new Name(module);
-        Map<String, Collection<Module>> map = Collections.singletonMap(module, model.getModuleVersions(name));
+
+        List<Module> sortedList = new ArrayList<>(model.getModuleVersions(name));
+        sortedList.sort(versionComparator);
+
+        Map<String, Collection<Module>> map = Collections.singletonMap(module, sortedList);
 
         ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                 .put("items", map)
