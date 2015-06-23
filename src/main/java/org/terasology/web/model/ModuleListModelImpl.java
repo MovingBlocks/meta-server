@@ -32,6 +32,7 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.terasology.module.DependencyInfo;
 import org.terasology.module.DependencyResolver;
 import org.terasology.module.Module;
 import org.terasology.module.ModuleMetadata;
@@ -209,10 +210,28 @@ public class ModuleListModelImpl implements ModuleListModel {
     }
 
     @Override
-    public Set<Module> resolve(Name name) {
-        ResolutionResult result = dependencyResolver.resolve(name);
+    public Set<Module> resolve(Name name, Version version) {
+
+        ModuleMetadata meta = new ModuleMetadata();
+        Name fakeName = new Name("fake");
+        meta.setId(fakeName);
+        meta.setVersion(new Version(1, 0, 0));
+        DependencyInfo di = new DependencyInfo();
+        di.setId(name);
+        di.setMinVersion(version);
+        di.setMaxVersion(version.getNextPatchVersion());
+        meta.getDependencies().add(di);
+        RemoteModule fakeMod = new RemoteModule(meta);
+        moduleRegistry.add(fakeMod);
+
+        ResolutionResult result = dependencyResolver.resolve(fakeName);
+
+        moduleRegistry.remove(fakeMod);
+
         if (result.isSuccess()) {
-            return result.getModules();
+            Set<Module> modules = new HashSet<>(result.getModules());
+            modules.remove(fakeMod);
+            return modules;
         } else {
             return Collections.emptySet();
         }

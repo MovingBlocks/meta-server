@@ -36,7 +36,7 @@ public interface ModuleListModel {
 
     Module getLatestModuleVersion(Name name);
 
-    Set<Module> resolve(Name name);
+    Set<Module> resolve(Name name, Version version);
 
     void updateModule(Name module);
 }

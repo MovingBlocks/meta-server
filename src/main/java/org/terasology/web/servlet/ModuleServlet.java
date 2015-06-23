@@ -211,6 +211,10 @@ public class ModuleServlet {
         logger.info("Requested single module info as json");
 
         Module module = model.getModule(new Name(moduleName), new org.terasology.naming.Version(version));
+        if (module == null) {
+            return Response.status(Status.NOT_FOUND).build();
+        }
+
         ModuleMetadata meta = module.getMetadata();
 
         StreamingOutput stream = os -> {
@@ -244,10 +248,11 @@ public class ModuleServlet {
         logger.info("Requested module info as HTML");
 
         Name moduleName = new Name(module);
-        Module latest = model.getModule(moduleName, new org.terasology.naming.Version(version));
+        org.terasology.naming.Version modVersion = new org.terasology.naming.Version(version);
+        Module latest = model.getModule(moduleName, modVersion);
         ModuleMetadata meta = latest.getMetadata();
 
-        Set<Module> deps = model.resolve(moduleName);
+        Set<Module> deps = model.resolve(moduleName, modVersion);
 
         ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                 .put("meta", meta)
