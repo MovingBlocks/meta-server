@@ -86,7 +86,7 @@ public class ModuleListModelImpl implements ModuleListModel {
         }
     }
 
-    public void addRepository(ArtifactRepository repo) throws IOException {
+    public void addRepository(ArtifactRepository repo) {
         repositories.add(repo);
     }
 

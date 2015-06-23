@@ -35,7 +35,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
@@ -54,7 +53,6 @@ import org.terasology.web.model.jenkins.Job;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Ordering;
 import com.google.common.collect.TreeMultimap;
 import com.google.gson.stream.JsonWriter;
 
@@ -134,7 +132,7 @@ public class ModuleServlet {
     @GET
     @Path("list/latest")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response listLatest(@Context UriInfo uriInfo) {
+    public Response listLatest() {
         logger.info("Requested lastest info as json");
 
         StreamingOutput stream = os -> {
