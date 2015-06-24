@@ -14,10 +14,11 @@ applicationName = "master-server"
 group = 'org.terasology.web'
 
 repositories {
+    mavenCentral()
+	
     maven {
         url "http://artifactory.terasology.org/artifactory/virtual-repo-live"
     }
-    mavenCentral()
 }
 
 dependencies {
