@@ -1,1 +1,1 @@
-web: ./build/install/master-server/bin/master-server
+web: ./build/install/meta-server/bin/meta-server

@@ -9,7 +9,7 @@ apply plugin:'eclipse'
 apply from: 'config/gradle/versioning.gradle'
 
 mainClassName = "org.terasology.web.JettyMain"
-applicationName = "master-server"
+applicationName = "meta-server"
 
 group = 'org.terasology.web'
 
