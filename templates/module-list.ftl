@@ -15,11 +15,18 @@
 </#if>
 
       <div>
+
 <#if moduleId??>
-        <p><a href="/modules/show">Modules</a> / ${moduleId}</p>
+        <ol class="breadcrumb">
+          <li><a href="/modules/show">Modules</a></li>
+          <li class="active">${moduleId}</li>
+        </ol>
 <#else>
-        <p>Modules</p>
+        <ol class="breadcrumb">
+          <li class="active">Modules</li>
+        </ol>
 </#if>
+
         <table class="table table-striped table-hover unselectable" id="server-list">
 
             <thead>

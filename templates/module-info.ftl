@@ -15,7 +15,12 @@
 </#if>
 
       <div>
-        <p><a href="/modules/show">Modules</a> / <a href="/modules/show/${meta.id}">${meta.id}</a> / ${meta.version}</p>
+        <ol class="breadcrumb">
+          <li><a href="/modules/show">Modules</a></li>
+          <li><a href="/modules/show/${meta.id}">${meta.id}</a></li>
+          <li class="active">${meta.version}</li>
+        </ol>
+
         <h2>${meta.displayName}</h2>
         <h4>${meta.version}</h4>
 
@@ -65,14 +70,15 @@
           (there may be other combinations)
 </#if>
         </p>
-
         <br>
-        <p><a style="font-size:20px" href="${downloadUrl}">
-          <span class="glyphicon glyphicon-download-alt" aria-hidden="true" title="Download"></span>
-          Download (${downloadSize} kB)</a>
-        </p>
 
+        <a style="font-size:20px" href="${downloadUrl}"><button type="button" class="btn btn-lg btn-primary">
+            <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> Download (${downloadSize} kB)
+        </button></a>
+
+        <br><br>
         <br>
+
       </div>
 
 <#include "footer.ftl">
