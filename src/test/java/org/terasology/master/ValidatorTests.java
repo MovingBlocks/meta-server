@@ -49,8 +49,13 @@ public class ValidatorTests extends WebServerBasedTests {
     }
 
     @Test
-    public void testShowModuleListPage() throws IOException {
+    public void testShowListAllPage() throws IOException {
         analyzePage(new URL(URL_BASE + "/modules/show"));
+    }
+
+    @Test
+    public void testShowModulePage() throws IOException {
+        analyzePage(new URL(URL_BASE + "/modules/show/Core"));
     }
 
     @Test
@@ -71,6 +76,11 @@ public class ValidatorTests extends WebServerBasedTests {
     @Test
     public void testShowAddServerPage() throws IOException {
         analyzePage(new URL(URL_BASE + "/servers/add"));
+    }
+
+    @Test
+    public void testShowEditServerPage() throws IOException {
+        analyzePage(new URL(URL_BASE + "/servers/edit?index=0"));
     }
 
     private void analyzePage(URL url) throws IOException {

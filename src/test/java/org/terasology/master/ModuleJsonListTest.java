@@ -22,6 +22,8 @@ import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -61,6 +63,27 @@ public class ModuleJsonListTest extends WebServerBasedTests {
     }
 
     @Test
+    public void testLatestList() throws IOException {
+
+        URL url = new URL(URL_BASE + "/modules/list/latest");
+        Set<Name> ids = new HashSet<>();
+
+        try (JsonReader reader = new JsonReader(new InputStreamReader(url.openStream(), charset))) {
+            reader.beginArray();
+
+            while (reader.hasNext()) {
+                ModuleMetadata meta = META_READER.read(reader);
+                Assert.assertNotNull(meta.getId());
+                Assert.assertNotNull(meta.getVersion());
+
+                Assert.assertTrue("Only one latest version per module is possible", ids.add(meta.getId()));
+            }
+
+            reader.endArray();
+        }
+    }
+
+    @Test
     public void testSingleModuleList() throws IOException {
 
         URL url = new URL(URL_BASE + "/modules/list/Core");
@@ -81,6 +104,18 @@ public class ModuleJsonListTest extends WebServerBasedTests {
     public void testSingleModuleVersion() throws IOException {
 
         URL url = new URL(URL_BASE + "/modules/list/Core/0.53.1");
+
+        try (Reader reader = new InputStreamReader(url.openStream(), charset)) {
+            ModuleMetadata meta = META_READER.read(reader);
+            Assert.assertEquals(new Name("Core"), meta.getId());
+            Assert.assertEquals(new Version("0.53.1"), meta.getVersion());
+        }
+    }
+
+    @Test
+    public void testSingleModuleLatestVersion() throws IOException {
+
+        URL url = new URL(URL_BASE + "/modules/list/Core/latest");
 
         try (Reader reader = new InputStreamReader(url.openStream(), charset)) {
             ModuleMetadata meta = META_READER.read(reader);

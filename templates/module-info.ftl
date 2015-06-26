@@ -72,9 +72,9 @@
         </p>
         <br>
 
-        <a style="font-size:20px" href="${downloadUrl}"><button type="button" class="btn btn-lg btn-primary">
+        <a href="${downloadUrl}" class="btn btn-lg btn-primary">
             <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> Download (${downloadSize} kB)
-        </button></a>
+        </a>
 
         <br><br>
         <br>
