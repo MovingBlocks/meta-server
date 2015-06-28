@@ -18,6 +18,7 @@ package org.terasology.web.servlet;
 
 import java.io.OutputStreamWriter;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -92,7 +93,7 @@ public class ModuleServlet {
         StreamingOutput stream = os -> {
             List<Name> sortedModuleIds = new ArrayList<>(model.getModuleIds());
             sortedModuleIds.sort(null);
-            try (JsonWriter writer = new JsonWriter(new OutputStreamWriter(os))) {
+            try (JsonWriter writer = new JsonWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8))) {
                 writer.beginArray();
                 writer.setIndent("  "); // enable pretty printing
                 for (Name name : sortedModuleIds) {
@@ -138,7 +139,7 @@ public class ModuleServlet {
         StreamingOutput stream = os -> {
             List<Name> sortedModuleIds = new ArrayList<>(model.getModuleIds());
             sortedModuleIds.sort(null);
-            try (JsonWriter writer = new JsonWriter(new OutputStreamWriter(os))) {
+            try (JsonWriter writer = new JsonWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8))) {
                 writer.beginArray();
                 writer.setIndent("  "); // enable pretty printing
                 for (Name name : sortedModuleIds) {
@@ -161,7 +162,7 @@ public class ModuleServlet {
         Name name = new Name(moduleName);
 
         StreamingOutput stream = os -> {
-            try (JsonWriter writer = new JsonWriter(new OutputStreamWriter(os))) {
+            try (JsonWriter writer = new JsonWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8))) {
                 writer.beginArray();
                 writer.setIndent("  "); // enable pretty printing
                 for (Module module : model.getModuleVersions(name)) {
@@ -225,7 +226,7 @@ public class ModuleServlet {
         ModuleMetadata meta = module.getMetadata();
 
         StreamingOutput stream = os -> {
-            try (OutputStreamWriter writer = new OutputStreamWriter(os)) {
+            try (OutputStreamWriter writer = new OutputStreamWriter(os, StandardCharsets.UTF_8)) {
                 metadataWriter.write(meta, writer);
             }
         };
