@@ -19,6 +19,7 @@ package org.terasology.web;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Locale;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandler;
@@ -117,6 +118,11 @@ public final class JettyMain {
         config.setMaximumPoolSize(3);
 
         GeoLocationService geoService = new GeoLocationServiceDbIp(dbIpApiKey);
+
+        // this is mostly for I18nMap, but can have an influence on other
+        // string formats. Note that metainfo.ftl explicitly sets the locale to
+        // define the date format.
+        Locale.setDefault(Locale.ENGLISH);
 
         try (HikariDataSource ds = new HikariDataSource(config)) {
 
