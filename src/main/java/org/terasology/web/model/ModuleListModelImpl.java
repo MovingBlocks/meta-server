@@ -36,7 +36,6 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.terasology.module.DependencyInfo;
 import org.terasology.module.DependencyResolver;
 import org.terasology.module.Module;
 import org.terasology.module.ModuleMetadata;
@@ -116,24 +115,10 @@ public class ModuleListModelImpl implements ModuleListModel {
 
         lock.writeLock().lock();
         try {
-
-//        TODO: use removeIf as soon as gestalt-4.0.4 is out (#32)
-//        moduleRegistry.removeIf(mod -> mod.getId().equals(moduleName));
-
-            ArrayList<Module> deletes = new ArrayList<>();
-            for (Module mod : moduleRegistry) {
-                if (mod.getId().equals(moduleName)) {
-                    deletes.add(mod);
-                }
-            }
-            for (Module mod : deletes) {
-                moduleRegistry.remove(mod);
-            }
+            moduleRegistry.removeIf(mod -> mod.getId().equals(moduleName));
         } finally {
             lock.writeLock().unlock();
         }
-
-        // -------------
 
         String module = moduleName.toString();
         for (ArtifactRepository repo : repositories) {
@@ -271,26 +256,10 @@ public class ModuleListModelImpl implements ModuleListModel {
     public Set<Module> resolve(Name name, Version version) {
         lock.readLock().lock();
         try {
-            ModuleMetadata meta = new ModuleMetadata();
-            Name fakeName = new Name("fake");
-            meta.setId(fakeName);
-            meta.setVersion(new Version(1, 0, 0));
-            DependencyInfo di = new DependencyInfo();
-            di.setId(name);
-            di.setMinVersion(version);
-            di.setMaxVersion(version.getNextPatchVersion());
-            meta.getDependencies().add(di);
-            RemoteModule fakeMod = new RemoteModule(meta);
-            moduleRegistry.add(fakeMod);
-
-            ResolutionResult result = dependencyResolver.resolve(fakeName);
-
-            moduleRegistry.remove(fakeMod);
+            ResolutionResult result = dependencyResolver.builder().requireVersion(name, version).build();
 
             if (result.isSuccess()) {
-                Set<Module> modules = new HashSet<>(result.getModules());
-                modules.remove(fakeMod);
-                return modules;
+                return result.getModules();
             } else {
                 return Collections.emptySet();
             }
