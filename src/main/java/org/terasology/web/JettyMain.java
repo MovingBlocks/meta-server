@@ -116,6 +116,7 @@ public final class JettyMain {
         config.setPassword(password);
         config.addDataSourceProperty("sslmode", "require");
         config.setMaximumPoolSize(3);
+        config.setMinimumIdle(1);
 
         GeoLocationService geoService = new GeoLocationServiceDbIp(dbIpApiKey);
 
