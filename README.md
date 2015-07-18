@@ -1,20 +1,30 @@
-master-server
+meta-server
 =========
 
-A Jetty-based servlet that runs on Heroku and serves information about Terasology hosters in JSON format.
-The data is hosted on a Amazon EC2 PostgreSQL instance.
+A Jetty-based servlet that serves meta-information about Terasology.
+It is available for in-game use in JSON format and in HTML format for web browsers.
 
-Data
------------
-A list of available server is served at 
+The server is available at 
+**http://meta.terasology.org**
 
-    https://master-server.herokuapp.com/servers/list
+hosted by [@msteiger](http://github.com/msteiger). 
+The list of online game servers is hosted on a Amazon EC2 PostgreSQL instance (through Heroku credentials).
+The server code is mirrored on two backup instances hosted on Heroku:
+
+https://meta-server.herokuapp.com
+
+https://meta-server-test.herokuapp.com (a debug DB also hosted on Amazon)
+
 
 Deployment
 -------------
 
-Clone the repository and push the content to Heroku. The database connection details are provided by Heroku under the environment variable `DATABASE_URL`.
+Heroku: Clone the repository and push the content to Heroku on branch `master`. Some details must be provided through environment variables:
 
+    DATABASE_URL=postgres://name:pw@host:port/database
+    PORT=8080
+    DBIP_API_KEY=<get one from db-ip.com>
+    EDIT_SECRET=<a password only known for admins with write access>
 
 Geo-Location
 -------------
