@@ -23,6 +23,5 @@
 
     <logger name="org.terasology" level="DEBUG" />
     <logger name="org.jooq.Constants" level="WARN" />
-    <logger name="com.zaxxer.hikari" level="DEBUG" />
 
 </configuration>
