@@ -17,6 +17,7 @@
 package org.terasology.web.artifactory;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -125,39 +126,43 @@ public final class ArtifactoryRepo implements ArtifactRepository {
     public void updateModule(String moduleName) throws IOException {
         String moduleUrl = baseUrl + "/" + moduleName;
 
-        ArtifactoryItem mavenMeta = readItem(moduleUrl + "/maven-metadata.xml");
-        ArtifactoryModule module = loadModuleFromCache(moduleName);
+        try {
+            ArtifactoryItem mavenMeta = readItem(moduleUrl + "/maven-metadata.xml");
+            ArtifactoryModule module = loadModuleFromCache(moduleName);
 
-        if (module == null) {
-            module = new ArtifactoryModule();
-            module.lastModified = new Date(0);
-            module.items = new ArrayList<>();
-        }
-        if (mavenMeta.lastModified.after(module.lastModified)) {
-            module.lastModified = mavenMeta.lastModified;
-            module.items.clear();
-
-            ArtifactoryItem moduleFolder = readItem(moduleUrl);
-            for (ArtifactoryItem.Entry child2 : moduleFolder.children) {
-                if (child2.folder) {
-                    String versionUrl = moduleUrl + child2.uri;
-                    Set<ArtifactoryArtifactInfo> entries = findArtifacts(versionUrl);
-
-                    artifactInfo.put(moduleName, entries);
-                    module.items.addAll(entries);
-
-                }
+            if (module == null) {
+                module = new ArtifactoryModule();
+                module.lastModified = new Date(0);
+                module.items = new ArrayList<>();
             }
-            logger.info("Updated " + moduleName);
-        } else {
-            logger.debug("No updates for " + moduleName);
-        }
-        artifactInfo.put(moduleName, module.items);
+            if (mavenMeta.lastModified.after(module.lastModified)) {
+                module.lastModified = mavenMeta.lastModified;
+                module.items.clear();
 
-        File cacheFile = getCacheFile(moduleName);
-        cacheFile.getParentFile().mkdirs();
-        try (Writer writer = Files.newWriter(cacheFile, StandardCharsets.UTF_8)) {
-            GSON.toJson(module, writer);
+                ArtifactoryItem moduleFolder = readItem(moduleUrl);
+                for (ArtifactoryItem.Entry child2 : moduleFolder.children) {
+                    if (child2.folder) {
+                        String versionUrl = moduleUrl + child2.uri;
+                        Set<ArtifactoryArtifactInfo> entries = findArtifacts(versionUrl);
+
+                        artifactInfo.put(moduleName, entries);
+                        module.items.addAll(entries);
+
+                    }
+                }
+                logger.info("Updated " + moduleName);
+            } else {
+                logger.debug("No updates for " + moduleName);
+            }
+            artifactInfo.put(moduleName, module.items);
+
+            File cacheFile = getCacheFile(moduleName);
+            cacheFile.getParentFile().mkdirs();
+            try (Writer writer = Files.newWriter(cacheFile, StandardCharsets.UTF_8)) {
+                GSON.toJson(module, writer);
+            }
+        } catch (FileNotFoundException e) {
+            logger.info("No entries for {} in {}", moduleName, repoName);
         }
     }
 
