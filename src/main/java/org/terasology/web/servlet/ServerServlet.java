@@ -32,7 +32,7 @@ import javax.ws.rs.core.MediaType;
 import org.glassfish.jersey.server.mvc.Viewable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.terasology.version.Version;
+import org.terasology.web.version.VersionInfo;
 import org.terasology.web.model.Result;
 import org.terasology.web.model.ServerEntry;
 import org.terasology.web.model.ServerListModel;
@@ -59,7 +59,7 @@ public class ServerServlet {
         logger.info("Requested server list as HTML");
         ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                 .put("items", list())
-                .put("version", Version.getVersion())
+                .put("version", VersionInfo.getVersion())
                 .build();
         return new Viewable("/server-list.ftl", dataModel);
     }
@@ -75,7 +75,7 @@ public class ServerServlet {
                 .put("port", 25777)
                 .put("owner", "")
                 .put("active", false)
-                .put("version", Version.getVersion())
+                .put("version", VersionInfo.getVersion())
                 .build();
         return new Viewable("/add.ftl", dataModel);
     }
@@ -98,7 +98,7 @@ public class ServerServlet {
                 .put("port", server.getPort())
                 .put("owner", server.getOwner())
                 .put("active", server.isActive())
-                .put("version", Version.getVersion())
+                .put("version", VersionInfo.getVersion())
                 .build();
 
         return new Viewable("/edit.ftl", dataModel);
@@ -132,7 +132,7 @@ public class ServerServlet {
             ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                     .put("items", list())
                     .put("message", response.getMessage())
-                    .put("version", Version.getVersion())
+                    .put("version", VersionInfo.getVersion())
                     .build();
             return new Viewable("/server-list.ftl", dataModel);
         } else {
@@ -143,7 +143,7 @@ public class ServerServlet {
                     .put("owner", owner)
                     .put("active", active)
                     .put("error", response.getMessage())
-                    .put("version", Version.getVersion())
+                    .put("version", VersionInfo.getVersion())
                     .build();
             return new Viewable("/add.ftl", dataModel);
         }
@@ -161,7 +161,7 @@ public class ServerServlet {
             ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                     .put("items", list())
                     .put("message", response.getMessage())
-                    .put("version", Version.getVersion())
+                    .put("version", VersionInfo.getVersion())
                     .build();
             return new Viewable("/server-list.ftl", dataModel);
         } else {
@@ -172,7 +172,7 @@ public class ServerServlet {
                     .put("owner", owner)
                     .put("active", active)
                     .put("error", response.getMessage())
-                    .put("version", Version.getVersion())
+                    .put("version", VersionInfo.getVersion())
                     .build();
             return new Viewable("/edit.ftl", dataModel);
         }
@@ -190,7 +190,7 @@ public class ServerServlet {
             ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                     .put("items", list())
                     .put("message", response.getMessage())
-                    .put("version", Version.getVersion())
+                    .put("version", VersionInfo.getVersion())
                     .build();
             return new Viewable("/server-list.ftl", dataModel);
         } else {
@@ -201,7 +201,7 @@ public class ServerServlet {
                     .put("owner", owner)
                     .put("active", active)
                     .put("error", response.getMessage())
-                    .put("version", Version.getVersion())
+                    .put("version", VersionInfo.getVersion())
                     .build();
             return new Viewable("/edit.ftl", dataModel);
         }

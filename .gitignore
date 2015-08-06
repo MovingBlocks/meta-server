@@ -1,4 +1,4 @@
-/src/main/java/org/terasology/version/
+/src/main/java/org/terasology/web/version/
 
 /build/
 .gradle

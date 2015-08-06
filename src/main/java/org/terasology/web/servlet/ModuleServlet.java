@@ -48,7 +48,8 @@ import org.terasology.module.ModuleMetadata;
 import org.terasology.module.ModuleMetadataJsonAdapter;
 import org.terasology.module.RemoteModuleExtension;
 import org.terasology.naming.Name;
-import org.terasology.version.Version;
+import org.terasology.naming.Version;
+import org.terasology.web.version.VersionInfo;
 import org.terasology.web.model.ModuleListModel;
 import org.terasology.web.model.jenkins.Job;
 
@@ -124,7 +125,7 @@ public class ModuleServlet {
 
         ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                 .put("items", map.asMap())
-                .put("version", Version.getVersion())
+                .put("version", VersionInfo.getVersion())
                 .build();
         return new Viewable("/module-list.ftl", dataModel);
     }
@@ -190,7 +191,7 @@ public class ModuleServlet {
         ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                 .put("items", map)
                 .put("moduleId", module)
-                .put("version", Version.getVersion())
+                .put("version", VersionInfo.getVersion())
                 .build();
         return new Viewable("/module-list.ftl", dataModel);
     }
@@ -217,7 +218,7 @@ public class ModuleServlet {
     public Response listModuleVersion(@PathParam("module") String moduleName, @PathParam("version") String version) {
         logger.info("Requested single module info as json");
 
-        Module module = model.getModule(new Name(moduleName), new org.terasology.naming.Version(version));
+        Module module = model.getModule(new Name(moduleName), new Version(version));
         if (module == null) {
             return Response.status(Status.NOT_FOUND).build();
         }
@@ -255,7 +256,7 @@ public class ModuleServlet {
         logger.info("Requested module info as HTML");
 
         Name moduleName = new Name(module);
-        org.terasology.naming.Version modVersion = new org.terasology.naming.Version(version);
+        Version modVersion = new Version(version);
         Module latest = model.getModule(moduleName, modVersion);
         ModuleMetadata meta = latest.getMetadata();
 
@@ -267,7 +268,7 @@ public class ModuleServlet {
                 .put("downloadUrl", RemoteModuleExtension.getDownloadUrl(meta))
                 .put("downloadSize", RemoteModuleExtension.getArtifactSize(meta) / 1024)
                 .put("dependencies", deps)
-                .put("version", Version.getVersion())
+                .put("version", VersionInfo.getVersion())
                 .build();
 
         return new Viewable("/module-info.ftl", dataModel);

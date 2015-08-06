@@ -24,7 +24,7 @@ import javax.ws.rs.core.MediaType;
 import org.glassfish.jersey.server.mvc.Viewable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.terasology.version.Version;
+import org.terasology.web.version.VersionInfo;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -42,7 +42,7 @@ public class AboutServlet {
     public Viewable about() {
         logger.info("Requested about as HTML");
         ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
-                .put("version", Version.getVersion())
+                .put("version", VersionInfo.getVersion())
                 .build();
         return new Viewable("/about.ftl", dataModel);
     }

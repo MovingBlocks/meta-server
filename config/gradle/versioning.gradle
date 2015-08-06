@@ -4,14 +4,14 @@ task createVersionJavaFile(type:Copy) {
     
     inputs.property('version', version)    // the up-to-date flag depends on the version property
     
-    from('src/main/resources/Version.template')
-    into('src/main/java/org/terasology/version')
+    from('src/main/resources/VersionInfo.template')
+    into('src/main/java/org/terasology/web/version')
     rename '(.*).template', '$1.java'
 
     expand(VERSION: version)
     
     doLast {
-        logger.lifecycle("Updated 'Version.java' to version $version");
+        logger.lifecycle("Updated 'VersionInfo.java' to version $version");
     }
 }
 
