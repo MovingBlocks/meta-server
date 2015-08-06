@@ -27,7 +27,6 @@ import retrofit.RestAdapter;
 /**
  * Resolves geo-location for a hostname or IP address based on db-ip.com.
  * Requires a system environment variable "DBIP_API_KEY" with a valid API key.
- * @author Martin Steiger
  */
 public class GeoLocationServiceDbIp implements GeoLocationService {
 

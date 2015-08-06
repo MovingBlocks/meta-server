@@ -40,7 +40,6 @@ import org.terasology.web.model.ServerListModel;
 import com.google.common.collect.ImmutableMap;
 
 /**
- * @author Martin Steiger
  */
 @Path("/servers/")
 public class ServerServlet {

@@ -50,7 +50,6 @@ import com.zaxxer.hikari.HikariDataSource;
 
 
 /**
- * @author Martin Steiger
  */
 public final class JettyMain {
 

@@ -20,7 +20,6 @@ import org.terasology.web.geo.GeoLocation;
 
 /**
  * An implementation that wraps a response from db-ip.com
- * @author Martin Steiger
  */
 public class DbIpQueryResponse implements GeoLocation {
 

@@ -19,7 +19,6 @@ package org.terasology.web.model;
 import java.util.Objects;
 
 /**
- * @author Martin Steiger
  */
 public class ServerEntry {
 

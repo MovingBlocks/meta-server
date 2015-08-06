@@ -59,7 +59,6 @@ import com.google.gson.stream.JsonWriter;
 
 /**
  * TODO Type description
- * @author Martin Steiger
  */
 @Path("/modules/")
 public class ModuleServlet {

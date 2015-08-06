@@ -25,7 +25,6 @@ import com.google.common.collect.ImmutableList;
 
 /**
  * TODO Type description
- * @author Martin Steiger
  */
 public class RemoteModule extends BaseModule {
 

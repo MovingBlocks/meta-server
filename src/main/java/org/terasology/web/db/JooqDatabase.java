@@ -46,7 +46,6 @@ import org.terasology.web.geo.GeoLocation;
 import org.terasology.web.geo.GeoLocationService;
 
 /**
- * @author Martin Steiger
  */
 public final class JooqDatabase implements DataBase {
 

@@ -46,7 +46,6 @@ import com.google.gson.GsonBuilder;
 /**
  * Adapted from
  * http://eclipsesource.com/blogs/2012/11/02/integrating-gson-into-a-jax-rs-based-application/
- * @author Martin Steiger
  */
 @Provider
 @Produces(MediaType.APPLICATION_JSON)

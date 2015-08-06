@@ -27,7 +27,6 @@ import org.junit.Test;
 
 /**
  *
- * @author Martin Steiger
  */
 public class ServerHtmlContentTest extends WebServerBasedTests {
 

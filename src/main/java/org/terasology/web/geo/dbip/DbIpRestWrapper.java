@@ -21,7 +21,6 @@ import retrofit.http.Query;
 
 /**
  * Maps the db-ip.com REST-ful API to a Java class.
- * @author Martin Steiger
  */
 public interface DbIpRestWrapper {
 

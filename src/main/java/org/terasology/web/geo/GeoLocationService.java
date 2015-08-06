@@ -20,7 +20,6 @@ import java.io.IOException;
 
 /**
  * Resolves geo-location for a hostname or IP address.
- * @author Martin Steiger
  */
 public interface GeoLocationService {
 

@@ -37,7 +37,6 @@ import com.google.gson.GsonBuilder;
 
 /**
  *
- * @author Martin Steiger
  */
 public class ServerJsonListTest extends WebServerBasedTests {
 

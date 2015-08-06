@@ -18,7 +18,6 @@ package org.terasology.web.geo;
 
 /**
  * Provides geo-location information
- * @author Martin Steiger
  */
 public interface GeoLocation {
 

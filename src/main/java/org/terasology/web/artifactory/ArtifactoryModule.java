@@ -21,7 +21,6 @@ import java.util.List;
 
 /**
  * TODO Type description
- * @author Martin Steiger
  */
 class ArtifactoryModule {
 
