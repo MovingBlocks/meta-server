@@ -49,6 +49,7 @@ import org.terasology.module.ModuleMetadataJsonAdapter;
 import org.terasology.module.RemoteModuleExtension;
 import org.terasology.naming.Name;
 import org.terasology.naming.Version;
+import org.terasology.naming.exception.VersionParseException;
 import org.terasology.web.version.VersionInfo;
 import org.terasology.web.model.ModuleListModel;
 import org.terasology.web.model.jenkins.Job;
@@ -215,22 +216,28 @@ public class ModuleServlet {
     @GET
     @Path("list/{module}/{version}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response listModuleVersion(@PathParam("module") String moduleName, @PathParam("version") String version) {
+    public Response listModuleVersion(@PathParam("module") String moduleName, @PathParam("version") String versionStr) {
         logger.info("Requested single module info as json");
 
-        Module module = model.getModule(new Name(moduleName), new Version(version));
-        if (module == null) {
+        try {
+            Version version = new Version(versionStr);
+            Module module = model.getModule(new Name(moduleName), version);
+            if (module == null) {
+                return Response.status(Status.NOT_FOUND).build();
+            }
+
+            ModuleMetadata meta = module.getMetadata();
+
+            StreamingOutput stream = os -> {
+                try (OutputStreamWriter writer = new OutputStreamWriter(os, StandardCharsets.UTF_8)) {
+                    metadataWriter.write(meta, writer);
+                }
+            };
+            return Response.ok(stream).build();
+        } catch (VersionParseException e) {
+            logger.warn("Invalid version for module '{}' specified: {}", moduleName, versionStr);
             return Response.status(Status.NOT_FOUND).build();
         }
-
-        ModuleMetadata meta = module.getMetadata();
-
-        StreamingOutput stream = os -> {
-            try (OutputStreamWriter writer = new OutputStreamWriter(os, StandardCharsets.UTF_8)) {
-                metadataWriter.write(meta, writer);
-            }
-        };
-        return Response.ok(stream).build();
     }
 
     @GET
@@ -252,26 +259,34 @@ public class ModuleServlet {
     @GET
     @Path("show/{module}/{version}")
     @Produces(MediaType.TEXT_HTML)
-    public Viewable showModuleVersion(@PathParam("module") String module, @PathParam("version") String version) {
+    public Response showModuleVersion(@PathParam("module") String module, @PathParam("version") String version) {
         logger.info("Requested module info as HTML");
 
-        Name moduleName = new Name(module);
-        Version modVersion = new Version(version);
-        Module latest = model.getModule(moduleName, modVersion);
-        ModuleMetadata meta = latest.getMetadata();
+        try {
+            Name moduleName = new Name(module);
+            Version modVersion = new Version(version);
+            Module mod = model.getModule(moduleName, modVersion);
+            if (mod == null) {
+                logger.warn("No entry for module '{}' found", module);
+                return Response.status(Status.NOT_FOUND).build();
+            }
+            ModuleMetadata meta = mod.getMetadata();
 
-        Set<Module> deps = model.resolve(moduleName, modVersion);
+            Set<Module> deps = model.resolve(moduleName, modVersion);
 
-        ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
-                .put("meta", meta)
-                .put("updated", RemoteModuleExtension.getLastUpdated(meta))
-                .put("downloadUrl", RemoteModuleExtension.getDownloadUrl(meta))
-                .put("downloadSize", RemoteModuleExtension.getArtifactSize(meta) / 1024)
-                .put("dependencies", deps)
-                .put("version", VersionInfo.getVersion())
-                .build();
-
-        return new Viewable("/module-info.ftl", dataModel);
+            ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
+                    .put("meta", meta)
+                    .put("updated", RemoteModuleExtension.getLastUpdated(meta))
+                    .put("downloadUrl", RemoteModuleExtension.getDownloadUrl(meta))
+                    .put("downloadSize", RemoteModuleExtension.getArtifactSize(meta) / 1024)
+                    .put("dependencies", deps)
+                    .put("version", VersionInfo.getVersion())
+                    .build();
+            return Response.ok(new Viewable("/module-info.ftl", dataModel)).build();
+        } catch (VersionParseException e) {
+            logger.warn("Invalid version for module '{}' specified: {}", module, version);
+            return Response.status(Status.NOT_FOUND).build();
+        }
     }
 
     @POST

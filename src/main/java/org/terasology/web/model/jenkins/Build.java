@@ -90,6 +90,10 @@ public class Build {
         return artifacts;
     }
 
+    public void setArtifacts(Map<String, Map<String, String>> artifacts) {
+        this.artifacts = artifacts;
+    }
+
     public Scm getScm() {
         return scm;
     }

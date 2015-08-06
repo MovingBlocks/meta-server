@@ -16,6 +16,7 @@
 
 package org.terasology.master;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -109,6 +110,46 @@ public class ModuleJsonListTest extends WebServerBasedTests {
             ModuleMetadata meta = META_READER.read(reader);
             Assert.assertEquals(new Name("Core"), meta.getId());
             Assert.assertEquals(new Version("0.53.1"), meta.getVersion());
+        }
+    }
+
+    @Test(expected = FileNotFoundException.class)
+    public void testNonExistingModuleVersion() throws IOException {
+
+        URL url = new URL(URL_BASE + "/modules/list/Core/23.1337.23");
+
+        try (Reader reader = new InputStreamReader(url.openStream(), charset)) {
+            META_READER.read(reader);
+        }
+    }
+
+    @Test(expected = FileNotFoundException.class)
+    public void testInvalidVersion() throws IOException {
+
+        URL url = new URL(URL_BASE + "/modules/list/Core/asdfd");
+
+        try (Reader reader = new InputStreamReader(url.openStream(), charset)) {
+            META_READER.read(reader);
+        }
+    }
+
+    @Test(expected = FileNotFoundException.class)
+    public void testUnknownModuleLatestVersion() throws IOException {
+
+        URL url = new URL(URL_BASE + "/modules/list/notThere/latest");
+
+        try (Reader reader = new InputStreamReader(url.openStream(), charset)) {
+            META_READER.read(reader);
+        }
+    }
+
+    @Test(expected = FileNotFoundException.class)
+    public void testUnknownModuleInvalidVersion() throws IOException {
+
+        URL url = new URL(URL_BASE + "/modules/list/notThere/1.2.3");
+
+        try (Reader reader = new InputStreamReader(url.openStream(), charset)) {
+            META_READER.read(reader);
         }
     }
 
