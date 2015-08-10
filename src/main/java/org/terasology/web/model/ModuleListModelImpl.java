@@ -72,7 +72,7 @@ public class ModuleListModelImpl implements ModuleListModel {
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
 
     public ModuleListModelImpl(Path cacheFolder) {
-        this (cacheFolder, new ZipExtractor("module.txt"));
+        this(cacheFolder, new ZipExtractor("module.txt", "engine-module.txt"));
     }
 
     public ModuleListModelImpl(Path cacheFolder, MetadataExtractor extractor) {
@@ -131,7 +131,7 @@ public class ModuleListModelImpl implements ModuleListModel {
         }
     }
 
-    private void updateModule(ArtifactRepository repo, String moduleName) throws IOException {
+    private void updateModule(ArtifactRepository repo, String moduleName) {
         lock.writeLock().lock();
 
         try {
@@ -172,7 +172,7 @@ public class ModuleListModelImpl implements ModuleListModel {
         }
     }
 
-    private List<ModuleMetadata> retrieveMetadata(ArtifactRepository repository, Path repoCacheFolder, String moduleName) throws IOException {
+    private List<ModuleMetadata> retrieveMetadata(ArtifactRepository repository, Path repoCacheFolder, String moduleName) {
         Path moduleCacheFolder = repoCacheFolder.resolve(moduleName);
         moduleCacheFolder.toFile().mkdirs();
 
@@ -182,25 +182,29 @@ public class ModuleListModelImpl implements ModuleListModel {
 
         Set<String> usedCacheFiles = new HashSet<>();
         for (ArtifactInfo info : repository.getModuleArtifacts(moduleName)) {
-            ModuleMetadata meta;
-            File cacheFile = moduleCacheFolder.resolve(info.getArtifact() + "_info.json").toFile();
-            if (cacheFile.exists()) {
-                try (Reader reader = Files.newReader(cacheFile, StandardCharsets.UTF_8)) {
-                    meta = metadataAdapter.read(reader);
-                }
-            } else {
-                logger.debug("Downloading " + info.getDownloadUrl());
+            try {
+                ModuleMetadata meta;
+                File cacheFile = moduleCacheFolder.resolve(info.getArtifact() + "_info.json").toFile();
+                if (cacheFile.exists()) {
+                    try (Reader reader = Files.newReader(cacheFile, StandardCharsets.UTF_8)) {
+                        meta = metadataAdapter.read(reader);
+                    }
+                } else {
+                    logger.debug("Downloading " + info.getDownloadUrl());
 
-                meta = extractor.loadMetaData(info.getDownloadUrl());
-                RemoteModuleExtension.setDownloadUrl(meta, info.getDownloadUrl());
-                RemoteModuleExtension.setArtifactSize(meta, info.getFileSize());
-                RemoteModuleExtension.setLastUpdated(meta, info.getLastUpdated());
-                try (Writer writer = Files.newWriter(cacheFile, StandardCharsets.UTF_8)) {
-                    metadataAdapter.write(meta, writer);
+                    meta = extractor.loadMetaData(info.getDownloadUrl());
+                    RemoteModuleExtension.setDownloadUrl(meta, info.getDownloadUrl());
+                    RemoteModuleExtension.setArtifactSize(meta, info.getFileSize());
+                    RemoteModuleExtension.setLastUpdated(meta, info.getLastUpdated());
+                    try (Writer writer = Files.newWriter(cacheFile, StandardCharsets.UTF_8)) {
+                        metadataAdapter.write(meta, writer);
+                    }
                 }
+                usedCacheFiles.add(cacheFile.getName());
+                result.add(meta);
+            } catch (IOException e) {
+                logger.warn("Failed to parse info for '{}'", info, e);
             }
-            usedCacheFiles.add(cacheFile.getName());
-            result.add(meta);
         }
 
         for (String fname : moduleCacheFolder.toFile().list()) {

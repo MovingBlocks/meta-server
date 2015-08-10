@@ -58,17 +58,20 @@ public final class ArtifactoryRepo implements ArtifactRepository {
     private final String baseUrl;
     private final Path cacheFolder;
     private final String repoName;
+    private final String group;
     private final RepoType type;
 
-    private ArtifactoryRepo(String uri, String repoName, Path cacheFolder, RepoType type) throws IOException {
+    private ArtifactoryRepo(String uri, String repoName, String group, Path cacheFolder, RepoType type) throws IOException {
         this.cacheFolder = cacheFolder;
         this.repoName = repoName;
         this.type = type;
+        this.group = group;
+        String repoPath = group.replaceAll("\\.", "/");
 
         baseUrl = uri
                 + "/api/storage"
                 + "/" + repoName
-                + "/org/terasology/modules";
+                + "/" + repoPath;
 
         ArtifactoryItem folder = readItem(baseUrl);
         for (ArtifactoryItem.Entry child : folder.children) {
@@ -79,12 +82,12 @@ public final class ArtifactoryRepo implements ArtifactRepository {
         }
     }
 
-    public static ArtifactoryRepo snapshot(String uri, String repoName, Path cacheFolder) throws IOException {
-        return new ArtifactoryRepo(uri, repoName, cacheFolder, RepoType.SNAPSHOT);
+    public static ArtifactoryRepo snapshot(String uri, String repoName, String group, Path cacheFolder) throws IOException {
+        return new ArtifactoryRepo(uri, repoName, group, cacheFolder, RepoType.SNAPSHOT);
     }
 
-    public static ArtifactoryRepo release(String uri, String repoName, Path cacheFolder) throws IOException {
-        return new ArtifactoryRepo(uri, repoName, cacheFolder, RepoType.RELEASE);
+    public static ArtifactoryRepo release(String uri, String repoName, String group, Path cacheFolder) throws IOException {
+        return new ArtifactoryRepo(uri, repoName, group, cacheFolder, RepoType.RELEASE);
     }
 
     private ArtifactoryModule loadModuleFromCache(String moduleName) throws IOException {
@@ -162,7 +165,7 @@ public final class ArtifactoryRepo implements ArtifactRepository {
                 GSON.toJson(module, writer);
             }
         } catch (FileNotFoundException e) {
-            logger.info("No entries for {} in {}", moduleName, repoName);
+            logger.info("No entries for '{}.{}' in '{}'", group, moduleName, repoName);
         }
     }
 

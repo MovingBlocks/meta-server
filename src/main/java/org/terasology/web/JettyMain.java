@@ -97,17 +97,21 @@ public final class JettyMain {
         String host = "http://artifactory.terasology.org/artifactory";
         String releaseRepo = "terasology-release-local";
         String snapshotRepo = "terasology-snapshot-local";
-
+        String modGroup = "org.terasology.modules";
+        String engineGroup = "org.terasology.engine";
         Path cacheFolder = Paths.get("cache", "modules");
 
-        Path releaseRepoCacheFolder = cacheFolder.resolve(releaseRepo);
-        Path snapshotRepoCacheFolder = cacheFolder.resolve(snapshotRepo);
-        ArtifactoryRepo releaseRepository = ArtifactoryRepo.release(host, releaseRepo, releaseRepoCacheFolder);
-        ArtifactoryRepo snapshotRepository = ArtifactoryRepo.snapshot(host, snapshotRepo, snapshotRepoCacheFolder);
-
         ModuleListModelImpl moduleListModel = new ModuleListModelImpl(cacheFolder);
-        moduleListModel.addRepository(releaseRepository);
-        moduleListModel.addRepository(snapshotRepository);
+        Path releaseRepoFolder = cacheFolder.resolve(releaseRepo);
+        Path snapshotRepoFolder = cacheFolder.resolve(snapshotRepo);
+
+        // add module repos
+        moduleListModel.addRepository(ArtifactoryRepo.release(host, releaseRepo, modGroup, releaseRepoFolder));
+        moduleListModel.addRepository(ArtifactoryRepo.snapshot(host, snapshotRepo, modGroup, snapshotRepoFolder));
+
+        // add engine repos
+        moduleListModel.addRepository(ArtifactoryRepo.release(host, releaseRepo, engineGroup, releaseRepoFolder));
+        moduleListModel.addRepository(ArtifactoryRepo.snapshot(host, snapshotRepo, engineGroup, snapshotRepoFolder));
 
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:postgresql://" + dbUri.getHost() + ":" + dbPort + dbUri.getPath());

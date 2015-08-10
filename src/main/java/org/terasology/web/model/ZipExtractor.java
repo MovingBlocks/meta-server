@@ -23,6 +23,8 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -35,14 +37,14 @@ import org.terasology.module.ModuleMetadataJsonAdapter;
  */
 public class ZipExtractor implements MetadataExtractor {
 
-    private final String filename;
+    private final List<String> filename;
     private final ModuleMetadataJsonAdapter metaReader = new ModuleMetadataJsonAdapter();
 
     /**
-     * @param filename the file to
+     * @param filenames the collection file names that match. The first match is returned.
      */
-    public ZipExtractor(String filename) {
-        this.filename = filename;
+    public ZipExtractor(String... filenames) {
+        this.filename = Arrays.asList(filenames);
     }
 
     @Override
@@ -51,7 +53,7 @@ public class ZipExtractor implements MetadataExtractor {
                 ZipInputStream zipStream = new ZipInputStream(in)) {
             ZipEntry entry;
             while ((entry = zipStream.getNextEntry()) != null) {
-                if (entry.getName().matches(filename)) {
+                if (filename.contains(entry.getName())) {
                     return readFile(zipStream);
                 }
             }
