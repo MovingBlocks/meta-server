@@ -301,4 +301,16 @@ public class ModuleServlet {
 
         return Response.ok().build();
     }
+
+    @POST
+    @Path("update-all")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response updateAllModulesPost() {
+
+        logger.info("Requested complete module update");
+
+        new Thread(model::updateAllModules).start();
+
+        return Response.ok().build();
+    }
 }

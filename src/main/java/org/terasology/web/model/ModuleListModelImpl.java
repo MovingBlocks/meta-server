@@ -91,13 +91,6 @@ public class ModuleListModelImpl implements ModuleListModel {
 
     @Override
     public void updateAllModules() {
-        lock.writeLock().lock();
-        try {
-            moduleRegistry.clear();
-        } finally {
-            lock.writeLock().unlock();
-        }
-
         for (ArtifactRepository repo : repositories) {
             for (String moduleName : repo.getModuleNames()) {
                 try {

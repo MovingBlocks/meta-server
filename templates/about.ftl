@@ -75,6 +75,11 @@ More precisely, this instance serves the following data sets in JSON format.
 <br>
 
 
+<h4><a href="modules/update-all">/modules/update-all</a> (POST)</h4>
+<p>Triggers updating all modules.</p>
+<br>
+
+
 <h4><a href="modules/update">/modules/update</a> (POST)</h4>
 <p>Triggers updating a specified module, for example through 
 the <a href="https://wiki.jenkins-ci.org/display/JENKINS/Notification+Plugin">Jenkins Notification Plugin</a>.</p>
