@@ -19,14 +19,17 @@ package org.terasology.web;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.EnumSet;
 import java.util.Locale;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
+import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.mvc.freemarker.FreemarkerMvcFeature;
 import org.glassfish.jersey.servlet.ServletContainer;
@@ -47,6 +50,8 @@ import org.terasology.web.servlet.ServerServlet;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+
+import javax.servlet.DispatcherType;
 
 
 /**
@@ -176,6 +181,9 @@ public final class JettyMain {
         jerseyContext.setContextPath("/");
         jerseyContext.setResourceBase("templates");
         jerseyContext.addServlet(new ServletHolder(new ServletContainer(rc)), "/*");
+
+        FilterHolder holder = new FilterHolder(new CrossOriginFilter());
+        jerseyContext.addFilter(holder, "/*", EnumSet.of(DispatcherType.REQUEST));
 
         HandlerList handlers = new HandlerList();
         handlers.addHandler(logContext);
