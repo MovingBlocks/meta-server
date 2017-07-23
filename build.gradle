@@ -30,6 +30,7 @@ configurations {
 
 dependencies {
     compile 'org.eclipse.jetty:jetty-servlet:9.3.5.v20151012'
+    compile 'org.eclipse.jetty:jetty-servlets:9.3.5.v20151012'
     compile 'javax.servlet:javax.servlet-api:3.1.0'
 
     compile 'org.glassfish.jersey.containers:jersey-container-jetty-servlet:2.22.1'
