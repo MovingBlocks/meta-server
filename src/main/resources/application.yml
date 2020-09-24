@@ -1,0 +1,11 @@
+micronaut:
+  application:
+    name: meta-server
+  router:
+    static-resources:
+      base:
+        paths:
+          - "classpath:static"
+          -
+meta-server:
+  cacheFolder: "./cache"

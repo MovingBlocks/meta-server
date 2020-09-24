@@ -16,32 +16,28 @@
 
 package org.terasology.web.servlet;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-
-import org.glassfish.jersey.server.mvc.Viewable;
+import com.google.common.collect.ImmutableMap;
+import io.micronaut.http.HttpResponse;
+import io.micronaut.http.MediaType;
+import io.micronaut.http.annotation.*;
+import io.micronaut.views.View;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.terasology.web.version.VersionInfo;
 import org.terasology.web.model.Result;
 import org.terasology.web.model.ServerEntry;
 import org.terasology.web.model.ServerListModel;
+import org.terasology.web.version.VersionInfo;
 
-import com.google.common.collect.ImmutableMap;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Collections;
+import java.util.List;
 
 /**
+ *
  */
-@Path("/servers/")
+@Controller("/servers/")
 public class ServerServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(ServerServlet.class);
@@ -52,22 +48,22 @@ public class ServerServlet {
         this.model = model;
     }
 
-    @GET
-    @Path("show")
+    @Get("show")
+    @View("server-list")
     @Produces(MediaType.TEXT_HTML)
-    public Viewable show() {
+    public HttpResponse show() {
         logger.info("Requested server list as HTML");
         ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                 .put("items", list())
                 .put("version", VersionInfo.getVersion())
                 .build();
-        return new Viewable("/server-list.ftl", dataModel);
+        return HttpResponse.ok(dataModel);
     }
 
-    @GET
-    @Path("add")
+    @Get("add")
+    @View("add")
     @Produces(MediaType.TEXT_HTML)
-    public Viewable add() {
+    public HttpResponse add() {
         logger.info("Requested add as HTML");
         ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                 .put("name", "")
@@ -77,13 +73,13 @@ public class ServerServlet {
                 .put("active", false)
                 .put("version", VersionInfo.getVersion())
                 .build();
-        return new Viewable("/add.ftl", dataModel);
+        return HttpResponse.ok(dataModel);
     }
 
-    @GET
-    @Path("edit")
+    @Get("edit")
+    @View("edit")
     @Produces(MediaType.TEXT_HTML)
-    public Viewable edit(@QueryParam("index") @DefaultValue("-1") int index) throws IOException {
+    public HttpResponse edit(@QueryValue(value = "index", defaultValue = "-1") int index) throws IOException {
         List<ServerEntry> servers = model.getServers();
 
         if (index < 0 || index >= servers.size()) {
@@ -101,11 +97,10 @@ public class ServerServlet {
                 .put("version", VersionInfo.getVersion())
                 .build();
 
-        return new Viewable("/edit.ftl", dataModel);
+        return HttpResponse.ok(dataModel);
     }
 
-    @GET
-    @Path("list")
+    @Get("list")
     @Produces(MediaType.APPLICATION_JSON)
     public Object list() {
         logger.info("Requested server list");
@@ -117,16 +112,15 @@ public class ServerServlet {
         }
     }
 
-    @POST
-    @Path("add")
+    @Post("add")
+    @View("add")
     @Produces(MediaType.TEXT_HTML)
-    public Viewable add(@FormParam("name") String name, @FormParam("address") String address, @FormParam("port") int port,
-            @FormParam("owner") String owner, @FormParam("active") String activeOn, @FormParam("secret") String secret) {
+    public HttpResponse add(@Body ServerForm serverForm) throws URISyntaxException {
 
-        boolean active = "on".equals(activeOn);
-        logger.info("Requested addition: name: {}, address: {}, port:{}, owner:{}, active:{}", name, address, port, owner, active);
+        boolean active = "on".equals(serverForm.getActiveOn());
+        logger.info("Requested addition: name: {}, address: {}, port:{}, owner:{}, active:{}", serverForm.getName(), serverForm.getAddress(), serverForm.getPort(), serverForm.getOwner(), active);
 
-        Result response = model.addServer(name, address, port, owner, active, secret);
+        Result response = model.addServer(serverForm.getName(), serverForm.getAddress(), serverForm.getPort(), serverForm.getOwner(), active, serverForm.getSecret());
 
         if (response.isSuccess()) {
             ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
@@ -134,76 +128,74 @@ public class ServerServlet {
                     .put("message", response.getMessage())
                     .put("version", VersionInfo.getVersion())
                     .build();
-            return new Viewable("/server-list.ftl", dataModel);
+            return HttpResponse.redirect(new URI("list"));
         } else {
             ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
-                    .put("name", name)
-                    .put("address", address)
-                    .put("port", port)
-                    .put("owner", owner)
+                    .put("name", serverForm.getName())
+                    .put("address", serverForm.getAddress())
+                    .put("port", serverForm.getPort())
+                    .put("owner", serverForm.getOwner())
                     .put("active", active)
                     .put("error", response.getMessage())
                     .put("version", VersionInfo.getVersion())
                     .build();
-            return new Viewable("/add.ftl", dataModel);
+            return HttpResponse.ok(dataModel);
         }
     }
 
-    @POST
-    @Path("remove")
+    @Post("remove")
+    @View("edit")
     @Produces(MediaType.TEXT_HTML)
-    public Viewable remove(@FormParam("name") String name, @FormParam("address") String address, @FormParam("port") int port,
-            @FormParam("owner") String owner, @FormParam("active") String activeOn, @FormParam("secret") String secret) {
+    public HttpResponse remove(@Body ServerForm serverForm) throws URISyntaxException {
 
-        boolean active = "on".equals(activeOn);
-        Result response = model.removeServer(address, port, secret);
+        boolean active = "on".equals(serverForm.getActiveOn());
+        Result response = model.removeServer(serverForm.getAddress(), serverForm.getPort(), serverForm.getSecret());
         if (response.isSuccess()) {
             ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                     .put("items", list())
                     .put("message", response.getMessage())
                     .put("version", VersionInfo.getVersion())
                     .build();
-            return new Viewable("/server-list.ftl", dataModel);
+            return HttpResponse.redirect(new URI("list"));
         } else {
             ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
-                    .put("name", name)
-                    .put("address", address)
-                    .put("port", port)
-                    .put("owner", owner)
+                    .put("name", serverForm.getName())
+                    .put("address", serverForm.getAddress())
+                    .put("port", serverForm.getPort())
+                    .put("owner", serverForm.getOwner())
                     .put("active", active)
                     .put("error", response.getMessage())
                     .put("version", VersionInfo.getVersion())
                     .build();
-            return new Viewable("/edit.ftl", dataModel);
+            return HttpResponse.ok(dataModel);
         }
     }
 
-    @POST
-    @Path("update")
+    @Post("update")
+    @View("edit")
     @Produces(MediaType.TEXT_HTML)
-    public Viewable update(@FormParam("name") String name, @FormParam("address") String address, @FormParam("port") int port,
-            @FormParam("owner") String owner, @FormParam("active") String activeOn, @FormParam("secret") String secret) {
+    public HttpResponse update(@Body ServerForm serverForm) throws URISyntaxException {
 
-        boolean active = "on".equals(activeOn);
-        Result response = model.updateServer(name, address, port, owner, active, secret);
+        boolean active = "on".equals(serverForm.getActiveOn());
+        Result response = model.updateServer(serverForm.getName(), serverForm.getAddress(), serverForm.getPort(), serverForm.getOwner(), active, serverForm.getActiveOn());
         if (response.isSuccess()) {
             ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                     .put("items", list())
                     .put("message", response.getMessage())
                     .put("version", VersionInfo.getVersion())
                     .build();
-            return new Viewable("/server-list.ftl", dataModel);
+            return HttpResponse.redirect(new URI("list"));
         } else {
             ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
-                    .put("name", name)
-                    .put("address", address)
-                    .put("port", port)
-                    .put("owner", owner)
+                    .put("name", serverForm.getName())
+                    .put("address", serverForm.getAddress())
+                    .put("port", serverForm.getPort())
+                    .put("owner", serverForm.getOwner())
                     .put("active", active)
                     .put("error", response.getMessage())
                     .put("version", VersionInfo.getVersion())
                     .build();
-            return new Viewable("/edit.ftl", dataModel);
+            return HttpResponse.ok(dataModel);
         }
     }
 }

@@ -16,34 +16,30 @@
 
 package org.terasology.web.servlet;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-
-import org.glassfish.jersey.server.mvc.Viewable;
+import io.micronaut.core.util.CollectionUtils;
+import io.micronaut.http.HttpResponse;
+import io.micronaut.http.MediaType;
+import io.micronaut.http.annotation.Controller;
+import io.micronaut.http.annotation.Get;
+import io.micronaut.http.annotation.Produces;
+import io.micronaut.views.View;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.web.version.VersionInfo;
 
-import com.google.common.collect.ImmutableMap;
-
 /**
  * Show the about html page.
  */
-@Path("/")
-public class AboutServlet {
+@Controller()
+public class AboutController {
 
-    private static final Logger logger = LoggerFactory.getLogger(AboutServlet.class);
+    private static final Logger logger = LoggerFactory.getLogger(AboutController.class);
 
-    @GET
-    @Path("home")
+    @View("about")
     @Produces(MediaType.TEXT_HTML)
-    public Viewable about() {
+    @Get(value = "home")
+    public HttpResponse about() {
         logger.info("Requested about as HTML");
-        ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
-                .put("version", VersionInfo.getVersion())
-                .build();
-        return new Viewable("/about.ftl", dataModel);
+        return HttpResponse.ok(CollectionUtils.mapOf("version", VersionInfo.getVersion()));
     }
 }

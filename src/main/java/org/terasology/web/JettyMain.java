@@ -16,12 +16,8 @@
 
 package org.terasology.web;
 
-import java.net.URI;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.EnumSet;
-import java.util.Locale;
-
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
@@ -31,7 +27,6 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.server.mvc.freemarker.FreemarkerMvcFeature;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,14 +39,13 @@ import org.terasology.web.io.GsonMessageBodyHandler;
 import org.terasology.web.model.ModuleListModelImpl;
 import org.terasology.web.model.ServerListModel;
 import org.terasology.web.model.ServerListModelImpl;
-import org.terasology.web.servlet.AboutServlet;
-import org.terasology.web.servlet.ModuleServlet;
-import org.terasology.web.servlet.ServerServlet;
-
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 
 import javax.servlet.DispatcherType;
+import java.net.URI;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.EnumSet;
+import java.util.Locale;
 
 
 /**
@@ -138,17 +132,11 @@ public final class JettyMain {
             DataBase dataBase = new JooqDatabase(ds, geoService);
             ServerListModel serverListModel = new ServerListModelImpl(dataBase, "servers", secret);
 
-            Server server = createServer(port.intValue(),
-                    new AboutServlet(),
-                    new ServerServlet(serverListModel),          // the server list servlet
-                    new ModuleServlet(moduleListModel));         // the module list servlet
-
-            server.start();
             logger.info("Server started on port {}!", port);
 
             new Thread(moduleListModel::updateAllModules).start();
 
-            server.join();
+            // server.join();
         }
     }
 
@@ -171,7 +159,6 @@ public final class JettyMain {
 
         ResourceConfig rc = new ResourceConfig();
         rc.register(new GsonMessageBodyHandler());               // register JSON serializer
-        rc.register(FreemarkerMvcFeature.class);
 
         for (Object servlet : servlets) {
             rc.register(servlet);

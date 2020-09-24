@@ -1,0 +1,6 @@
+applicationType: default
+defaultPackage: org.terasology
+testFramework: junit
+sourceLanguage: java
+buildTool: gradle
+features: [ annotation-api, app-name, docker, file-watch, gradle, http-client, java, java-application, jdbc-hikari, jooq, junit, logback, netty-server, postgres, readme, shade, testcontainers, views-freemarker, yaml ]

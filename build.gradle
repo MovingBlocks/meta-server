@@ -6,17 +6,21 @@ plugins {
     id 'pmd'
     id 'checkstyle'
     id 'com.github.spotbugs' version '4.5.0'
+
+    id "com.diffplug.eclipse.apt" version "3.22.0"
+    id "com.github.johnrengelman.shadow" version "6.0.0"
 }
 
 apply from: 'config/gradle/versioning.gradle'
 
-mainClassName = "org.terasology.web.JettyMain"
+mainClassName = "org.terasology.Application"
 applicationName = "meta-server"
 
 group = 'org.terasology.web'
 
 repositories {
     mavenCentral()
+    jcenter()
 
     maven {
         name "Terasology Artifactory"
@@ -29,13 +33,47 @@ ext {
     jettyVersion = '9.4.6.v20170531'
 }
 
+java {
+    sourceCompatibility = JavaVersion.toVersion('11')
+    targetCompatibility = JavaVersion.toVersion('11')
+}
+
 def codeMetricsDir = "${buildDir}/codeMetrics"
 
 configurations {
     codeMetrics
+    // for dependencies that are needed for development only
+    developmentOnly
 }
 
 dependencies {
+    /* Micronauts start*/
+    annotationProcessor(platform("io.micronaut:micronaut-bom:$micronautVersion"))
+    annotationProcessor("io.micronaut:micronaut-inject-java")
+    annotationProcessor("io.micronaut:micronaut-validation")
+    implementation(platform("io.micronaut:micronaut-bom:$micronautVersion"))
+    implementation("io.micronaut:micronaut-inject")
+    implementation("io.micronaut:micronaut-validation")
+    implementation("io.micronaut:micronaut-runtime")
+    implementation("javax.annotation:javax.annotation-api")
+    implementation("io.micronaut:micronaut-http-server-netty")
+    implementation("io.micronaut.views:micronaut-views-freemarker")
+    implementation("io.micronaut:micronaut-http-client")
+    implementation("io.micronaut.sql:micronaut-jdbc-hikari")
+    implementation("io.micronaut.sql:micronaut-jooq")
+    runtimeOnly("ch.qos.logback:logback-classic")
+    runtimeOnly("org.postgresql:postgresql")
+    testAnnotationProcessor(enforcedPlatform("io.micronaut:micronaut-bom:$micronautVersion"))
+    testAnnotationProcessor("io.micronaut:micronaut-inject-java")
+    testImplementation(enforcedPlatform("io.micronaut:micronaut-bom:$micronautVersion"))
+    testImplementation("org.junit.jupiter:junit-jupiter-api")
+    testImplementation("io.micronaut.test:micronaut-test-junit5")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+
+    testImplementation(platform("org.testcontainers:testcontainers-bom:1.14.3"))
+    testRuntimeOnly("org.testcontainers:postgresql")
+    /* Micronauts end*/
+
     implementation group: 'org.eclipse.jetty', name: 'jetty-servlet', version: jettyVersion
     implementation group: 'org.eclipse.jetty', name: 'jetty-servlets', version: jettyVersion
     implementation 'javax.servlet:javax.servlet-api:3.1.0'
@@ -43,7 +81,6 @@ dependencies {
     implementation 'com.google.code.findbugs:jsr305:3.0.0'
 
     implementation 'org.glassfish.jersey.containers:jersey-container-jetty-servlet:2.22.1'
-    implementation 'org.glassfish.jersey.ext:jersey-mvc-freemarker:2.22.1'
 
     implementation 'com.google.code.gson:gson:2.4'
     implementation 'com.google.guava:guava:18.0'
@@ -53,7 +90,7 @@ dependencies {
 
     implementation 'com.squareup.retrofit:retrofit:1.9.0'
 
-    implementation 'org.slf4j:slf4j-api:1.7.13'
+    implementation 'org.slf4j:slf4j-api:1.7.30'
 
     implementation 'com.zaxxer:HikariCP:2.4.1'
 
@@ -64,6 +101,7 @@ dependencies {
     testImplementation 'com.jcabi:jcabi-matchers:1.4'
     testImplementation 'junit:junit:4.12'
     testImplementation 'com.h2database:h2:1.4.190'
+    testImplementation 'org.slf4j:slf4j-api:1.7.30'
 
     runtimeOnly group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.3'
 
@@ -72,6 +110,8 @@ dependencies {
 
     codeMetrics group: 'org.terasology.config', name: 'codemetrics', version: '1.3.2', ext: 'zip'
 }
+
+test.classpath += configurations.developmentOnly
 
 task unpackConfig(type: Sync, dependsOn: configurations.codeMetrics) {
     from zipTree(configurations.codeMetrics.singleFile)
@@ -99,7 +139,38 @@ spotbugs {
     excludeFilter = resources.text.fromFile("${codeMetricsDir}/findbugs/findbugs-exclude.xml").asFile()
 }
 
+
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+    options.compilerArgs.addAll([
+            '-parameters',
+            // enables incremental compilation
+            '-Amicronaut.processing.incremental=true',
+            '-Amicronaut.processing.annotations=org.terasology.*',
+            "-Amicronaut.processing.group=$project.group",
+            "-Amicronaut.processing.module=$project.name",
+    ])
+}
+
+shadowJar {
+    mergeServiceFiles()
+}
+
+tasks.withType(JavaExec) {
+    classpath += configurations.developmentOnly
+    jvmArgs('-XX:TieredStopAtLevel=1', '-Dcom.sun.management.jmxremote')
+    if (gradle.startParameter.continuous) {
+        systemProperties(
+                'micronaut.io.watch.restart':'true',
+                'micronaut.io.watch.enabled':'true',
+                "micronaut.io.watch.paths":"src/main"
+        )
+    }
+}
+
+
 test {
+    useJUnitPlatform()
     // ignoreFailures: Specifies whether the build should break when the verifications performed by this task fail.
     ignoreFailures = true
 

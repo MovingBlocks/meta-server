@@ -16,31 +16,17 @@
 
 package org.terasology.web.servlet;
 
-import java.io.OutputStreamWriter;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.StreamingOutput;
-import javax.ws.rs.core.UriInfo;
-
-import org.glassfish.jersey.server.mvc.Viewable;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.TreeMultimap;
+import com.google.gson.stream.JsonWriter;
+import io.micronaut.http.HttpRequest;
+import io.micronaut.http.HttpResponse;
+import io.micronaut.http.MediaType;
+import io.micronaut.http.annotation.*;
+import io.micronaut.http.server.util.HttpHostResolver;
+import io.micronaut.views.View;
+import io.micronaut.web.router.RouteBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.module.Module;
@@ -50,19 +36,19 @@ import org.terasology.module.RemoteModuleExtension;
 import org.terasology.naming.Name;
 import org.terasology.naming.Version;
 import org.terasology.naming.exception.VersionParseException;
-import org.terasology.web.version.VersionInfo;
 import org.terasology.web.model.ModuleListModel;
 import org.terasology.web.model.jenkins.Job;
+import org.terasology.web.version.VersionInfo;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.TreeMultimap;
-import com.google.gson.stream.JsonWriter;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.net.URI;
+import java.util.*;
 
 /**
  * TODO Type description
  */
-@Path("/modules/")
+@Controller("/modules/")
 public class ModuleServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(ModuleServlet.class);
@@ -76,43 +62,51 @@ public class ModuleServlet {
      */
     private final Comparator<Module> versionComparator = (m1, m2) -> m2.getVersion().compareTo(m1.getVersion());
 
+    private final HttpHostResolver httpHostResolver;
+    private final RouteBuilder.UriNamingStrategy uriNamingStrategy;
 
-    public ModuleServlet(ModuleListModel model) {
+    public ModuleServlet(
+            HttpHostResolver httpHostResolver,
+            RouteBuilder.UriNamingStrategy uriNamingStrategy,
+            ModuleListModel model
+    ) {
         this.model = model;
+        this.httpHostResolver = httpHostResolver;
+        this.uriNamingStrategy = uriNamingStrategy;
         this.metadataWriter = new ModuleMetadataJsonAdapter();
         for (RemoteModuleExtension ext : RemoteModuleExtension.values()) {
             metadataWriter.registerExtension(ext.getKey(), ext.getValueType());
         }
     }
 
-    @GET
-    @Path("list")
+    @Get("list")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response list() {
+    public HttpResponse list() {
         logger.info("Requested module list as json");
-
-        StreamingOutput stream = os -> {
-            List<Name> sortedModuleIds = new ArrayList<>(model.getModuleIds());
-            sortedModuleIds.sort(null);
-            try (JsonWriter writer = new JsonWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8))) {
-                writer.beginArray();
-                writer.setIndent("  "); // enable pretty printing
-                for (Name name : sortedModuleIds) {
-                    for (Module module : model.getModuleVersions(name)) {
-                        ModuleMetadata meta = module.getMetadata();
-                        metadataWriter.write(meta, writer);
-                    }
+        StringWriter response = new StringWriter();
+        List<Name> sortedModuleIds = new ArrayList<>(model.getModuleIds());
+        sortedModuleIds.sort(null);
+        try (JsonWriter writer = new JsonWriter(response)) {
+            writer.beginArray();
+            writer.setIndent("  "); // enable pretty printing
+            for (Name name : sortedModuleIds) {
+                for (Module module : model.getModuleVersions(name)) {
+                    ModuleMetadata meta = module.getMetadata();
+                    metadataWriter.write(meta, writer);
                 }
-                writer.endArray();
             }
-        };
-        return Response.ok(stream).build();
+            writer.endArray();
+        } catch (IOException e) {
+            logger.error("Cannot create module list", e);
+            return HttpResponse.serverError();
+        }
+        return HttpResponse.ok(response.toString());
     }
 
-    @GET
-    @Path("show")
+    @Get("show")
+    @View("module-list")
     @Produces(MediaType.TEXT_HTML)
-    public Viewable show() {
+    public HttpResponse show() {
         logger.info("Requested module list as HTML");
 
         Set<Name> names = model.getModuleIds();
@@ -128,58 +122,58 @@ public class ModuleServlet {
                 .put("items", map.asMap())
                 .put("version", VersionInfo.getVersion())
                 .build();
-        return new Viewable("/module-list.ftl", dataModel);
+        return HttpResponse.ok(dataModel);
     }
 
-    @GET
-    @Path("list/latest")
+    @Get("list/latest")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response listLatest() {
+    public HttpResponse listLatest() {
         logger.info("Requested lastest info as json");
-
-        StreamingOutput stream = os -> {
-            List<Name> sortedModuleIds = new ArrayList<>(model.getModuleIds());
-            sortedModuleIds.sort(null);
-            try (JsonWriter writer = new JsonWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8))) {
-                writer.beginArray();
-                writer.setIndent("  "); // enable pretty printing
-                for (Name name : sortedModuleIds) {
-                    Module module = model.getLatestModuleVersion(name);
-                    ModuleMetadata meta = module.getMetadata();
-                    metadataWriter.write(meta, writer);
-                }
-                writer.endArray();
+        StringWriter response = new StringWriter();
+        List<Name> sortedModuleIds = new ArrayList<>(model.getModuleIds());
+        sortedModuleIds.sort(null);
+        try (JsonWriter writer = new JsonWriter(response)) {
+            writer.beginArray();
+            writer.setIndent("  "); // enable pretty printing
+            for (Name name : sortedModuleIds) {
+                Module module = model.getLatestModuleVersion(name);
+                ModuleMetadata meta = module.getMetadata();
+                metadataWriter.write(meta, writer);
             }
-        };
-        return Response.ok(stream).build();
+            writer.endArray();
+        } catch (IOException e) {
+            logger.error("Cannot create module list", e);
+            return HttpResponse.serverError();
+        }
+        return HttpResponse.ok(response.toString());
     }
 
-    @GET
-    @Path("list/{module}")
+    @Get("list/{module}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response listModule(@PathParam("module") String moduleName) {
+    public HttpResponse listModule(@PathVariable("module") String moduleName) {
         logger.info("Requested module versions as json");
 
         Name name = new Name(moduleName);
-
-        StreamingOutput stream = os -> {
-            try (JsonWriter writer = new JsonWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8))) {
-                writer.beginArray();
-                writer.setIndent("  "); // enable pretty printing
-                for (Module module : model.getModuleVersions(name)) {
-                    ModuleMetadata meta = module.getMetadata();
-                    metadataWriter.write(meta, writer);
-                }
-                writer.endArray();
+        StringWriter response = new StringWriter();
+        try (JsonWriter writer = new JsonWriter(response)) {
+            writer.beginArray();
+            writer.setIndent("  "); // enable pretty printing
+            for (Module module : model.getModuleVersions(name)) {
+                ModuleMetadata meta = module.getMetadata();
+                metadataWriter.write(meta, writer);
             }
-        };
-        return Response.ok(stream).build();
+            writer.endArray();
+        } catch (IOException e) {
+            logger.error("Cannot create module list", e);
+            return HttpResponse.serverError();
+        }
+        return HttpResponse.ok(response.toString());
     }
 
-    @GET
-    @Path("show/{module}")
+    @Get("show/{module}")
+    @View("module-list")
     @Produces(MediaType.TEXT_HTML)
-    public Viewable showModule(@PathParam("module") String module) {
+    public HttpResponse showModule(@PathVariable("module") String module) {
         logger.info("Requested module versions as HTML");
 
         Name name = new Name(module);
@@ -194,72 +188,68 @@ public class ModuleServlet {
                 .put("moduleId", module)
                 .put("version", VersionInfo.getVersion())
                 .build();
-        return new Viewable("/module-list.ftl", dataModel);
+        return HttpResponse.ok(dataModel);
     }
 
-    @GET
-    @Path("list/{module}/latest")
+    @Get("list/{module}/latest")
     @Produces(MediaType.TEXT_HTML)
-    public Response listModuleLatest(@Context UriInfo uriInfo, @PathParam("module") String module) {
+    public HttpResponse listModuleLatest(HttpRequest httpRequest, @PathVariable("module") String module) {
+        URI uri = httpRequest.getUri();
         logger.info("Requested lastest module info as HTML");
-        int pathLen = uriInfo.getPath().length();
-        String path = uriInfo.getPath().substring(0, pathLen - "latest".length());
+        int pathLen = uri.getPath().length();
+        String path = uri.getPath().substring(0, pathLen - "latest".length());
         Module latest = model.getLatestModuleVersion(new Name(module));
         if (latest == null) {
-            return Response.status(Status.NOT_FOUND).build();
+            return HttpResponse.notFound();
         }
         String ver = latest.getVersion().toString();
-        URI redirect = URI.create(uriInfo.getBaseUri() + path + ver);
-        return Response.temporaryRedirect(redirect).build();
+        URI redirect = URI.create(path + ver);
+        return HttpResponse.temporaryRedirect(redirect);
     }
 
-    @GET
-    @Path("list/{module}/{version}")
+    @Get("list/{module}/{version}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response listModuleVersion(@PathParam("module") String moduleName, @PathParam("version") String versionStr) {
+    public HttpResponse listModuleVersion(@PathVariable("module") String moduleName, @PathVariable("version") String versionStr) {
         logger.info("Requested single module info as json");
 
         try {
             Version version = new Version(versionStr);
             Module module = model.getModule(new Name(moduleName), version);
             if (module == null) {
-                return Response.status(Status.NOT_FOUND).build();
+                return HttpResponse.notFound();
             }
 
             ModuleMetadata meta = module.getMetadata();
+            StringWriter response = new StringWriter();
 
-            StreamingOutput stream = os -> {
-                try (OutputStreamWriter writer = new OutputStreamWriter(os, StandardCharsets.UTF_8)) {
-                    metadataWriter.write(meta, writer);
-                }
-            };
-            return Response.ok(stream).build();
+            metadataWriter.write(meta, response);
+            return HttpResponse.ok(response.toString());
         } catch (VersionParseException e) {
             logger.warn("Invalid version for module '{}' specified: {}", moduleName, versionStr);
-            return Response.status(Status.NOT_FOUND).build();
+            return HttpResponse.notFound();
         }
     }
 
-    @GET
-    @Path("show/{module}/latest")
+    @Get("show/{module}/latest")
     @Produces(MediaType.TEXT_HTML)
-    public Response showModuleLatest(@Context UriInfo uriInfo, @PathParam("module") String module) {
+    public HttpResponse showModuleLatest(HttpRequest httpRequest, @PathVariable("module") String module) {
+        URI uriInfo = httpRequest.getUri();
         logger.info("Requested lastest module info as HTML");
         int pathLen = uriInfo.getPath().length();
         String path = uriInfo.getPath().substring(0, pathLen - "latest".length());
         Module latest = model.getLatestModuleVersion(new Name(module));
         if (latest == null) {
-            return Response.status(Status.NOT_FOUND).build();
+            return HttpResponse.notFound();
         }
         String ver = latest.getVersion().toString();
-        URI redirect = URI.create(uriInfo.getBaseUri() + path + ver);
-        return Response.temporaryRedirect(redirect).build();
+        URI redirect = URI.create(path + ver);
+        return HttpResponse.temporaryRedirect(redirect);
     }
 
-    @GET
-    @Path("show/{module}/{version}")
+    @Get("show/{module}/{version}")
+    @View("module-info")
     @Produces(MediaType.TEXT_HTML)
-    public Response showModuleVersion(@PathParam("module") String module, @PathParam("version") String version) {
+    public HttpResponse showModuleVersion(@PathVariable("module") String module, @PathVariable("version") String version) {
         logger.info("Requested module info as HTML");
 
         try {
@@ -268,7 +258,7 @@ public class ModuleServlet {
             Module mod = model.getModule(moduleName, modVersion);
             if (mod == null) {
                 logger.warn("No entry for module '{}' found", module);
-                return Response.status(Status.NOT_FOUND).build();
+                return HttpResponse.notFound();
             }
             ModuleMetadata meta = mod.getMetadata();
 
@@ -282,35 +272,33 @@ public class ModuleServlet {
                     .put("dependencies", deps)
                     .put("version", VersionInfo.getVersion())
                     .build();
-            return Response.ok(new Viewable("/module-info.ftl", dataModel)).build();
+            return HttpResponse.ok(dataModel);
         } catch (VersionParseException e) {
             logger.warn("Invalid version for module '{}' specified: {}", module, version);
-            return Response.status(Status.NOT_FOUND).build();
+            return HttpResponse.notFound();
         }
     }
 
-    @POST
-    @Path("update")
+    @Post("update")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateModulePost(Job jobState) {
+    public HttpResponse updateModulePost(Job jobState) {
         String job = jobState.getName();
 
         logger.info("Requested module update for {}", job);
 
         model.updateModule(new Name(job));
 
-        return Response.ok().build();
+        return HttpResponse.ok();
     }
 
-    @POST
-    @Path("update-all")
+    @Post("update-all")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateAllModulesPost() {
+    public HttpResponse updateAllModulesPost() {
 
         logger.info("Requested complete module update");
 
         new Thread(model::updateAllModules).start();
 
-        return Response.ok().build();
+        return HttpResponse.ok();
     }
 }

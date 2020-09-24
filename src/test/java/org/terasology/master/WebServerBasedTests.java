@@ -16,12 +16,6 @@
 
 package org.terasology.master;
 
-import java.io.File;
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.eclipse.jetty.server.Server;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.AfterClass;
@@ -38,9 +32,14 @@ import org.terasology.web.model.ModuleListModelImpl;
 import org.terasology.web.model.ServerEntry;
 import org.terasology.web.model.ServerListModel;
 import org.terasology.web.model.ServerListModelImpl;
-import org.terasology.web.servlet.AboutServlet;
-import org.terasology.web.servlet.ModuleServlet;
+import org.terasology.web.servlet.AboutController;
 import org.terasology.web.servlet.ServerServlet;
+
+import java.io.File;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class WebServerBasedTests {
 
@@ -95,9 +94,9 @@ public abstract class WebServerBasedTests {
         ServerListModel serverListModel = new ServerListModelImpl(dataBase, SERVER_TABLE, secret);
 
         webServer = JettyMain.createServer(PORT,
-                new AboutServlet(),
-                new ServerServlet(serverListModel),          // the server list servlet
-                new ModuleServlet(moduleListModel));         // the module list servlet
+                new AboutController(),
+                new ServerServlet(serverListModel));         // the server list servlet
+//                new ModuleServlet(moduleListModel));         // the module list servlet
 
         webServer.start();
 

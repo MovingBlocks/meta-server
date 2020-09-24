@@ -16,12 +16,12 @@
 
 package org.terasology.web.model;
 
-import java.util.Collection;
-import java.util.Set;
-
 import org.terasology.module.Module;
 import org.terasology.naming.Name;
 import org.terasology.naming.Version;
+
+import java.util.Collection;
+import java.util.Set;
 
 /**
  * Provides a list of modules.

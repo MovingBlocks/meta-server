@@ -16,45 +16,34 @@
 
 package org.terasology.web.model;
 
+import com.google.common.io.Files;
+import io.micronaut.context.annotation.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.terasology.module.Module;
+import org.terasology.module.*;
+import org.terasology.naming.Name;
+import org.terasology.naming.Version;
+import org.terasology.web.artifactory.ArtifactInfo;
+import org.terasology.web.artifactory.ArtifactRepository;
+
+import javax.annotation.concurrent.ThreadSafe;
+import javax.inject.Singleton;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.terasology.module.DependencyResolver;
-import org.terasology.module.Module;
-import org.terasology.module.ModuleMetadata;
-import org.terasology.module.ModuleMetadataJsonAdapter;
-import org.terasology.module.ModuleRegistry;
-import org.terasology.module.RemoteModuleExtension;
-import org.terasology.module.ResolutionResult;
-import org.terasology.module.TableModuleRegistry;
-import org.terasology.naming.Name;
-import org.terasology.naming.Version;
-import org.terasology.web.artifactory.ArtifactInfo;
-import org.terasology.web.artifactory.ArtifactRepository;
-
-import com.google.common.io.Files;
 
 /**
  * Provides a list of modules.
  */
 @ThreadSafe
+@Singleton
 public class ModuleListModelImpl implements ModuleListModel {
 
     private static final Logger logger = LoggerFactory.getLogger(ModuleListModelImpl.class);
@@ -71,7 +60,7 @@ public class ModuleListModelImpl implements ModuleListModel {
 
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
 
-    public ModuleListModelImpl(Path cacheFolder) {
+    public ModuleListModelImpl(@Value("${meta-server.cacheFolder}") Path cacheFolder) {
         this(cacheFolder, new ZipExtractor("module.txt", "engine-module.txt"));
     }
 
