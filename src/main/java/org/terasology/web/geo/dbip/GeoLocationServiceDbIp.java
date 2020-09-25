@@ -16,18 +16,19 @@
 
 package org.terasology.web.geo.dbip;
 
-import java.io.IOException;
-import java.net.InetAddress;
-
 import org.terasology.web.geo.GeoLocation;
 import org.terasology.web.geo.GeoLocationService;
-
 import retrofit.RestAdapter;
+
+import javax.inject.Singleton;
+import java.io.IOException;
+import java.net.InetAddress;
 
 /**
  * Resolves geo-location for a hostname or IP address based on db-ip.com.
  * Requires a system environment variable "DBIP_API_KEY" with a valid API key.
  */
+@Singleton
 public class GeoLocationServiceDbIp implements GeoLocationService {
 
     private final String apiKey;

@@ -14,21 +14,26 @@
  * limitations under the License.
  */
 
-package org.terasology.master;
+package org.terasology.master.services;
 
+import io.micronaut.context.annotation.Replaces;
+import org.terasology.module.ModuleMetadata;
+import org.terasology.module.ModuleMetadataJsonAdapter;
+import org.terasology.module.RemoteModuleExtension;
+import org.terasology.web.model.MetadataExtractor;
+import org.terasology.web.model.ZipExtractor;
+
+import javax.inject.Singleton;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
 
-import org.terasology.module.ModuleMetadata;
-import org.terasology.module.ModuleMetadataJsonAdapter;
-import org.terasology.module.RemoteModuleExtension;
-import org.terasology.web.model.MetadataExtractor;
-
 /**
  * Reads metadata from metadata files as-is.
  */
+@Replaces(ZipExtractor.class)
+@Singleton
 public class DummyExtractor implements MetadataExtractor {
 
     private final ModuleMetadataJsonAdapter metaReader = new ModuleMetadataJsonAdapter();

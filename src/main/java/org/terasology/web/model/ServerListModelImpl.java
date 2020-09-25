@@ -16,6 +16,13 @@
 
 package org.terasology.web.model;
 
+import com.google.common.base.Preconditions;
+import io.micronaut.context.annotation.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.terasology.web.db.DataBase;
+
+import javax.inject.Singleton;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -24,12 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.terasology.web.db.DataBase;
-
-import com.google.common.base.Preconditions;
-
+@Singleton
 public class ServerListModelImpl implements ServerListModel {
 
     private static final Logger logger = LoggerFactory.getLogger(ServerListModelImpl.class);
@@ -38,7 +40,9 @@ public class ServerListModelImpl implements ServerListModel {
     private final String tableName;
     private final String editSecret;
 
-    public ServerListModelImpl(DataBase dataBase, String tableName, String editSecret) throws SQLException {
+    public ServerListModelImpl(DataBase dataBase,
+                               @Value("${meta-server.tableName}") String tableName,
+                               @Value("${meta-server.editSecret}") String editSecret) throws SQLException {
         Preconditions.checkArgument(dataBase != null, "dataSource must not be null");
         Preconditions.checkArgument(tableName != null, "tableName must not be null");
         Preconditions.checkArgument(editSecret != null, "editSecret must not be null");

@@ -6,6 +6,14 @@ micronaut:
       base:
         paths:
           - "classpath:static"
-          -
+datasources:
+  default:
+    url: jdbc:postgresql://localhost:5432/postgres
+    driverClassName: org.postgresql.Driver
+    username: postgres
+    password: ''
+
 meta-server:
   cacheFolder: "./cache"
+  tableName: "servers"
+  editSecret: "foobar"

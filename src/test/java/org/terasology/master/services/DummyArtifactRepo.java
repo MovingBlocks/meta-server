@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-package org.terasology.master;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
+package org.terasology.master.services;
 
 import org.terasology.web.artifactory.ArtifactInfo;
 import org.terasology.web.artifactory.ArtifactRepository;
+
+import java.io.IOException;
+import java.util.*;
 
 public class DummyArtifactRepo implements ArtifactRepository {
 

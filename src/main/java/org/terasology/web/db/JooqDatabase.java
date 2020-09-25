@@ -16,28 +16,8 @@
 
 package org.terasology.web.db;
 
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import javax.sql.DataSource;
-
-import org.jooq.DSLContext;
-import org.jooq.Field;
-import org.jooq.InsertSetMoreStep;
-import org.jooq.Query;
 import org.jooq.Record;
-import org.jooq.Result;
-import org.jooq.SortField;
-import org.jooq.Table;
-import org.jooq.UpdateSetMoreStep;
+import org.jooq.*;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 import org.slf4j.Logger;
@@ -45,8 +25,19 @@ import org.slf4j.LoggerFactory;
 import org.terasology.web.geo.GeoLocation;
 import org.terasology.web.geo.GeoLocationService;
 
+import javax.inject.Singleton;
+import javax.sql.DataSource;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.*;
+import java.util.Map.Entry;
+
 /**
+ *
  */
+@Singleton
 public final class JooqDatabase implements DataBase {
 
     private static final Logger logger = LoggerFactory.getLogger(JooqDatabase.class);

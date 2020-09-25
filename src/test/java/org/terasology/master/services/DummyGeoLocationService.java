@@ -14,15 +14,20 @@
  * limitations under the License.
  */
 
-package org.terasology.master;
+package org.terasology.master.services;
 
-import java.io.IOException;
+import io.micronaut.context.annotation.Primary;
 import org.terasology.web.geo.GeoLocation;
 import org.terasology.web.geo.GeoLocationService;
+
+import javax.inject.Singleton;
+import java.io.IOException;
 
 /**
  * A dummy implementation of {@link GeoLocationService}.
  */
+@Primary
+@Singleton
 public class DummyGeoLocationService implements GeoLocationService {
 
     @Override

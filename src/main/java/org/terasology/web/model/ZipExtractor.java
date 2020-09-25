@@ -16,11 +16,11 @@
 
 package org.terasology.web.model;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import org.terasology.module.ModuleMetadata;
+import org.terasology.module.ModuleMetadataJsonAdapter;
+
+import javax.inject.Singleton;
+import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -28,13 +28,11 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import org.terasology.module.ModuleMetadata;
-import org.terasology.module.ModuleMetadataJsonAdapter;
-
 /**
  * Extracts the module info file from a ZIP archive that is described by an URL.
  * The stream is closed as soon as the file has been read.
  */
+@Singleton
 public class ZipExtractor implements MetadataExtractor {
 
     private final List<String> filename;

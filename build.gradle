@@ -67,11 +67,12 @@ dependencies {
     testAnnotationProcessor("io.micronaut:micronaut-inject-java")
     testImplementation(enforcedPlatform("io.micronaut:micronaut-bom:$micronautVersion"))
     testImplementation("org.junit.jupiter:junit-jupiter-api")
+    testImplementation("org.junit.jupiter:junit-jupiter-params")
     testImplementation("io.micronaut.test:micronaut-test-junit5")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 
-    testImplementation(platform("org.testcontainers:testcontainers-bom:1.14.3"))
-    testRuntimeOnly("org.testcontainers:postgresql")
+//    testImplementation(platform("org.testcontainers:testcontainers-bom:1.14.3"))
+//    testRuntimeOnly("org.testcontainers:postgresql")
     /* Micronauts end*/
 
     implementation group: 'org.eclipse.jetty', name: 'jetty-servlet', version: jettyVersion
@@ -100,7 +101,7 @@ dependencies {
     testImplementation 'com.jcabi:jcabi-w3c:1.3'
     testImplementation 'com.jcabi:jcabi-matchers:1.4'
     testImplementation 'junit:junit:4.12'
-    testImplementation 'com.h2database:h2:1.4.190'
+    testImplementation("com.h2database:h2")
     testImplementation 'org.slf4j:slf4j-api:1.7.30'
 
     runtimeOnly group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.3'

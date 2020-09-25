@@ -16,25 +16,31 @@
 
 package org.terasology.master;
 
-import java.io.IOException;
-
+import io.micronaut.http.HttpRequest;
+import io.micronaut.http.client.HttpClient;
+import io.micronaut.http.client.annotation.Client;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import javax.inject.Inject;
 
 
 /**
  *
  */
-public class ServerHtmlContentTest extends WebServerBasedTests {
+public class ServerHtmlContentTest extends BaseTests {
+
+    @Inject
+    @Client("/")
+    HttpClient client;
 
     @Test
-    public void testShowHtml() throws IOException {
-        String url = URL_BASE + "/servers/show";
-
-        Document doc = Jsoup.connect(url).get();
+    public void testShowHtml() {
+        String response = client.toBlocking().retrieve(HttpRequest.GET("/servers/show"));
+        Document doc = Jsoup.parse(response);
 
         Element table = doc.getElementById("server-list");
         Assert.assertTrue(table.nodeName().equals("table"));

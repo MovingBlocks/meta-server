@@ -30,20 +30,16 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.terasology.web.artifactory.ArtifactoryRepo;
 import org.terasology.web.db.DataBase;
 import org.terasology.web.db.JooqDatabase;
 import org.terasology.web.geo.GeoLocationService;
 import org.terasology.web.geo.dbip.GeoLocationServiceDbIp;
 import org.terasology.web.io.GsonMessageBodyHandler;
-import org.terasology.web.model.ModuleListModelImpl;
 import org.terasology.web.model.ServerListModel;
 import org.terasology.web.model.ServerListModelImpl;
 
 import javax.servlet.DispatcherType;
 import java.net.URI;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.EnumSet;
 import java.util.Locale;
 
@@ -98,19 +94,18 @@ public final class JettyMain {
         String snapshotRepo = "terasology-snapshot-local";
         String modGroup = "org.terasology.modules";
         String engineGroup = "org.terasology.engine";
-        Path cacheFolder = Paths.get("cache", "modules");
-
-        ModuleListModelImpl moduleListModel = new ModuleListModelImpl(cacheFolder);
-        Path releaseRepoFolder = cacheFolder.resolve(releaseRepo);
-        Path snapshotRepoFolder = cacheFolder.resolve(snapshotRepo);
-
-        // add module repos
-        moduleListModel.addRepository(ArtifactoryRepo.release(host, releaseRepo, modGroup, releaseRepoFolder));
-        moduleListModel.addRepository(ArtifactoryRepo.snapshot(host, snapshotRepo, modGroup, snapshotRepoFolder));
-
-        // add engine repos
-        moduleListModel.addRepository(ArtifactoryRepo.release(host, releaseRepo, engineGroup, releaseRepoFolder));
-        moduleListModel.addRepository(ArtifactoryRepo.snapshot(host, snapshotRepo, engineGroup, snapshotRepoFolder));
+//
+//        ModuleListModelImpl moduleListModel = new ModuleListModelImpl(cacheFolder);
+//        Path releaseRepoFolder = cacheFolder.resolve(releaseRepo);
+//        Path snapshotRepoFolder = cacheFolder.resolve(snapshotRepo);
+//
+//        // add module repos
+//        moduleListModel.addRepository(ArtifactoryRepo.release(host, releaseRepo, modGroup, releaseRepoFolder));
+//        moduleListModel.addRepository(ArtifactoryRepo.snapshot(host, snapshotRepo, modGroup, snapshotRepoFolder));
+//
+//        // add engine repos
+//        moduleListModel.addRepository(ArtifactoryRepo.release(host, releaseRepo, engineGroup, releaseRepoFolder));
+//        moduleListModel.addRepository(ArtifactoryRepo.snapshot(host, snapshotRepo, engineGroup, snapshotRepoFolder));
 
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:postgresql://" + dbUri.getHost() + ":" + dbPort + dbUri.getPath());
@@ -134,7 +129,7 @@ public final class JettyMain {
 
             logger.info("Server started on port {}!", port);
 
-            new Thread(moduleListModel::updateAllModules).start();
+//            new Thread(moduleListModel::updateAllModules).start();
 
             // server.join();
         }
