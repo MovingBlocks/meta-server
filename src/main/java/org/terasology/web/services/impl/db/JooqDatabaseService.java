@@ -22,7 +22,7 @@ import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.terasology.web.services.api.DataBase;
+import org.terasology.web.services.api.DatabaseService;
 import org.terasology.web.services.api.GeoLocationService;
 import org.terasology.web.services.impl.geo.GeoLocation;
 
@@ -39,9 +39,9 @@ import java.util.Map.Entry;
  *
  */
 @Singleton
-public final class JooqDatabase implements DataBase {
+public final class JooqDatabaseService implements DatabaseService {
 
-    private static final Logger logger = LoggerFactory.getLogger(JooqDatabase.class);
+    private static final Logger logger = LoggerFactory.getLogger(JooqDatabaseService.class);
 
     private final DataSource ds;
 
@@ -51,7 +51,7 @@ public final class JooqDatabase implements DataBase {
      * @param ds the datasource
      * @param geoService the geo-location service
      */
-    public JooqDatabase(DataSource ds, GeoLocationService geoService) {
+    public JooqDatabaseService(DataSource ds, GeoLocationService geoService) {
         this.geoService = geoService;
         this.ds = ds;
     }

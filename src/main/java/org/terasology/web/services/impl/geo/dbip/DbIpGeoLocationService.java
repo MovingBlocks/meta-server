@@ -30,11 +30,11 @@ import java.net.InetAddress;
  * Requires a system environment variable "DBIP_API_KEY" with a valid API key.
  */
 @Singleton
-public class GeoLocationServiceDbIp implements GeoLocationService {
+public class DbIpGeoLocationService implements GeoLocationService {
 
     private final String apiKey;
 
-    public GeoLocationServiceDbIp(
+    public DbIpGeoLocationService(
             @Value("meta-server.dbip.api.key") String apiKey
     ) {
         this.apiKey = apiKey;

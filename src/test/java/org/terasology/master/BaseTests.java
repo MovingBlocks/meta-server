@@ -6,9 +6,9 @@ import org.junit.jupiter.api.TestInstance;
 import org.terasology.master.services.DummyArtifactRepo;
 import org.terasology.web.model.artifactory.ArtifactRepository;
 import org.terasology.web.model.server.ServerEntry;
-import org.terasology.web.services.api.DataBase;
+import org.terasology.web.services.api.DatabaseService;
 import org.terasology.web.services.api.GeoLocationService;
-import org.terasology.web.services.impl.ModuleListModelImpl;
+import org.terasology.web.services.impl.ModuleListServiceImpl;
 import org.terasology.web.services.impl.geo.GeoLocation;
 
 import javax.inject.Inject;
@@ -22,9 +22,9 @@ public class BaseTests {
     private static final String SERVER_TABLE = "servers";
     protected ServerEntry firstEntry;
     @Inject
-    ModuleListModelImpl moduleListModel;
+    ModuleListServiceImpl moduleListModel;
     @Inject
-    DataBase dataBase;
+    DatabaseService databaseService;
     @Inject
     GeoLocationService geoService;
 
@@ -50,7 +50,7 @@ public class BaseTests {
 
     @BeforeAll
     void setupDatabase() throws IOException, SQLException {
-        dataBase.createTable(SERVER_TABLE);
+        databaseService.createTable(SERVER_TABLE);
         GeoLocation geo = geoService.resolve("localhost");
         firstEntry = new ServerEntry("localhost", 25000);
         firstEntry.setName("myName");
@@ -58,6 +58,6 @@ public class BaseTests {
         firstEntry.setCountry(geo.getCountry());
         firstEntry.setStateprov(geo.getStateOrProvince());
         firstEntry.setCity(geo.getCity());
-        dataBase.insert(SERVER_TABLE, firstEntry);
+        databaseService.insert(SERVER_TABLE, firstEntry);
     }
 }

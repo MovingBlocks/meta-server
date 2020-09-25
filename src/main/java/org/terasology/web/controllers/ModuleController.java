@@ -35,7 +35,7 @@ import org.terasology.naming.Name;
 import org.terasology.naming.Version;
 import org.terasology.naming.exception.VersionParseException;
 import org.terasology.web.model.jenkins.Job;
-import org.terasology.web.services.api.ModuleListModel;
+import org.terasology.web.services.api.ModuleListService;
 import org.terasology.web.version.VersionInfo;
 
 import java.io.IOException;
@@ -51,7 +51,7 @@ public class ModuleController {
 
     private static final Logger logger = LoggerFactory.getLogger(ModuleController.class);
 
-    private final ModuleListModel model;
+    private final ModuleListService model;
 
     private final ModuleMetadataJsonAdapter metadataWriter;
 
@@ -61,7 +61,7 @@ public class ModuleController {
     private final Comparator<Module> versionComparator = (m1, m2) -> m2.getVersion().compareTo(m1.getVersion());
 
     public ModuleController(
-            ModuleListModel model
+            ModuleListService model
     ) {
         this.model = model;
         this.metadataWriter = new ModuleMetadataJsonAdapter();

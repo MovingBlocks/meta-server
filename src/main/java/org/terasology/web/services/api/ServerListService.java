@@ -22,7 +22,7 @@ import org.terasology.web.model.server.ServerEntry;
 import java.io.IOException;
 import java.util.List;
 
-public interface ServerListModel {
+public interface ServerListService {
 
     List<ServerEntry> getServers() throws IOException;
 

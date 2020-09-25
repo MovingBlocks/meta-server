@@ -28,7 +28,7 @@ import org.terasology.web.model.artifactory.ArtifactInfo;
 import org.terasology.web.model.artifactory.ArtifactRepository;
 import org.terasology.web.model.module.RemoteModule;
 import org.terasology.web.services.api.MetadataExtractor;
-import org.terasology.web.services.api.ModuleListModel;
+import org.terasology.web.services.api.ModuleListService;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Singleton;
@@ -47,9 +47,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 @ThreadSafe
 @Singleton
-public class ModuleListModelImpl implements ModuleListModel {
+public class ModuleListServiceImpl implements ModuleListService {
 
-    private static final Logger logger = LoggerFactory.getLogger(ModuleListModelImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(ModuleListServiceImpl.class);
 
     private final ModuleMetadataJsonAdapter metadataAdapter = new ModuleMetadataJsonAdapter();
 
@@ -63,7 +63,7 @@ public class ModuleListModelImpl implements ModuleListModel {
 
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
 
-    public ModuleListModelImpl(
+    public ModuleListServiceImpl(
             @Value("${meta-server.cache.folder}") Path cacheFolder,
             MetadataExtractor extractor) {
         this.cacheFolder = cacheFolder;

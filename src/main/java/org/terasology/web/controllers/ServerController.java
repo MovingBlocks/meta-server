@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.terasology.web.model.server.Result;
 import org.terasology.web.model.server.ServerEntry;
 import org.terasology.web.model.web.ServerForm;
-import org.terasology.web.services.api.ServerListModel;
+import org.terasology.web.services.api.ServerListService;
 import org.terasology.web.version.VersionInfo;
 
 import java.io.IOException;
@@ -43,9 +43,9 @@ public class ServerController {
 
     private static final Logger logger = LoggerFactory.getLogger(ServerController.class);
 
-    private ServerListModel model;
+    private ServerListService model;
 
-    public ServerController(ServerListModel model) {
+    public ServerController(ServerListService model) {
         this.model = model;
     }
 

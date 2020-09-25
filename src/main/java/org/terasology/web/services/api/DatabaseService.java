@@ -25,12 +25,12 @@ import java.util.Map;
 /**
  * Describes a permanent data storage.
  */
-public interface DataBase {
+public interface DatabaseService {
 
     /**
      * @param tableName the name of the DB table
-     * @param address the server address
-     * @param port the server port
+     * @param address   the server address
+     * @param port      the server port
      * @return true if the entry was found and removed, false otherwise
      * @throws SQLException if the table query fails
      */

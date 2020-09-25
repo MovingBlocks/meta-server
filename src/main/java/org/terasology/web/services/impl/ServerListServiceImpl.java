@@ -22,8 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.web.model.server.Result;
 import org.terasology.web.model.server.ServerEntry;
-import org.terasology.web.services.api.DataBase;
-import org.terasology.web.services.api.ServerListModel;
+import org.terasology.web.services.api.DatabaseService;
+import org.terasology.web.services.api.ServerListService;
 
 import javax.inject.Singleton;
 import java.io.IOException;
@@ -35,32 +35,32 @@ import java.util.List;
 import java.util.Map;
 
 @Singleton
-public class ServerListModelImpl implements ServerListModel {
+public class ServerListServiceImpl implements ServerListService {
 
-    private static final Logger logger = LoggerFactory.getLogger(ServerListModelImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(ServerListServiceImpl.class);
 
-    private final DataBase dataBase;
+    private final DatabaseService databaseService;
     private final String tableName;
     private final String editSecret;
 
-    public ServerListModelImpl(DataBase dataBase,
-                               @Value("${meta-server.table.name}") String tableName,
-                               @Value("${meta-server.edit.secret}") String editSecret) throws SQLException {
-        Preconditions.checkArgument(dataBase != null, "dataSource must not be null");
+    public ServerListServiceImpl(DatabaseService databaseService,
+                                 @Value("${meta-server.table.name}") String tableName,
+                                 @Value("${meta-server.edit.secret}") String editSecret) throws SQLException {
+        Preconditions.checkArgument(databaseService != null, "dataSource must not be null");
         Preconditions.checkArgument(tableName != null, "tableName must not be null");
         Preconditions.checkArgument(editSecret != null, "editSecret must not be null");
 
-        this.dataBase = dataBase;
+        this.databaseService = databaseService;
         this.tableName = tableName;
         this.editSecret = editSecret;
 
-        dataBase.createTable(tableName);
+        databaseService.createTable(tableName);
     }
 
     @Override
     public List<ServerEntry> getServers() throws IOException {
         try {
-            List<Map<String, Object>> data = dataBase.readAll(tableName);
+            List<Map<String, Object>> data = databaseService.readAll(tableName);
             List<ServerEntry> servers = new ArrayList<>(data.size());
             for (Map<String, Object> entry : data) {
                 String address = entry.get("address").toString();
@@ -92,7 +92,7 @@ public class ServerListModelImpl implements ServerListModel {
             if (!response.isSuccess()) {
                 return response;
             } else {
-                dataBase.insert(tableName, name, address, port, owner, active);
+                databaseService.insert(tableName, name, address, port, owner, active);
                 return Result.success("Entry added!");
             }
         } catch (Exception e) {
@@ -117,7 +117,7 @@ public class ServerListModelImpl implements ServerListModel {
         }
 
         try {
-            if (dataBase.remove(tableName, address, port)) {
+            if (databaseService.remove(tableName, address, port)) {
                 return Result.success("Entry removed!");
             } else {
                 return Result.fail("Entry not found");
@@ -136,7 +136,7 @@ public class ServerListModelImpl implements ServerListModel {
         }
 
         try {
-            if (dataBase.update(tableName, name, address, port, owner, active)) {
+            if (databaseService.update(tableName, name, address, port, owner, active)) {
                 return Result.success("Entry updated!");
             } else {
                 return Result.fail("Entry not found");

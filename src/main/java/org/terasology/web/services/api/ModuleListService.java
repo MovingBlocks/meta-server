@@ -26,7 +26,7 @@ import java.util.Set;
 /**
  * Provides a list of modules.
  */
-public interface ModuleListModel {
+public interface ModuleListService {
 
     Set<Name> getModuleIds();
 
