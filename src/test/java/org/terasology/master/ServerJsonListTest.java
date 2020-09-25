@@ -25,6 +25,7 @@ import io.micronaut.http.client.annotation.Client;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.terasology.web.model.server.ServerEntry;
+import org.terasology.web.services.impl.geo.dbip.DbIpGeoLocationService;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -45,9 +46,11 @@ class ServerJsonListTest extends BaseTests {
     @Client("/")
     HttpClient client;
 
-    @Test
-    void testJson() {
+    @Inject
+    DbIpGeoLocationService dbIpGeoLocationService;
 
+    @Test
+    void testJson() throws IOException {
         @SuppressWarnings("serial")
         Type entryListType = new TypeToken<List<ServerEntry>>() { /**/
         }.getType();

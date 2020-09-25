@@ -19,8 +19,8 @@ package org.terasology.web.services.impl.geo.dbip;
 import io.micronaut.context.annotation.Value;
 import org.terasology.web.services.api.GeoLocationService;
 import org.terasology.web.services.impl.geo.GeoLocation;
-import retrofit.RestAdapter;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -34,23 +34,22 @@ public class DbIpGeoLocationService implements GeoLocationService {
 
     private final String apiKey;
 
+    @Inject
+    DbIpRestWrapper dbIpRestWrapper;
+
     public DbIpGeoLocationService(
-            @Value("meta-server.dbip.api.key") String apiKey
+            @Value("${meta-server.dbip.api.key}") String apiKey
     ) {
         this.apiKey = apiKey;
     }
 
     @Override
     public GeoLocation resolve(String hostnameOrIp) throws IOException {
-        String url = "http://api.db-ip.com/";
-
-        RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(url).build();
-        DbIpRestWrapper service = restAdapter.create(DbIpRestWrapper.class);
 
         InetAddress inet = InetAddress.getByName(hostnameOrIp);
         String ipAddress = inet.getHostAddress();
 
-        DbIpQueryResponse response = service.getGeoLocation(ipAddress, apiKey);
+        DbIpQueryResponse response = dbIpRestWrapper.getGeoLocation(ipAddress, apiKey);
         if (response.isSuccess()) {
             return response;
         } else {

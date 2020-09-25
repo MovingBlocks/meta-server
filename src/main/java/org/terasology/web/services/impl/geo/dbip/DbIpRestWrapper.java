@@ -16,14 +16,15 @@
 
 package org.terasology.web.services.impl.geo.dbip;
 
-import retrofit.http.GET;
-import retrofit.http.Query;
+import io.micronaut.http.annotation.Get;
+import io.micronaut.http.client.annotation.Client;
 
 /**
  * Maps the db-ip.com REST-ful API to a Java class.
  */
+@Client("http://api.db-ip.com/")
 public interface DbIpRestWrapper {
 
-    @GET("/addrinfo")
-    DbIpQueryResponse getGeoLocation(@Query("addr") String ipAddress, @Query("api_key") String apiKey);
+    @Get("/addrinfo?addr={ipAddress}&api_key={apiKey}")
+    DbIpQueryResponse getGeoLocation(String ipAddress, String apiKey);
 }

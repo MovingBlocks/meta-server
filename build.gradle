@@ -75,9 +75,6 @@ dependencies {
 
     implementation 'com.google.guava:guava:18.0'
 
-    //Service like rest client.
-    implementation 'com.squareup.retrofit:retrofit:1.9.0'
-    
     //// Tests
     testAnnotationProcessor(enforcedPlatform("io.micronaut:micronaut-bom:$micronautVersion"))
     testAnnotationProcessor("io.micronaut:micronaut-inject-java")
