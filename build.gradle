@@ -47,7 +47,6 @@ configurations {
 }
 
 dependencies {
-    /* Micronauts start*/
     annotationProcessor(platform("io.micronaut:micronaut-bom:$micronautVersion"))
     annotationProcessor("io.micronaut:micronaut-inject-java")
     annotationProcessor("io.micronaut:micronaut-validation")
@@ -63,52 +62,45 @@ dependencies {
     implementation("io.micronaut.sql:micronaut-jooq")
     runtimeOnly("ch.qos.logback:logback-classic")
     runtimeOnly("org.postgresql:postgresql")
+    
+    implementation 'org.slf4j:slf4j-api:1.7.30'
+
+    // For `@ThreadSafe`
+    implementation 'javax.annotation:javax.annotation-api:1.3.2'
+    implementation 'com.google.code.findbugs:jsr305:3.0.0'
+
+    // Module working
+    implementation 'com.google.code.gson:gson:2.4'
+    implementation 'org.terasology:gestalt-module:4.1.2'
+
+    implementation 'com.google.guava:guava:18.0'
+
+    //Service like rest client.
+    implementation 'com.squareup.retrofit:retrofit:1.9.0'
+    
+    //// Tests
     testAnnotationProcessor(enforcedPlatform("io.micronaut:micronaut-bom:$micronautVersion"))
     testAnnotationProcessor("io.micronaut:micronaut-inject-java")
     testImplementation(enforcedPlatform("io.micronaut:micronaut-bom:$micronautVersion"))
+
+    //Junit 5
     testImplementation("org.junit.jupiter:junit-jupiter-api")
     testImplementation("org.junit.jupiter:junit-jupiter-params")
     testImplementation("io.micronaut.test:micronaut-test-junit5")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 
-//    testImplementation(platform("org.testcontainers:testcontainers-bom:1.14.3"))
-//    testRuntimeOnly("org.testcontainers:postgresql")
-    /* Micronauts end*/
-
-    implementation group: 'org.eclipse.jetty', name: 'jetty-servlet', version: jettyVersion
-    implementation group: 'org.eclipse.jetty', name: 'jetty-servlets', version: jettyVersion
-    implementation 'javax.servlet:javax.servlet-api:3.1.0'
-    implementation 'javax.annotation:javax.annotation-api:1.3.2'
-    implementation 'com.google.code.findbugs:jsr305:3.0.0'
-
-    implementation 'org.glassfish.jersey.containers:jersey-container-jetty-servlet:2.22.1'
-
-    implementation 'com.google.code.gson:gson:2.4'
-    implementation 'com.google.guava:guava:18.0'
-
-    implementation 'org.jooq:jooq:3.7.0'
-    implementation 'org.postgresql:postgresql:9.4-1205-jdbc42'
-
-    implementation 'com.squareup.retrofit:retrofit:1.9.0'
-
-    implementation 'org.slf4j:slf4j-api:1.7.30'
-
-    implementation 'com.zaxxer:HikariCP:2.4.1'
-
-    implementation 'org.terasology:gestalt-module:4.1.2'
-
+    // html validation
     testImplementation 'org.jsoup:jsoup:1.8.3'
     testImplementation 'com.jcabi:jcabi-w3c:1.3'
     testImplementation 'com.jcabi:jcabi-matchers:1.4'
-    testImplementation 'junit:junit:4.12'
-    testImplementation("com.h2database:h2")
+
+    // loggin and database
     testImplementation 'org.slf4j:slf4j-api:1.7.30'
+    testImplementation 'com.h2database:h2'
 
-    runtimeOnly group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.3'
-
+    // Code analyzers
     pmd 'net.sourceforge.pmd:pmd-core:6.27.0'
     pmd 'net.sourceforge.pmd:pmd-java:6.27.0'
-
     codeMetrics group: 'org.terasology.config', name: 'codemetrics', version: '1.3.2', ext: 'zip'
 }
 

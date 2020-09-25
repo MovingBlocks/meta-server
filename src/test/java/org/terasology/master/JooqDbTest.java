@@ -17,7 +17,7 @@
 package org.terasology.master;
 
 import io.micronaut.test.annotation.MicronautTest;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.terasology.web.db.DataBase;
 
@@ -39,10 +39,10 @@ class JooqDbTest {
 
         Map<String, Object> data = db.readAll(tableName).get(0);
 
-        Assert.assertEquals("myName", data.get("name"));
-        Assert.assertEquals("Tester", data.get("owner"));
-        Assert.assertEquals(25000, data.get("port"));
-        Assert.assertEquals("localhost", data.get("address"));
-        Assert.assertEquals(true, data.get("active"));
+        Assertions.assertEquals("myName", data.get("name"));
+        Assertions.assertEquals("Tester", data.get("owner"));
+        Assertions.assertEquals(25000, data.get("port"));
+        Assertions.assertEquals("localhost", data.get("address"));
+        Assertions.assertEquals(true, data.get("active"));
     }
 }

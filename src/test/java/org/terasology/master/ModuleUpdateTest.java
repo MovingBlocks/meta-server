@@ -20,6 +20,7 @@ import com.google.gson.stream.JsonReader;
 import io.micronaut.core.io.IOUtils;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
+import io.micronaut.http.HttpStatus;
 import io.micronaut.http.client.HttpClient;
 import io.micronaut.http.client.annotation.Client;
 import org.junit.jupiter.api.Assertions;
@@ -28,7 +29,6 @@ import org.terasology.module.ModuleMetadata;
 import org.terasology.module.ModuleMetadataJsonAdapter;
 
 import javax.inject.Inject;
-import javax.ws.rs.core.Response.Status;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -54,9 +54,9 @@ class ModuleUpdateTest extends BaseTests {
 
         // send update notification
         String classpathFile = "/jenkins/CommonWorld-jenkins-notification.json";
-        int responseCode = postNotification("/modules/update", classpathFile);
+        HttpStatus responseCode = postNotification("/modules/update", classpathFile);
 
-        Assertions.assertEquals(Status.OK.getStatusCode(), responseCode);
+        Assertions.assertEquals(HttpStatus.OK, responseCode);
         Assertions.assertEquals(1, readJsonList("/modules/list/CommonWorld").size());
         Assertions.assertEquals(snapshot012, readJsonList("/modules/list/CommonWorld").get(0));
 
@@ -64,7 +64,7 @@ class ModuleUpdateTest extends BaseTests {
 
         // send 2nd update notification
         responseCode = postNotification("/modules/update", classpathFile);
-        Assertions.assertEquals(Status.OK.getStatusCode(), responseCode);
+        Assertions.assertEquals(HttpStatus.OK, responseCode);
 
         Assertions.assertEquals(2, readJsonList("/modules/list/CommonWorld").size());
 
@@ -97,12 +97,12 @@ class ModuleUpdateTest extends BaseTests {
         return result;
     }
 
-    private int postNotification(String path, String classpathFile) throws IOException {
+    private HttpStatus postNotification(String path, String classpathFile) throws IOException {
         // curl -X POST -d @<classpathFile> <url> --header "Content-Type:application/json"
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(classpathFile)))) {
             String notificationBody = IOUtils.readText(reader);
             HttpResponse response = client.toBlocking().exchange(HttpRequest.POST(path, notificationBody));
-            return response.code();
+            return response.getStatus();
         }
     }
 }

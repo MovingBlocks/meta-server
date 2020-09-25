@@ -22,7 +22,7 @@ import io.micronaut.http.client.annotation.Client;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
@@ -43,12 +43,12 @@ public class ServerHtmlContentTest extends BaseTests {
         Document doc = Jsoup.parse(response);
 
         Element table = doc.getElementById("server-list");
-        Assert.assertTrue(table.nodeName().equals("table"));
+        Assertions.assertTrue(table.nodeName().equals("table"));
         Element tableBody = table.select("tbody").first();
         Element firstRow = tableBody.select("tr").first();
-        Assert.assertEquals(firstEntry.getName(), firstRow.getElementsByClass("server-name").first().text());
-        Assert.assertEquals(firstEntry.getOwner(), firstRow.getElementsByClass("server-owner").first().text());
-        Assert.assertEquals("" + firstEntry.getPort(), firstRow.getElementsByClass("server-port").first().text());
-        Assert.assertEquals(firstEntry.getAddress(), firstRow.getElementsByClass("server-address").first().text());
+        Assertions.assertEquals(firstEntry.getName(), firstRow.getElementsByClass("server-name").first().text());
+        Assertions.assertEquals(firstEntry.getOwner(), firstRow.getElementsByClass("server-owner").first().text());
+        Assertions.assertEquals("" + firstEntry.getPort(), firstRow.getElementsByClass("server-port").first().text());
+        Assertions.assertEquals(firstEntry.getAddress(), firstRow.getElementsByClass("server-address").first().text());
     }
 }
