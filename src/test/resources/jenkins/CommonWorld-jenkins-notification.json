@@ -1,27 +1,27 @@
-{  
-  "name":"CommonWorld",
-  "url":"job/CommonWorld/",
-  "build":{  
-    "full_url":"http://jenkins.terasology.org/job/CommonWorld/21/",
-    "number":21,
-    "phase":"FINALIZED",
-    "status":"SUCCESS",
-    "url":"job/CommonWorld/21/",
-    "scm":{  
-      "url":"git://github.com/Terasology/CommonWorld.git",
-      "branch":"origin/master",
-      "commit":"a2ceff4e416d99c35c14f91c5d74edde0439de3d"
+{
+  "name": "CommonWorld",
+  "url": "job/CommonWorld/",
+  "build": {
+    "full_url": "http://jenkins.terasology.org/job/CommonWorld/21/",
+    "number": 21,
+    "phase": "FINALIZED",
+    "status": "SUCCESS",
+    "url": "job/CommonWorld/21/",
+    "scm": {
+      "url": "git://github.com/Terasology/CommonWorld.git",
+      "branch": "origin/master",
+      "commit": "a2ceff4e416d99c35c14f91c5d74edde0439de3d"
     },
-    "log":"Finished: SUCCESS\n",
-    "artifacts":{  
-      "CommonWorld-0.1.3-SNAPSHOT-javadoc.jar":{  
-        "archive":"http://jenkins.terasology.org/job/CommonWorld/21/artifact/build/libs/CommonWorld-0.1.3-SNAPSHOT-javadoc.jar"
+    "log": "Finished: SUCCESS\n",
+    "artifacts": {
+      "CommonWorld-0.1.3-SNAPSHOT-javadoc.jar": {
+        "archive": "http://jenkins.terasology.org/job/CommonWorld/21/artifact/build/libs/CommonWorld-0.1.3-SNAPSHOT-javadoc.jar"
       },
-      "CommonWorld-0.1.3-SNAPSHOT-sources.jar":{  
-        "archive":"http://jenkins.terasology.org/job/CommonWorld/21/artifact/build/libs/CommonWorld-0.1.3-SNAPSHOT-sources.jar"
+      "CommonWorld-0.1.3-SNAPSHOT-sources.jar": {
+        "archive": "http://jenkins.terasology.org/job/CommonWorld/21/artifact/build/libs/CommonWorld-0.1.3-SNAPSHOT-sources.jar"
       },
-      "CommonWorld-0.1.3-SNAPSHOT.jar":{  
-        "archive":"http://jenkins.terasology.org/job/CommonWorld/21/artifact/build/libs/CommonWorld-0.1.3-SNAPSHOT.jar"
+      "CommonWorld-0.1.3-SNAPSHOT.jar": {
+        "archive": "http://jenkins.terasology.org/job/CommonWorld/21/artifact/build/libs/CommonWorld-0.1.3-SNAPSHOT.jar"
       }
     }
   }

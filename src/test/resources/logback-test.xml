@@ -13,7 +13,7 @@
         <appender-ref ref="CONSOLE"/>
     </root>
 
-    <logger name="org.terasology" level="DEBUG" />
-    <logger name="org.jooq.Constants" level="WARN" />
+    <logger name="org.terasology" level="DEBUG"/>
+    <logger name="org.jooq.Constants" level="WARN"/>
 
 </configuration>

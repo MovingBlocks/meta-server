@@ -1,0 +1,18 @@
+micronaut:
+  application:
+    name: meta-server
+  router:
+    static-resources:
+      base:
+        paths:
+          - "classpath:static"
+
+datasources:
+  default:
+    url: jdbc:postgresql://localhost:5432/postgres
+    driverClassName: org.postgresql.Driver
+
+meta-server:
+  cache.folder: "./cache"
+  table.name: "servers"
+
