@@ -41,7 +41,6 @@ class ModuleShowTest extends BaseTests {
     @Client("/")
     HttpClient client;
 
-
     @Test
     void testNonExistingModuleVersion() {
         HttpClientResponseException exception = Assertions.assertThrows(HttpClientResponseException.class,

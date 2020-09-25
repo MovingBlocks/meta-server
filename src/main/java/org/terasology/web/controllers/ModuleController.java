@@ -19,11 +19,13 @@ package org.terasology.web.controllers;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
-import com.google.gson.stream.JsonWriter;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.MediaType;
-import io.micronaut.http.annotation.*;
+import io.micronaut.http.annotation.Controller;
+import io.micronaut.http.annotation.Get;
+import io.micronaut.http.annotation.PathVariable;
+import io.micronaut.http.annotation.Produces;
 import io.micronaut.views.View;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,12 +36,9 @@ import org.terasology.module.RemoteModuleExtension;
 import org.terasology.naming.Name;
 import org.terasology.naming.Version;
 import org.terasology.naming.exception.VersionParseException;
-import org.terasology.web.model.jenkins.Job;
 import org.terasology.web.services.api.ModuleListService;
 import org.terasology.web.version.VersionInfo;
 
-import java.io.IOException;
-import java.io.StringWriter;
 import java.net.URI;
 import java.util.*;
 
@@ -70,30 +69,6 @@ public class ModuleController {
         }
     }
 
-    @Get("list")
-    @Produces(MediaType.APPLICATION_JSON)
-    public HttpResponse list() {
-        logger.info("Requested module list as json");
-        StringWriter response = new StringWriter();
-        List<Name> sortedModuleIds = new ArrayList<>(model.getModuleIds());
-        sortedModuleIds.sort(null);
-        try (JsonWriter writer = new JsonWriter(response)) {
-            writer.beginArray();
-            writer.setIndent("  "); // enable pretty printing
-            for (Name name : sortedModuleIds) {
-                for (Module module : model.getModuleVersions(name)) {
-                    ModuleMetadata meta = module.getMetadata();
-                    metadataWriter.write(meta, writer);
-                }
-            }
-            writer.endArray();
-        } catch (IOException e) {
-            logger.error("Cannot create module list", e);
-            return HttpResponse.serverError();
-        }
-        return HttpResponse.ok(response.toString());
-    }
-
     @Get("show")
     @View("module-list")
     @Produces(MediaType.TEXT_HTML)
@@ -114,51 +89,6 @@ public class ModuleController {
                 .put("version", VersionInfo.getVersion())
                 .build();
         return HttpResponse.ok(dataModel);
-    }
-
-    @Get("list/latest")
-    @Produces(MediaType.APPLICATION_JSON)
-    public HttpResponse listLatest() {
-        logger.info("Requested lastest info as json");
-        StringWriter response = new StringWriter();
-        List<Name> sortedModuleIds = new ArrayList<>(model.getModuleIds());
-        sortedModuleIds.sort(null);
-        try (JsonWriter writer = new JsonWriter(response)) {
-            writer.beginArray();
-            writer.setIndent("  "); // enable pretty printing
-            for (Name name : sortedModuleIds) {
-                Module module = model.getLatestModuleVersion(name);
-                ModuleMetadata meta = module.getMetadata();
-                metadataWriter.write(meta, writer);
-            }
-            writer.endArray();
-        } catch (IOException e) {
-            logger.error("Cannot create module list", e);
-            return HttpResponse.serverError();
-        }
-        return HttpResponse.ok(response.toString());
-    }
-
-    @Get("list/{module}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public HttpResponse listModule(@PathVariable("module") String moduleName) {
-        logger.info("Requested module versions as json");
-
-        Name name = new Name(moduleName);
-        StringWriter response = new StringWriter();
-        try (JsonWriter writer = new JsonWriter(response)) {
-            writer.beginArray();
-            writer.setIndent("  "); // enable pretty printing
-            for (Module module : model.getModuleVersions(name)) {
-                ModuleMetadata meta = module.getMetadata();
-                metadataWriter.write(meta, writer);
-            }
-            writer.endArray();
-        } catch (IOException e) {
-            logger.error("Cannot create module list", e);
-            return HttpResponse.serverError();
-        }
-        return HttpResponse.ok(response.toString());
     }
 
     @Get("show/{module}")
@@ -196,29 +126,6 @@ public class ModuleController {
         String ver = latest.getVersion().toString();
         URI redirect = URI.create(path + ver);
         return HttpResponse.temporaryRedirect(redirect);
-    }
-
-    @Get("list/{module}/{version}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public HttpResponse listModuleVersion(@PathVariable("module") String moduleName, @PathVariable("version") String versionStr) {
-        logger.info("Requested single module info as json");
-
-        try {
-            Version version = new Version(versionStr);
-            Module module = model.getModule(new Name(moduleName), version);
-            if (module == null) {
-                return HttpResponse.notFound();
-            }
-
-            ModuleMetadata meta = module.getMetadata();
-            StringWriter response = new StringWriter();
-
-            metadataWriter.write(meta, response);
-            return HttpResponse.ok(response.toString());
-        } catch (VersionParseException e) {
-            logger.warn("Invalid version for module '{}' specified: {}", moduleName, versionStr);
-            return HttpResponse.notFound();
-        }
     }
 
     @Get("show/{module}/latest")
@@ -270,26 +177,4 @@ public class ModuleController {
         }
     }
 
-    @Post("update")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public HttpResponse updateModulePost(Job jobState) {
-        String job = jobState.getName();
-
-        logger.info("Requested module update for {}", job);
-
-        model.updateModule(new Name(job));
-
-        return HttpResponse.ok();
-    }
-
-    @Post("update-all")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public HttpResponse updateAllModulesPost() {
-
-        logger.info("Requested complete module update");
-
-        new Thread(model::updateAllModules).start();
-
-        return HttpResponse.ok();
-    }
 }

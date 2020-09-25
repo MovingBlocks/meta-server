@@ -30,7 +30,7 @@ import org.terasology.web.version.VersionInfo;
 /**
  * Show the about html page.
  */
-@Controller()
+@Controller
 public class AboutController {
 
     private static final Logger logger = LoggerFactory.getLogger(AboutController.class);
