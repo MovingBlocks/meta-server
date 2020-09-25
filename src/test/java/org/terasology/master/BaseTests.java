@@ -4,12 +4,12 @@ import io.micronaut.test.annotation.MicronautTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.terasology.master.services.DummyArtifactRepo;
-import org.terasology.web.artifactory.ArtifactRepository;
-import org.terasology.web.db.DataBase;
-import org.terasology.web.geo.GeoLocation;
-import org.terasology.web.geo.GeoLocationService;
-import org.terasology.web.model.ModuleListModelImpl;
-import org.terasology.web.model.ServerEntry;
+import org.terasology.web.model.artifactory.ArtifactRepository;
+import org.terasology.web.model.server.ServerEntry;
+import org.terasology.web.services.api.DataBase;
+import org.terasology.web.services.api.GeoLocationService;
+import org.terasology.web.services.impl.ModuleListModelImpl;
+import org.terasology.web.services.impl.geo.GeoLocation;
 
 import javax.inject.Inject;
 import java.io.IOException;

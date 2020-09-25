@@ -19,7 +19,7 @@ package org.terasology.master;
 import io.micronaut.test.annotation.MicronautTest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.terasology.web.db.DataBase;
+import org.terasology.web.services.api.DataBase;
 
 import javax.inject.Inject;
 import java.util.Map;

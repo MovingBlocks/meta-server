@@ -20,8 +20,8 @@ import io.micronaut.context.annotation.Replaces;
 import org.terasology.module.ModuleMetadata;
 import org.terasology.module.ModuleMetadataJsonAdapter;
 import org.terasology.module.RemoteModuleExtension;
-import org.terasology.web.model.MetadataExtractor;
-import org.terasology.web.model.ZipExtractor;
+import org.terasology.web.services.api.MetadataExtractor;
+import org.terasology.web.services.impl.ZipExtractor;
 
 import javax.inject.Singleton;
 import java.io.IOException;

@@ -16,17 +16,17 @@
 
 package org.terasology.master;
 
+import org.terasology.module.ModuleMetadata;
+import org.terasology.module.ModuleMetadataJsonAdapter;
+import org.terasology.module.RemoteModuleExtension;
+import org.terasology.web.model.artifactory.ArtifactInfo;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
-
-import org.terasology.module.ModuleMetadata;
-import org.terasology.module.ModuleMetadataJsonAdapter;
-import org.terasology.module.RemoteModuleExtension;
-import org.terasology.web.artifactory.ArtifactInfo;
 
 public class ClasspathArtifactInfo implements ArtifactInfo {
 

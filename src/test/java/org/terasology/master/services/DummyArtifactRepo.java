@@ -16,8 +16,8 @@
 
 package org.terasology.master.services;
 
-import org.terasology.web.artifactory.ArtifactInfo;
-import org.terasology.web.artifactory.ArtifactRepository;
+import org.terasology.web.model.artifactory.ArtifactInfo;
+import org.terasology.web.model.artifactory.ArtifactRepository;
 
 import java.io.IOException;
 import java.util.*;

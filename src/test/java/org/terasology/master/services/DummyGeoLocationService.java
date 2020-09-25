@@ -17,8 +17,8 @@
 package org.terasology.master.services;
 
 import io.micronaut.context.annotation.Primary;
-import org.terasology.web.geo.GeoLocation;
-import org.terasology.web.geo.GeoLocationService;
+import org.terasology.web.services.api.GeoLocationService;
+import org.terasology.web.services.impl.geo.GeoLocation;
 
 import javax.inject.Singleton;
 import java.io.IOException;

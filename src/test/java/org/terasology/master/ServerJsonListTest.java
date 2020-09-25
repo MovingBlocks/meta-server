@@ -24,7 +24,7 @@ import io.micronaut.http.client.HttpClient;
 import io.micronaut.http.client.annotation.Client;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.terasology.web.model.ServerEntry;
+import org.terasology.web.model.server.ServerEntry;
 
 import javax.inject.Inject;
 import java.io.IOException;
