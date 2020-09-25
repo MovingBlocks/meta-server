@@ -7,3 +7,4 @@ datasources:
 
 meta-server:
   edit.secret: "foo"
+  dbip.api.key: "bar"
