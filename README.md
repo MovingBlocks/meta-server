@@ -21,10 +21,10 @@ Deployment
 
 Heroku: Clone the repository and push the content to Heroku on branch `master`. Some details must be provided through environment variables:
 
-    DATABASE_URL=postgres://name:pw@host:port/database
-    PORT=8080
-    DBIP_API_KEY=<get one from db-ip.com>
-    EDIT_SECRET=<a password only known for admins with write access>
+    DATASOURCE_DEFAULT_URL=postgres://name:pw@host:port/database
+    SERVER_URL=8080
+    META_SERVER_DBIP_API_KEY=<get one from db-ip.com>
+    META_SERVER_EDIT_SECRET=<a password only known for admins with write access>
 
 Geo-Location
 -------------

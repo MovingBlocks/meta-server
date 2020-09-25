@@ -14,6 +14,6 @@ datasources:
     password: ''
 
 meta-server:
-  cacheFolder: "./cache"
-  tableName: "servers"
-  editSecret: "foobar"
+  cache.folder: "./cache"
+  table.name: "servers"
+

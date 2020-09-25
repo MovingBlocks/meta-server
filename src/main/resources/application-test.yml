@@ -4,3 +4,6 @@ datasources:
     driverClassName: org.h2.Driver
     username: sa
     password: password
+
+meta-server:
+  edit.secret: "foo"

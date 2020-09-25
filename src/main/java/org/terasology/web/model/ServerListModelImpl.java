@@ -41,8 +41,8 @@ public class ServerListModelImpl implements ServerListModel {
     private final String editSecret;
 
     public ServerListModelImpl(DataBase dataBase,
-                               @Value("${meta-server.tableName}") String tableName,
-                               @Value("${meta-server.editSecret}") String editSecret) throws SQLException {
+                               @Value("${meta-server.table.name}") String tableName,
+                               @Value("${meta-server.edit.secret}") String editSecret) throws SQLException {
         Preconditions.checkArgument(dataBase != null, "dataSource must not be null");
         Preconditions.checkArgument(tableName != null, "tableName must not be null");
         Preconditions.checkArgument(editSecret != null, "editSecret must not be null");

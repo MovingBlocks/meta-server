@@ -16,6 +16,7 @@
 
 package org.terasology.web.geo.dbip;
 
+import io.micronaut.context.annotation.Value;
 import org.terasology.web.geo.GeoLocation;
 import org.terasology.web.geo.GeoLocationService;
 import retrofit.RestAdapter;
@@ -33,7 +34,9 @@ public class GeoLocationServiceDbIp implements GeoLocationService {
 
     private final String apiKey;
 
-    public GeoLocationServiceDbIp(String apiKey) {
+    public GeoLocationServiceDbIp(
+            @Value("meta-server.dbip.api.key") String apiKey
+    ) {
         this.apiKey = apiKey;
     }
 

@@ -61,7 +61,7 @@ public class ModuleListModelImpl implements ModuleListModel {
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
 
     public ModuleListModelImpl(
-            @Value("${meta-server.cacheFolder}") Path cacheFolder,
+            @Value("${meta-server.cache.folder}") Path cacheFolder,
             MetadataExtractor extractor) {
         this.cacheFolder = cacheFolder;
         this.cacheFolder.toFile().mkdirs();
