@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.*;
+import io.micronaut.views.ModelAndView;
 import io.micronaut.views.View;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +31,6 @@ import org.terasology.web.services.api.ServerListService;
 import org.terasology.web.version.VersionInfo;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
@@ -39,6 +39,7 @@ import java.util.List;
  *
  */
 @Controller("/servers/")
+@Produces(MediaType.TEXT_HTML)
 public class ServerController {
 
     private static final Logger logger = LoggerFactory.getLogger(ServerController.class);
@@ -51,7 +52,6 @@ public class ServerController {
 
     @Get("show")
     @View("server-list")
-    @Produces(MediaType.TEXT_HTML)
     public HttpResponse show() {
         logger.info("Requested server list as HTML");
         ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
@@ -63,7 +63,6 @@ public class ServerController {
 
     @Get("add")
     @View("add")
-    @Produces(MediaType.TEXT_HTML)
     public HttpResponse add() {
         logger.info("Requested add as HTML");
         ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
@@ -79,7 +78,6 @@ public class ServerController {
 
     @Get("edit")
     @View("edit")
-    @Produces(MediaType.TEXT_HTML)
     public HttpResponse edit(@QueryValue(value = "index", defaultValue = "-1") int index) throws IOException {
         List<ServerEntry> servers = model.getServers();
 
@@ -101,22 +99,8 @@ public class ServerController {
         return HttpResponse.ok(dataModel);
     }
 
-    @Get("list")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Object list() {
-        logger.info("Requested server list");
-        try {
-            return model.getServers();
-        } catch (IOException e) {
-            logger.error("Could not connect to database", e);
-            return Collections.emptyList();
-        }
-    }
-
     @Post("add")
-    @View("add")
-    @Produces(MediaType.TEXT_HTML)
-    public HttpResponse add(@Body ServerForm serverForm) throws URISyntaxException {
+    public ModelAndView add(@Body ServerForm serverForm) throws URISyntaxException {
 
         boolean active = "on".equals(serverForm.getActiveOn());
         logger.info("Requested addition: name: {}, address: {}, port:{}, owner:{}, active:{}", serverForm.getName(), serverForm.getAddress(), serverForm.getPort(), serverForm.getOwner(), active);
@@ -129,7 +113,7 @@ public class ServerController {
                     .put("message", response.getMessage())
                     .put("version", VersionInfo.getVersion())
                     .build();
-            return HttpResponse.redirect(new URI("list"));
+            return new ModelAndView("list", dataModel);
         } else {
             ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                     .put("name", serverForm.getName())
@@ -140,14 +124,12 @@ public class ServerController {
                     .put("error", response.getMessage())
                     .put("version", VersionInfo.getVersion())
                     .build();
-            return HttpResponse.ok(dataModel);
+            return new ModelAndView("add", dataModel);
         }
     }
 
     @Post("remove")
-    @View("edit")
-    @Produces(MediaType.TEXT_HTML)
-    public HttpResponse remove(@Body ServerForm serverForm) throws URISyntaxException {
+    public ModelAndView remove(@Body ServerForm serverForm) throws URISyntaxException {
 
         boolean active = "on".equals(serverForm.getActiveOn());
         Result response = model.removeServer(serverForm.getAddress(), serverForm.getPort(), serverForm.getSecret());
@@ -157,7 +139,7 @@ public class ServerController {
                     .put("message", response.getMessage())
                     .put("version", VersionInfo.getVersion())
                     .build();
-            return HttpResponse.redirect(new URI("list"));
+            return new ModelAndView("list", dataModel);
         } else {
             ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                     .put("name", serverForm.getName())
@@ -168,14 +150,12 @@ public class ServerController {
                     .put("error", response.getMessage())
                     .put("version", VersionInfo.getVersion())
                     .build();
-            return HttpResponse.ok(dataModel);
+            return new ModelAndView("edit", dataModel);
         }
     }
 
     @Post("update")
-    @View("edit")
-    @Produces(MediaType.TEXT_HTML)
-    public HttpResponse update(@Body ServerForm serverForm) throws URISyntaxException {
+    public ModelAndView update(@Body ServerForm serverForm) throws URISyntaxException {
 
         boolean active = "on".equals(serverForm.getActiveOn());
         Result response = model.updateServer(serverForm.getName(), serverForm.getAddress(), serverForm.getPort(), serverForm.getOwner(), active, serverForm.getActiveOn());
@@ -185,7 +165,7 @@ public class ServerController {
                     .put("message", response.getMessage())
                     .put("version", VersionInfo.getVersion())
                     .build();
-            return HttpResponse.redirect(new URI("list"));
+            return new ModelAndView("list", dataModel);
         } else {
             ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                     .put("name", serverForm.getName())
@@ -196,7 +176,17 @@ public class ServerController {
                     .put("error", response.getMessage())
                     .put("version", VersionInfo.getVersion())
                     .build();
-            return HttpResponse.ok(dataModel);
+            return new ModelAndView("edit", dataModel);
+        }
+    }
+
+    private List<ServerEntry> list() {
+        logger.info("Requested server list");
+        try {
+            return model.getServers();
+        } catch (IOException e) {
+            logger.error("Could not connect to database", e);
+            return Collections.emptyList();
         }
     }
 }

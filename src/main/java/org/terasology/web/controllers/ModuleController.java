@@ -46,6 +46,7 @@ import java.util.*;
  * TODO Type description
  */
 @Controller("/modules/")
+@Produces(MediaType.TEXT_HTML)
 public class ModuleController {
 
     private static final Logger logger = LoggerFactory.getLogger(ModuleController.class);
@@ -71,7 +72,6 @@ public class ModuleController {
 
     @Get("show")
     @View("module-list")
-    @Produces(MediaType.TEXT_HTML)
     public HttpResponse show() {
         logger.info("Requested module list as HTML");
 
@@ -93,7 +93,6 @@ public class ModuleController {
 
     @Get("show/{module}")
     @View("module-list")
-    @Produces(MediaType.TEXT_HTML)
     public HttpResponse showModule(@PathVariable("module") String module) {
         logger.info("Requested module versions as HTML");
 
@@ -113,7 +112,6 @@ public class ModuleController {
     }
 
     @Get("list/{module}/latest")
-    @Produces(MediaType.TEXT_HTML)
     public HttpResponse listModuleLatest(HttpRequest httpRequest, @PathVariable("module") String module) {
         URI uri = httpRequest.getUri();
         logger.info("Requested lastest module info as HTML");
@@ -129,7 +127,6 @@ public class ModuleController {
     }
 
     @Get("show/{module}/latest")
-    @Produces(MediaType.TEXT_HTML)
     public HttpResponse showModuleLatest(HttpRequest httpRequest, @PathVariable("module") String module) {
         URI uriInfo = httpRequest.getUri();
         logger.info("Requested lastest module info as HTML");
@@ -146,7 +143,6 @@ public class ModuleController {
 
     @Get("show/{module}/{version}")
     @View("module-info")
-    @Produces(MediaType.TEXT_HTML)
     public HttpResponse showModuleVersion(@PathVariable("module") String module, @PathVariable("version") String version) {
         logger.info("Requested module info as HTML");
 
@@ -176,5 +172,4 @@ public class ModuleController {
             return HttpResponse.notFound();
         }
     }
-
 }
