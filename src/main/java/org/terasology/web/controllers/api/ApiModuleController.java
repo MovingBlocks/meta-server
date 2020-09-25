@@ -1,9 +1,17 @@
+// Copyright 2020 The Terasology Foundation
+// SPDX-License-Identifier: Apache-2.0
+
 package org.terasology.web.controllers.api;
 
 import com.google.gson.stream.JsonWriter;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.MediaType;
-import io.micronaut.http.annotation.*;
+import io.micronaut.http.annotation.Consumes;
+import io.micronaut.http.annotation.Controller;
+import io.micronaut.http.annotation.Get;
+import io.micronaut.http.annotation.PathVariable;
+import io.micronaut.http.annotation.Post;
+import io.micronaut.http.annotation.Produces;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.module.Module;
@@ -43,7 +51,7 @@ public class ApiModuleController {
     }
 
     @Get("list")
-    public HttpResponse list() {
+    public HttpResponse<String> list() {
         logger.info("Requested module list as json");
 
         List<ModuleMetadata> sortedModuleMetadatas = model.getModuleIds()
@@ -58,7 +66,7 @@ public class ApiModuleController {
 
 
     @Get("list/latest")
-    public HttpResponse listLatest() {
+    public HttpResponse<String> listLatest() {
         logger.info("Requested lastest info as json");
 
         List<ModuleMetadata> sortedModuleMetadatas = model.getModuleIds()
@@ -72,7 +80,7 @@ public class ApiModuleController {
     }
 
     @Get("list/{module}")
-    public HttpResponse listModule(@PathVariable("module") String moduleName) {
+    public HttpResponse<String> listModule(@PathVariable("module") String moduleName) {
         logger.info("Requested module versions as json");
 
         Name name = new Name(moduleName);
@@ -84,7 +92,7 @@ public class ApiModuleController {
     }
 
     @Get("list/{module}/{version}")
-    public HttpResponse listModuleVersion(@PathVariable("module") String moduleName, @PathVariable("version") String versionStr) {
+    public HttpResponse<String> listModuleVersion(@PathVariable("module") String moduleName, @PathVariable("version") String versionStr) {
         logger.info("Requested single module info as json");
         try {
             Version version = new Version(versionStr);
@@ -107,7 +115,7 @@ public class ApiModuleController {
     }
 
     @Post("update")
-    public HttpResponse updateModulePost(Job jobState) {
+    public HttpResponse<String> updateModulePost(Job jobState) {
         String job = jobState.getName();
 
         logger.info("Requested module update for {}", job);
@@ -118,7 +126,7 @@ public class ApiModuleController {
     }
 
     @Post("update-all")
-    public HttpResponse updateAllModulesPost() {
+    public HttpResponse<String> updateAllModulesPost() {
 
         logger.info("Requested complete module update");
 
@@ -127,7 +135,7 @@ public class ApiModuleController {
         return HttpResponse.ok();
     }
 
-    private HttpResponse createResponse(List<ModuleMetadata> sortedModuleMetadatas) {
+    private HttpResponse<String> createResponse(List<ModuleMetadata> sortedModuleMetadatas) {
         StringWriter response = new StringWriter();
         try (JsonWriter writer = new JsonWriter(response)) {
             writer.beginArray();

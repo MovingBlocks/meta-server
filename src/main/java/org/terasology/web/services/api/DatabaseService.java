@@ -38,10 +38,10 @@ public interface DatabaseService {
 
     /**
      * Retrieves the contents of a table
+     *
      * @param tableName the name of the table in the DB
      * @return a list of rows
      * @throws SQLException if the table query fails
-     * @throws IOException if the connection fails
      */
     List<Map<String, Object>> readAll(String tableName) throws SQLException;
 

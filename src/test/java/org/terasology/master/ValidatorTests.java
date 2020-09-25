@@ -40,7 +40,7 @@ class ValidatorTests extends BaseTests {
 
     private static final Logger logger = LoggerFactory.getLogger(ValidatorTests.class);
 
-    private static Validator validator = new ValidatorBuilder().html();
+    private static final Validator validator = new ValidatorBuilder().html();
 
     @Inject
     @Client("/")

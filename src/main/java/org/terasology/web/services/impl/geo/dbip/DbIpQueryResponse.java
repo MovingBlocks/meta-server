@@ -32,6 +32,7 @@ public class DbIpQueryResponse implements GeoLocation {
     /**
      * Success indicates that the geolocation fields are filled.
      * Failure indicates that the error message is filled.
+     *
      * @return true if the query was a success
      */
     public boolean isSuccess() {
@@ -40,6 +41,7 @@ public class DbIpQueryResponse implements GeoLocation {
 
     /**
      * The error message (available only if {@link #isSuccess()} returns false.
+     *
      * @return the error message text as by db-ip.com
      */
     public String getError() {

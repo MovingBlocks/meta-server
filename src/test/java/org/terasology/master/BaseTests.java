@@ -21,14 +21,13 @@ public class BaseTests {
 
     private static final String SERVER_TABLE = "servers";
     protected ServerEntry firstEntry;
+    protected DummyArtifactRepo snapshotRepo;
     @Inject
     ModuleListServiceImpl moduleListModel;
     @Inject
     DatabaseService databaseService;
     @Inject
     GeoLocationService geoService;
-
-    protected DummyArtifactRepo snapshotRepo;
 
     @BeforeAll
     void setupModules() throws IOException, SQLException {

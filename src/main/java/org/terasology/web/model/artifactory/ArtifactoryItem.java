@@ -35,8 +35,8 @@ class ArtifactoryItem {
     int size;                     // "14063",
 
     static class Entry {
-          String uri;             // "/terasology",
-          boolean folder;
+        String uri;             // "/terasology",
+        boolean folder;
     }
 }
 

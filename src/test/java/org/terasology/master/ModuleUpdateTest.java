@@ -29,8 +29,11 @@ import org.terasology.module.ModuleMetadata;
 import org.terasology.module.ModuleMetadataJsonAdapter;
 
 import javax.inject.Inject;
-import java.io.*;
-import java.net.MalformedURLException;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -45,7 +48,7 @@ class ModuleUpdateTest extends BaseTests {
     HttpClient client;
 
     @Test
-    void testUpdate() throws MalformedURLException, IOException {
+    void testUpdate() throws IOException {
 
         Assertions.assertEquals(0, readJsonList("/modules/list/CommonWorld").size());
 
@@ -101,7 +104,7 @@ class ModuleUpdateTest extends BaseTests {
         // curl -X POST -d @<classpathFile> <url> --header "Content-Type:application/json"
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(classpathFile)))) {
             String notificationBody = IOUtils.readText(reader);
-            HttpResponse response = client.toBlocking().exchange(HttpRequest.POST(path, notificationBody));
+            HttpResponse<?> response = client.toBlocking().exchange(HttpRequest.POST(path, notificationBody));
             return response.getStatus();
         }
     }

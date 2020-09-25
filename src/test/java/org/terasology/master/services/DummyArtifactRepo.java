@@ -20,7 +20,11 @@ import org.terasology.web.model.artifactory.ArtifactInfo;
 import org.terasology.web.model.artifactory.ArtifactRepository;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class DummyArtifactRepo implements ArtifactRepository {
 
@@ -42,12 +46,7 @@ public class DummyArtifactRepo implements ArtifactRepository {
     }
 
     public void addArtifact(String moduleName, ArtifactInfo info) {
-        Collection<ArtifactInfo> entry = modules.get(moduleName);
-        if (entry == null) {
-            entry = new ArrayList<>();
-            modules.put(moduleName, entry);
-        }
-        entry.add(info);
+        modules.computeIfAbsent(moduleName, k -> new ArrayList<>()).add(info);
     }
 
     @Override

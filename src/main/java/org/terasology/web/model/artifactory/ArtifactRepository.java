@@ -21,11 +21,6 @@ import java.util.Collection;
 
 public interface ArtifactRepository {
 
-    public enum RepoType {
-        RELEASE,
-        SNAPSHOT
-    }
-
     String getName();
 
     RepoType getType();
@@ -35,4 +30,9 @@ public interface ArtifactRepository {
     void updateModule(String moduleName) throws IOException;
 
     Collection<? extends ArtifactInfo> getModuleArtifacts(String moduleName);
+
+    enum RepoType {
+        RELEASE,
+        SNAPSHOT
+    }
 }

@@ -31,17 +31,9 @@ public enum RemoteModuleExtension {
     private final String key;
     private final Class<?> valueType;
 
-    private RemoteModuleExtension(String key, Class<?> valueType) {
+    RemoteModuleExtension(String key, Class<?> valueType) {
         this.key = key;
         this.valueType = valueType;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public Class<?> getValueType() {
-        return valueType;
     }
 
     public static URL getDownloadUrl(ModuleMetadata meta) {
@@ -66,5 +58,13 @@ public enum RemoteModuleExtension {
 
     public static void setArtifactSize(ModuleMetadata meta, long size) {
         meta.setExtension(ARTIFACT_SIZE.getKey(), size);
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public Class<?> getValueType() {
+        return valueType;
     }
 }

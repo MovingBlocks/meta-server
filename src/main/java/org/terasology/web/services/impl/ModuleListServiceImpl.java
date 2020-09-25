@@ -1,18 +1,5 @@
-/*
- * Copyright 2015 MovingBlocks
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2020 The Terasology Foundation
+// SPDX-License-Identifier: Apache-2.0
 
 package org.terasology.web.services.impl;
 
@@ -20,8 +7,14 @@ import com.google.common.io.Files;
 import io.micronaut.context.annotation.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.terasology.module.DependencyResolver;
 import org.terasology.module.Module;
-import org.terasology.module.*;
+import org.terasology.module.ModuleMetadata;
+import org.terasology.module.ModuleMetadataJsonAdapter;
+import org.terasology.module.ModuleRegistry;
+import org.terasology.module.RemoteModuleExtension;
+import org.terasology.module.ResolutionResult;
+import org.terasology.module.TableModuleRegistry;
 import org.terasology.naming.Name;
 import org.terasology.naming.Version;
 import org.terasology.web.model.artifactory.ArtifactInfo;
@@ -38,7 +31,13 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -84,7 +83,7 @@ public class ModuleListServiceImpl implements ModuleListService {
         for (ArtifactRepository repo : repositories) {
             for (String moduleName : repo.getModuleNames()) {
                 try {
-                    repo.updateModule(moduleName.toString());
+                    repo.updateModule(moduleName);
                     updateModule(repo, moduleName);
                 } catch (IOException e) {
                     logger.warn("Could not update module {}", moduleName);
@@ -161,7 +160,7 @@ public class ModuleListServiceImpl implements ModuleListService {
 
         List<ModuleMetadata> result = new ArrayList<>();
 
-        logger.debug("Checking " + moduleName);
+        logger.debug("Checking {}", moduleName);
 
         Set<String> usedCacheFiles = new HashSet<>();
         for (ArtifactInfo info : repository.getModuleArtifacts(moduleName)) {
@@ -173,7 +172,7 @@ public class ModuleListServiceImpl implements ModuleListService {
                         meta = metadataAdapter.read(reader);
                     }
                 } else {
-                    logger.debug("Downloading " + info.getDownloadUrl());
+                    logger.debug("Downloading {}", info.getDownloadUrl());
 
                     meta = extractor.loadMetaData(info.getDownloadUrl());
                     RemoteModuleExtension.setDownloadUrl(meta, info.getDownloadUrl());
@@ -192,7 +191,7 @@ public class ModuleListServiceImpl implements ModuleListService {
 
         for (String fname : moduleCacheFolder.toFile().list()) {
             if (fname.endsWith("_info.json") && !usedCacheFiles.contains(fname)) {
-                logger.info("Would delete " + fname);
+                logger.info("Would delete {}", fname);
             }
         }
 

@@ -16,16 +16,12 @@
 
 package org.terasology.web.model.jenkins;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.HashMap;
 import java.util.Map;
 
-import com.google.gson.annotations.SerializedName;
-
 public class Build {
-
-    public enum Phase {
-        STARTED, COMPLETED, FINALIZED;
-    }
 
     @SerializedName("full_url")
     private String fullUrl;
@@ -83,7 +79,7 @@ public class Build {
     }
 
     public void setParameters(Map<String, String> params) {
-        this.parameters = new HashMap<String, String>(params);
+        this.parameters = new HashMap<>(params);
     }
 
     public Map<String, Map<String, String>> getArtifacts() {
@@ -108,5 +104,9 @@ public class Build {
 
     public void setLog(StringBuilder log) {
         this.log = log;
+    }
+
+    public enum Phase {
+        STARTED, COMPLETED, FINALIZED
     }
 }

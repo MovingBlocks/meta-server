@@ -19,6 +19,7 @@ package org.terasology.web.model.server;
 import java.util.Objects;
 
 /**
+ * Server entry database representation.
  */
 public class ServerEntry {
 
@@ -42,6 +43,10 @@ public class ServerEntry {
 
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getAddress() {
@@ -84,10 +89,6 @@ public class ServerEntry {
         this.city = city;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public boolean isActive() {
         return active;
     }
@@ -120,13 +121,13 @@ public class ServerEntry {
         ServerEntry other = (ServerEntry) obj;
 
         return Objects.equals(address, other.address)
-            && Objects.equals(port, other.port)
-            && Objects.equals(name, other.name)
-            && Objects.equals(owner, other.owner)
-            && Objects.equals(city, other.city)
-            && Objects.equals(stateprov, other.stateprov)
-            && Objects.equals(country, other.country)
-            && Objects.equals(active, other.active);
+                && Objects.equals(port, other.port)
+                && Objects.equals(name, other.name)
+                && Objects.equals(owner, other.owner)
+                && Objects.equals(city, other.city)
+                && Objects.equals(stateprov, other.stateprov)
+                && Objects.equals(country, other.country)
+                && Objects.equals(active, other.active);
     }
 
 }

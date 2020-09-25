@@ -1,3 +1,6 @@
+// Copyright 2020 The Terasology Foundation
+// SPDX-License-Identifier: Apache-2.0
+
 package org.terasology.web.controllers.api;
 
 import io.micronaut.http.MediaType;
@@ -19,7 +22,7 @@ public class ApiServerController {
 
     private static final Logger logger = LoggerFactory.getLogger(ApiServerController.class);
 
-    private ServerListService model;
+    private final ServerListService model;
 
     public ApiServerController(ServerListService model) {
         this.model = model;

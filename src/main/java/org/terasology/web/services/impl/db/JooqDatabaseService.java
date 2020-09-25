@@ -1,23 +1,17 @@
-/*
- * Copyright 2015 MovingBlocks
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2020 The Terasology Foundation
+// SPDX-License-Identifier: Apache-2.0
 
 package org.terasology.web.services.impl.db;
 
+import org.jooq.DSLContext;
+import org.jooq.Field;
+import org.jooq.InsertSetMoreStep;
+import org.jooq.Query;
 import org.jooq.Record;
-import org.jooq.*;
+import org.jooq.Result;
+import org.jooq.SortField;
+import org.jooq.Table;
+import org.jooq.UpdateSetMoreStep;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 import org.slf4j.Logger;
@@ -32,11 +26,15 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 /**
- *
+ * Jooq Database service implementation.
  */
 @Singleton
 public final class JooqDatabaseService implements DatabaseService {
@@ -48,7 +46,7 @@ public final class JooqDatabaseService implements DatabaseService {
     private final GeoLocationService geoService;
 
     /**
-     * @param ds the datasource
+     * @param ds         the datasource
      * @param geoService the geo-location service
      */
     public JooqDatabaseService(DataSource ds, GeoLocationService geoService) {
@@ -145,11 +143,11 @@ public final class JooqDatabaseService implements DatabaseService {
             Table<?> table = DSL.table(DSL.name(tableName));
 
             InsertSetMoreStep<?> statement = context.insertInto(table)
-                .set(DSL.field(DSL.name("name")), name)
-                .set(DSL.field(DSL.name("address")), address)
-                .set(DSL.field(DSL.name("port")), port)
-                .set(DSL.field(DSL.name("owner")), owner)
-                .set(DSL.field(DSL.name("active")), active);
+                    .set(DSL.field(DSL.name("name")), name)
+                    .set(DSL.field(DSL.name("address")), address)
+                    .set(DSL.field(DSL.name("port")), port)
+                    .set(DSL.field(DSL.name("owner")), owner)
+                    .set(DSL.field(DSL.name("active")), active);
 
             try {
                 GeoLocation geoLoc = geoService.resolve(address);
@@ -158,9 +156,9 @@ public final class JooqDatabaseService implements DatabaseService {
                 String city = geoLoc.getCity();
 
                 statement
-                    .set(DSL.field(DSL.name("country")), country)
-                    .set(DSL.field(DSL.name("stateprov")), stateProv)
-                    .set(DSL.field(DSL.name("city")), city);
+                        .set(DSL.field(DSL.name("country")), country)
+                        .set(DSL.field(DSL.name("stateprov")), stateProv)
+                        .set(DSL.field(DSL.name("city")), city);
 
             } catch (IOException e) {
                 logger.error("Could not resolve geo-location for {}", address, e);
@@ -175,31 +173,31 @@ public final class JooqDatabaseService implements DatabaseService {
     private void createTable(DSLContext context, Table<?> table) {
 
         context.createTable(table)
-            .column("name", SQLDataType.VARCHAR.length(256))
-            .column("address", SQLDataType.VARCHAR.length(256).nullable(false))
-            .column("port", SQLDataType.INTEGER.nullable(false))
-            .column("country", SQLDataType.VARCHAR.length(256))
-            .column("stateprov", SQLDataType.VARCHAR.length(256))
-            .column("city", SQLDataType.VARCHAR.length(256))
-            .column("owner", SQLDataType.VARCHAR.length(256))
-            .column("active", SQLDataType.BOOLEAN.nullable(false))
-            .column("modtime", SQLDataType.TIMESTAMP)
-            .execute();
+                .column("name", SQLDataType.VARCHAR.length(256))
+                .column("address", SQLDataType.VARCHAR.length(256).nullable(false))
+                .column("port", SQLDataType.INTEGER.nullable(false))
+                .column("country", SQLDataType.VARCHAR.length(256))
+                .column("stateprov", SQLDataType.VARCHAR.length(256))
+                .column("city", SQLDataType.VARCHAR.length(256))
+                .column("owner", SQLDataType.VARCHAR.length(256))
+                .column("active", SQLDataType.BOOLEAN.nullable(false))
+                .column("modtime", SQLDataType.TIMESTAMP)
+                .execute();
 
         // set default value for active
         context.alterTable(table)
-            .alter(DSL.field(DSL.name("active"), Boolean.class)).defaultValue(Boolean.FALSE)
-            .execute();
+                .alter(DSL.field(DSL.name("active"), Boolean.class)).defaultValue(Boolean.FALSE)
+                .execute();
 
         // modtime timestamp DEFAULT current_timestamp
         context.alterTable(table)
-            .alter(DSL.field(DSL.name("modtime"), Timestamp.class)).defaultValue(DSL.currentTimestamp())
-            .execute();
+                .alter(DSL.field(DSL.name("modtime"), Timestamp.class)).defaultValue(DSL.currentTimestamp())
+                .execute();
 
         // PRIMARY KEY (address, port)
         context.alterTable(table)
-            .add(DSL.constraint("primary_key").primaryKey("address", "port"))
-            .execute();
+                .add(DSL.constraint("primary_key").primaryKey("address", "port"))
+                .execute();
     }
 
     private Table<?> tableExists(DSLContext context, String tableName) {
@@ -219,10 +217,10 @@ public final class JooqDatabaseService implements DatabaseService {
             Table<Record> table = DSL.table(DSL.name(tableName));
 
             UpdateSetMoreStep<Record> statement = context.update(table)
-                .set(DSL.field(DSL.name("name")), name)
-                .set(DSL.field(DSL.name("owner")), owner)
-                .set(DSL.field(DSL.name("active")), active)
-                .set(DSL.field(DSL.name("modtime")), DSL.defaultValue(Timestamp.class));
+                    .set(DSL.field(DSL.name("name")), name)
+                    .set(DSL.field(DSL.name("owner")), owner)
+                    .set(DSL.field(DSL.name("active")), active)
+                    .set(DSL.field(DSL.name("modtime")), DSL.defaultValue(Timestamp.class));
 
             try {
                 GeoLocation geoLoc = geoService.resolve(address);
@@ -231,9 +229,9 @@ public final class JooqDatabaseService implements DatabaseService {
                 String city = geoLoc.getCity();
 
                 statement
-                    .set(DSL.field(DSL.name("country")), country)
-                    .set(DSL.field(DSL.name("stateprov")), stateProv)
-                    .set(DSL.field(DSL.name("city")), city);
+                        .set(DSL.field(DSL.name("country")), country)
+                        .set(DSL.field(DSL.name("stateprov")), stateProv)
+                        .set(DSL.field(DSL.name("city")), city);
 
             } catch (IOException e) {
                 logger.error("Could not resolve geo-location for {}", address, e);

@@ -26,7 +26,7 @@ import java.util.Date;
  */
 public class ArtifactoryArtifactInfo implements ArtifactInfo {
     private final String artifact;
-    private ArtifactoryItem item;
+    private final ArtifactoryItem item;
 
     public ArtifactoryArtifactInfo(ArtifactoryItem item) {
         Preconditions.checkArgument(item != null);

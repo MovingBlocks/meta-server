@@ -30,9 +30,9 @@ import java.util.Date;
 
 public class ClasspathArtifactInfo implements ArtifactInfo {
 
-    private ModuleMetadata meta;
-    private URL url;
-    private String artifactName;
+    private final ModuleMetadata meta;
+    private final URL url;
+    private final String artifactName;
 
     public ClasspathArtifactInfo(String cpUrl) throws IOException {
         ModuleMetadataJsonAdapter metadataAdapter = new ModuleMetadataJsonAdapter();

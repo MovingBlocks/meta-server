@@ -20,7 +20,6 @@ import io.micronaut.context.annotation.Value;
 import org.terasology.web.services.api.GeoLocationService;
 import org.terasology.web.services.impl.geo.GeoLocation;
 
-import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -34,13 +33,14 @@ public class DbIpGeoLocationService implements GeoLocationService {
 
     private final String apiKey;
 
-    @Inject
-    DbIpRestWrapper dbIpRestWrapper;
+    private final DbIpRestWrapper dbIpRestWrapper;
 
     public DbIpGeoLocationService(
+            DbIpRestWrapper dbIpRestWrapper,
             @Value("${meta-server.dbip.api.key}") String apiKey
     ) {
         this.apiKey = apiKey;
+        this.dbIpRestWrapper = dbIpRestWrapper;
     }
 
     @Override

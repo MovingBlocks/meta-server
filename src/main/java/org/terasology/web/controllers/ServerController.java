@@ -1,25 +1,17 @@
-/*
- * Copyright 2015 MovingBlocks
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2020 The Terasology Foundation
+// SPDX-License-Identifier: Apache-2.0
 
 package org.terasology.web.controllers;
 
 import com.google.common.collect.ImmutableMap;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.MediaType;
-import io.micronaut.http.annotation.*;
+import io.micronaut.http.annotation.Body;
+import io.micronaut.http.annotation.Controller;
+import io.micronaut.http.annotation.Get;
+import io.micronaut.http.annotation.Post;
+import io.micronaut.http.annotation.Produces;
+import io.micronaut.http.annotation.QueryValue;
 import io.micronaut.views.ModelAndView;
 import io.micronaut.views.View;
 import org.slf4j.Logger;
@@ -31,12 +23,12 @@ import org.terasology.web.services.api.ServerListService;
 import org.terasology.web.version.VersionInfo;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
- *
+ * Controller which servers WEB for meta-server
  */
 @Controller("/servers/")
 @Produces(MediaType.TEXT_HTML)
@@ -44,7 +36,7 @@ public class ServerController {
 
     private static final Logger logger = LoggerFactory.getLogger(ServerController.class);
 
-    private ServerListService model;
+    private final ServerListService model;
 
     public ServerController(ServerListService model) {
         this.model = model;
@@ -52,7 +44,7 @@ public class ServerController {
 
     @Get("show")
     @View("server-list")
-    public HttpResponse show() {
+    public HttpResponse<Map<Object, Object>> show() {
         logger.info("Requested server list as HTML");
         ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                 .put("items", list())
@@ -63,7 +55,7 @@ public class ServerController {
 
     @Get("add")
     @View("add")
-    public HttpResponse add() {
+    public HttpResponse<Map<Object, Object>> add() {
         logger.info("Requested add as HTML");
         ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                 .put("name", "")
@@ -78,7 +70,7 @@ public class ServerController {
 
     @Get("edit")
     @View("edit")
-    public HttpResponse edit(@QueryValue(value = "index", defaultValue = "-1") int index) throws IOException {
+    public HttpResponse<Map<Object, Object>> edit(@QueryValue(value = "index", defaultValue = "-1") int index) throws IOException {
         List<ServerEntry> servers = model.getServers();
 
         if (index < 0 || index >= servers.size()) {
@@ -100,12 +92,23 @@ public class ServerController {
     }
 
     @Post("add")
-    public ModelAndView add(@Body ServerForm serverForm) throws URISyntaxException {
+    public ModelAndView<Map<Object, Object>> add(@Body ServerForm serverForm) {
 
         boolean active = "on".equals(serverForm.getActiveOn());
-        logger.info("Requested addition: name: {}, address: {}, port:{}, owner:{}, active:{}", serverForm.getName(), serverForm.getAddress(), serverForm.getPort(), serverForm.getOwner(), active);
+        logger.info("Requested addition: name: {}, address: {}, port:{}, owner:{}, active:{}",
+                serverForm.getName(),
+                serverForm.getAddress(),
+                serverForm.getPort(),
+                serverForm.getOwner(),
+                active);
 
-        Result response = model.addServer(serverForm.getName(), serverForm.getAddress(), serverForm.getPort(), serverForm.getOwner(), active, serverForm.getSecret());
+        Result response = model.addServer(
+                serverForm.getName(),
+                serverForm.getAddress(),
+                serverForm.getPort(),
+                serverForm.getOwner(),
+                active,
+                serverForm.getSecret());
 
         if (response.isSuccess()) {
             ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
@@ -113,7 +116,7 @@ public class ServerController {
                     .put("message", response.getMessage())
                     .put("version", VersionInfo.getVersion())
                     .build();
-            return new ModelAndView("list", dataModel);
+            return new ModelAndView<>("list", dataModel);
         } else {
             ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                     .put("name", serverForm.getName())
@@ -124,12 +127,12 @@ public class ServerController {
                     .put("error", response.getMessage())
                     .put("version", VersionInfo.getVersion())
                     .build();
-            return new ModelAndView("add", dataModel);
+            return new ModelAndView<>("add", dataModel);
         }
     }
 
     @Post("remove")
-    public ModelAndView remove(@Body ServerForm serverForm) throws URISyntaxException {
+    public ModelAndView<Map<Object, Object>> remove(@Body ServerForm serverForm) {
 
         boolean active = "on".equals(serverForm.getActiveOn());
         Result response = model.removeServer(serverForm.getAddress(), serverForm.getPort(), serverForm.getSecret());
@@ -139,7 +142,7 @@ public class ServerController {
                     .put("message", response.getMessage())
                     .put("version", VersionInfo.getVersion())
                     .build();
-            return new ModelAndView("list", dataModel);
+            return new ModelAndView<>("list", dataModel);
         } else {
             ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                     .put("name", serverForm.getName())
@@ -150,12 +153,12 @@ public class ServerController {
                     .put("error", response.getMessage())
                     .put("version", VersionInfo.getVersion())
                     .build();
-            return new ModelAndView("edit", dataModel);
+            return new ModelAndView<>("edit", dataModel);
         }
     }
 
     @Post("update")
-    public ModelAndView update(@Body ServerForm serverForm) throws URISyntaxException {
+    public ModelAndView<Map<Object, Object>> update(@Body ServerForm serverForm) {
 
         boolean active = "on".equals(serverForm.getActiveOn());
         Result response = model.updateServer(serverForm.getName(), serverForm.getAddress(), serverForm.getPort(), serverForm.getOwner(), active, serverForm.getActiveOn());
@@ -165,7 +168,7 @@ public class ServerController {
                     .put("message", response.getMessage())
                     .put("version", VersionInfo.getVersion())
                     .build();
-            return new ModelAndView("list", dataModel);
+            return new ModelAndView<>("list", dataModel);
         } else {
             ImmutableMap<Object, Object> dataModel = ImmutableMap.builder()
                     .put("name", serverForm.getName())
@@ -176,7 +179,7 @@ public class ServerController {
                     .put("error", response.getMessage())
                     .put("version", VersionInfo.getVersion())
                     .build();
-            return new ModelAndView("edit", dataModel);
+            return new ModelAndView<>("edit", dataModel);
         }
     }
 

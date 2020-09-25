@@ -1,18 +1,5 @@
-/*
- * Copyright 2015 MovingBlocks
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2020 The Terasology Foundation
+// SPDX-License-Identifier: Apache-2.0
 
 package org.terasology.web.model.artifactory;
 
@@ -22,11 +9,23 @@ import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.Writer;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Implements {@link ArtifactRepository} for Artifactory.
@@ -77,15 +76,26 @@ public final class ArtifactoryRepo implements ArtifactRepository {
         return new ArtifactoryRepo(uri, repoName, group, cacheFolder, RepoType.RELEASE);
     }
 
+    private static ArtifactoryItem readItem(String url) throws IOException {
+        try (Reader reader = new InputStreamReader(new URL(url).openStream(), StandardCharsets.UTF_8)) {
+            return GSON.fromJson(reader, ArtifactoryItem.class);
+        }
+    }
+
+    private static boolean matches(String uri) {
+        if (uri.endsWith(".jar")) {
+            return !uri.endsWith("-sources.jar") && !uri.endsWith("-javadoc.jar");
+        }
+        return false;
+    }
+
     private ArtifactoryModule loadModuleFromCache(String moduleName) throws IOException {
         File cacheFile = getCacheFile(moduleName);
 
         if (cacheFile.exists()) {
             try (Reader reader = Files.newReader(cacheFile, StandardCharsets.UTF_8)) {
-                ArtifactoryModule meta = GSON.fromJson(reader, ArtifactoryModule.class);
-                return meta;
-            }
-            catch (RuntimeException e) {
+                return GSON.fromJson(reader, ArtifactoryModule.class);
+            } catch (RuntimeException e) {
                 logger.warn("Could not read {}", cacheFile, e);
                 cacheFile.delete();
             }
@@ -140,9 +150,9 @@ public final class ArtifactoryRepo implements ArtifactRepository {
 
                     }
                 }
-                logger.info("Updated " + moduleName);
+                logger.info("Updated {}", moduleName);
             } else {
-                logger.debug("No updates for " + moduleName);
+                logger.debug("No updates for {}", moduleName);
             }
             artifactInfo.put(moduleName, module.items);
 
@@ -165,7 +175,7 @@ public final class ArtifactoryRepo implements ArtifactRepository {
                 String artifactUrl = versionUrl + child3.uri;
                 ArtifactoryItem artifact = readItem(artifactUrl);
                 hits.add(new ArtifactoryArtifactInfo(artifact));
-                logger.debug("Added " + artifactUrl);
+                logger.debug("Added {}", artifactUrl);
             }
         }
         return hits;
@@ -174,21 +184,5 @@ public final class ArtifactoryRepo implements ArtifactRepository {
     @Override
     public Collection<? extends ArtifactInfo> getModuleArtifacts(String moduleName) {
         return Collections.unmodifiableCollection(artifactInfo.getOrDefault(moduleName, Collections.emptySet()));
-    }
-
-    private static ArtifactoryItem readItem(String url) throws IOException {
-        try (Reader reader = new InputStreamReader(new URL(url).openStream(), StandardCharsets.UTF_8)) {
-            ArtifactoryItem folder = GSON.fromJson(reader, ArtifactoryItem.class);
-            return folder;
-        }
-    }
-
-    private static boolean matches(String uri) {
-        if (uri.endsWith(".jar")) {
-            if (!uri.endsWith("-sources.jar") && !uri.endsWith("-javadoc.jar")) {
-                return true;
-            }
-        }
-        return false;
     }
 }
