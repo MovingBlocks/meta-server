@@ -1,13 +1,12 @@
 plugins {
     id "org.owasp.dependencycheck" version "5.0.0-M3.1"
+    id 'java'
+    id 'application'
+    id 'eclipse'
+    id 'pmd'
+    id 'checkstyle'
+    id 'com.github.spotbugs' version '4.5.0'
 }
-
-apply plugin:'java'
-apply plugin:'application'
-apply plugin:'eclipse'
-apply plugin:'pmd'
-apply plugin:'checkstyle'
-apply plugin:'findbugs'
 
 apply from: 'config/gradle/versioning.gradle'
 
@@ -18,78 +17,86 @@ group = 'org.terasology.web'
 
 repositories {
     mavenCentral()
-	
+
     maven {
+        name "Terasology Artifactory"
         url "http://artifactory.terasology.org/artifactory/virtual-repo-live"
+        allowInsecureProtocol true
     }
 }
 
 ext {
-   jettyVersion = '9.4.6.v20170531'
+    jettyVersion = '9.4.6.v20170531'
 }
+
+def codeMetricsDir = "${buildDir}/codeMetrics"
 
 configurations {
     codeMetrics
 }
 
 dependencies {
-    compile group: 'org.eclipse.jetty', name: 'jetty-servlet', version: jettyVersion
-    compile group: 'org.eclipse.jetty', name: 'jetty-servlets', version: jettyVersion
-    compile 'javax.servlet:javax.servlet-api:3.1.0'
+    implementation group: 'org.eclipse.jetty', name: 'jetty-servlet', version: jettyVersion
+    implementation group: 'org.eclipse.jetty', name: 'jetty-servlets', version: jettyVersion
+    implementation 'javax.servlet:javax.servlet-api:3.1.0'
+    implementation 'javax.annotation:javax.annotation-api:1.3.2'
+    implementation 'com.google.code.findbugs:jsr305:3.0.0'
 
-    compile 'org.glassfish.jersey.containers:jersey-container-jetty-servlet:2.22.1'
-    compile 'org.glassfish.jersey.ext:jersey-mvc-freemarker:2.22.1'
+    implementation 'org.glassfish.jersey.containers:jersey-container-jetty-servlet:2.22.1'
+    implementation 'org.glassfish.jersey.ext:jersey-mvc-freemarker:2.22.1'
 
-    compile 'com.google.code.gson:gson:2.4'
-    compile 'com.google.guava:guava:18.0'
+    implementation 'com.google.code.gson:gson:2.4'
+    implementation 'com.google.guava:guava:18.0'
 
-    compile 'org.jooq:jooq:3.7.0'
-    compile 'org.postgresql:postgresql:9.4-1205-jdbc42'
+    implementation 'org.jooq:jooq:3.7.0'
+    implementation 'org.postgresql:postgresql:9.4-1205-jdbc42'
 
-    compile 'com.squareup.retrofit:retrofit:1.9.0'
+    implementation 'com.squareup.retrofit:retrofit:1.9.0'
 
-    compile 'org.slf4j:slf4j-api:1.7.13'
+    implementation 'org.slf4j:slf4j-api:1.7.13'
 
-    compile 'com.zaxxer:HikariCP:2.4.1'
+    implementation 'com.zaxxer:HikariCP:2.4.1'
 
-    compile 'org.terasology:gestalt-module:4.1.2'
+    implementation 'org.terasology:gestalt-module:4.1.2'
 
-    testCompile 'org.jsoup:jsoup:1.8.3'
-    testCompile 'com.jcabi:jcabi-w3c:1.3'
-    testCompile 'com.jcabi:jcabi-matchers:1.4'
-    testCompile 'junit:junit:4.12'
-    testCompile 'com.h2database:h2:1.4.190'
+    testImplementation 'org.jsoup:jsoup:1.8.3'
+    testImplementation 'com.jcabi:jcabi-w3c:1.3'
+    testImplementation 'com.jcabi:jcabi-matchers:1.4'
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'com.h2database:h2:1.4.190'
 
-    runtime group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.3'
+    runtimeOnly group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.3'
 
-    checkstyle 'com.puppycrawl.tools:checkstyle:6.7'
-    pmd 'net.sourceforge.pmd:pmd-core:5.4.0'
-    pmd 'net.sourceforge.pmd:pmd-java:5.4.0'
-    findbugs 'com.google.code.findbugs:findbugs:3.0.1'
+    pmd 'net.sourceforge.pmd:pmd-core:6.27.0'
+    pmd 'net.sourceforge.pmd:pmd-java:6.27.0'
 
-    codeMetrics(group: 'org.terasology.config', name: 'codemetrics-nosupp', version: '1.0.0', ext: 'zip')
+    codeMetrics group: 'org.terasology.config', name: 'codemetrics', version: '1.3.2', ext: 'zip'
 }
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.0.1'
+task unpackConfig(type: Sync, dependsOn: configurations.codeMetrics) {
+    from zipTree(configurations.codeMetrics.singleFile)
+    into codeMetricsDir
+
 }
+tasks.compileJava.dependsOn unpackConfig
 
 checkstyle {
     ignoreFailures = true
-    config = resources.text.fromArchiveEntry(configurations.codeMetrics, "checkstyle/checkstyle.xml")
+    config = resources.text.fromFile("${codeMetricsDir}/checkstyle/checkstyle.xml")
+    configProperties.samedir = "${codeMetricsDir}/checkstyle"
 }
 
 pmd {
     ignoreFailures = true
-    ruleSetConfig = resources.text.fromArchiveEntry(configurations.codeMetrics, "pmd/pmd.xml")
+    ruleSetConfig = resources.text.fromFile("${codeMetricsDir}/pmd/pmd.xml")
     ruleSets = []
 }
 
-findbugs {
+spotbugs {
     ignoreFailures = true
     effort = 'max'
     reportLevel = 'medium'
-    excludeFilterConfig = resources.text.fromArchiveEntry(configurations.codeMetrics, "findbugs/findbugs-exclude.xml")
+    excludeFilter = resources.text.fromFile("${codeMetricsDir}/findbugs/findbugs-exclude.xml").asFile()
 }
 
 test {
