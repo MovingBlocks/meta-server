@@ -11,7 +11,3 @@ datasources:
 meta-server:
   edit.secret: "foo"
   dbip.api.key: "bar"
-  module:
-    metadataFileNames:
-      - module.json
-      - module.txt

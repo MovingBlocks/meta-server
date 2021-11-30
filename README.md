@@ -20,7 +20,7 @@ Run locally
 Gradle-way:
 1. Clone
 2. Go to Project Dir
-3. Set environment variable `MICRONAUT_ENVIRONMENTS` to `test` (local h2 database)
+3. Set environment variable `MICRONAUT_ENVIRONMENTS` to `dev` (local h2 database)
 4. `./gradlew run` at Linux/Macos or `gradlew run` at Windows
 5. found at logs entry like `[main] INFO  io.micronaut.runtime.Micronaut - Startup completed in 624ms. Server Running: http://localhost:39195` 
 6. Go To url described at logs with your browser
@@ -29,7 +29,7 @@ Docker-way:
 1. Clone
 2. Go To Project Dir
 3. Run `docker build . -t test-meta-server`
-4. Run `docker run --env "MICRONAUT_ENVIRONMENTS=test" test-meta-server` 
+4. Run `docker run --env "MICRONAUT_ENVIRONMENTS=dev" test-meta-server` 
 
 Deployment
 -------------

@@ -2,7 +2,7 @@ micronaut:
   application:
     name: meta-server
   server:
-    port: 80
+    port: 8080
   router:
     static-resources:
       base:
@@ -11,8 +11,10 @@ micronaut:
 
 datasources:
   default:
-    url: jdbc:postgresql://localhost:5432/postgres
-    driverClassName: org.postgresql.Driver
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: password
 
 meta-server:
   cache.folder: "./cache"

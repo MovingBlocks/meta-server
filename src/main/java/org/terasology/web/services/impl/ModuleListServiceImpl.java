@@ -7,14 +7,8 @@ import com.google.common.io.Files;
 import io.micronaut.context.annotation.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.terasology.module.DependencyResolver;
 import org.terasology.module.Module;
-import org.terasology.module.ModuleMetadata;
-import org.terasology.module.ModuleMetadataJsonAdapter;
-import org.terasology.module.ModuleRegistry;
-import org.terasology.module.RemoteModuleExtension;
-import org.terasology.module.ResolutionResult;
-import org.terasology.module.TableModuleRegistry;
+import org.terasology.module.*;
 import org.terasology.naming.Name;
 import org.terasology.naming.Version;
 import org.terasology.web.model.artifactory.ArtifactInfo;
@@ -31,13 +25,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -64,16 +52,19 @@ public class ModuleListServiceImpl implements ModuleListService {
 
     public ModuleListServiceImpl(
             @Value("${meta-server.cache.folder}") Path cacheFolder,
+            Collection<ArtifactRepository> repositories,
             MetadataExtractor extractor) {
         this.cacheFolder = cacheFolder;
         this.cacheFolder.toFile().mkdirs();
         this.extractor = extractor;
+        this.repositories.addAll(repositories);
 
         for (RemoteModuleExtension ext : RemoteModuleExtension.values()) {
             metadataAdapter.registerExtension(ext.getKey(), ext.getValueType());
         }
     }
 
+    @Deprecated
     public void addRepository(ArtifactRepository repo) {
         repositories.add(repo);
     }
