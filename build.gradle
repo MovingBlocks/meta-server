@@ -89,7 +89,7 @@ dependencies {
 
     // loggin and database
     testImplementation 'org.slf4j:slf4j-api:1.7.30'
-    testImplementation 'com.h2database:h2'
+    implementation 'com.h2database:h2'
 
     // Code analyzers
     pmd 'net.sourceforge.pmd:pmd-core:6.27.0'

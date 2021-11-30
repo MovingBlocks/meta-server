@@ -1,3 +1,6 @@
+FROM gradle:6.6.1
+CMD gradle shadowJar
+
 FROM openjdk:14-alpine
 COPY build/libs/meta-server-*-all.jar meta-server.jar
 EXPOSE 8080
