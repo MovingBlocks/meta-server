@@ -1,6 +1,8 @@
 micronaut:
   application:
     name: meta-server
+  server:
+    port: 80
   router:
     static-resources:
       base:
