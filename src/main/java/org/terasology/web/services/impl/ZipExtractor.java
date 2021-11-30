@@ -3,6 +3,7 @@
 
 package org.terasology.web.services.impl;
 
+import io.micronaut.context.annotation.Value;
 import org.terasology.module.ModuleMetadata;
 import org.terasology.module.ModuleMetadataJsonAdapter;
 import org.terasology.web.services.api.MetadataExtractor;
@@ -33,7 +34,7 @@ public class ZipExtractor implements MetadataExtractor {
     /**
      * @param filenames the collection file names that match. The first match is returned.
      */
-    public ZipExtractor(String... filenames) {
+    public ZipExtractor(@Value("${meta-server.module.metadataFileNames}") String... filenames) {
         this.filename = Arrays.asList(filenames);
     }
 

@@ -17,4 +17,8 @@ datasources:
 meta-server:
   cache.folder: "./cache"
   table.name: "servers"
+  module:
+    metadataFileNames:
+      - module.json
+      - module.txt
 
