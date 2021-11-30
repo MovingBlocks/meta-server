@@ -6,12 +6,7 @@ package org.terasology.web.controllers;
 import com.google.common.collect.ImmutableMap;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.MediaType;
-import io.micronaut.http.annotation.Body;
-import io.micronaut.http.annotation.Controller;
-import io.micronaut.http.annotation.Get;
-import io.micronaut.http.annotation.Post;
-import io.micronaut.http.annotation.Produces;
-import io.micronaut.http.annotation.QueryValue;
+import io.micronaut.http.annotation.*;
 import io.micronaut.views.ModelAndView;
 import io.micronaut.views.View;
 import org.slf4j.Logger;
@@ -92,6 +87,7 @@ public class ServerController {
     }
 
     @Post("add")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public ModelAndView<Map<Object, Object>> add(@Body ServerForm serverForm) {
 
         boolean active = "on".equals(serverForm.getActiveOn());
