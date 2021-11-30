@@ -1,20 +1,19 @@
 meta-server
 =========
 
-A Jetty-based servlet that serves meta-information about Terasology.
+Micronauts web application that serves meta-information about Terasology.
 It is available for in-game use in JSON format and in HTML format for web browsers.
 
 The server is available at 
 **http://meta.terasology.org**
 
-hosted by [@msteiger](http://github.com/msteiger). 
-The list of online game servers is hosted on a Amazon EC2 PostgreSQL instance (through Heroku credentials).
-The server code is mirrored on two backup instances hosted on Heroku:
-
-https://meta-server.herokuapp.com
-
-https://meta-server-test.herokuapp.com (a debug DB also hosted on Amazon)
-
+Features
+-------------
+* Save and provide information about Terasology modules
+* Receive and provide information about Terasology servers (Looking for game)
+* Using https://db-ip.com/ for providing additional info about servers.
+* Use PostgresDB via Jooq for persistence 
+* Use Micronauts for core Frameworks
 
 Deployment
 -------------
