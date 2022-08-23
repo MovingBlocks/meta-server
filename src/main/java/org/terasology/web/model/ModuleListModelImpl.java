@@ -49,6 +49,7 @@ import org.terasology.naming.Version;
 import org.terasology.web.artifactory.ArtifactInfo;
 import org.terasology.web.artifactory.ArtifactRepository;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 
 /**
@@ -68,6 +69,8 @@ public class ModuleListModelImpl implements ModuleListModel {
     private final Collection<ArtifactRepository> repositories = new CopyOnWriteArrayList<>();
 
     private final Path cacheFolder;
+
+    private final List<String> ignoredModules = ImmutableList.of("engine", "engine-tests");
 
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
 
@@ -93,14 +96,20 @@ public class ModuleListModelImpl implements ModuleListModel {
     public void updateAllModules() {
         for (ArtifactRepository repo : repositories) {
             for (String moduleName : repo.getModuleNames()) {
-                try {
-                    repo.updateModule(moduleName.toString());
-                    updateModule(repo, moduleName);
-                } catch (IOException e) {
-                    logger.warn("Could not update module {}", moduleName);
+                if (isRelevant(moduleName)) {
+                    try {
+                        repo.updateModule(moduleName);
+                        updateModule(repo, moduleName);
+                    } catch (IOException e) {
+                        logger.warn("Could not update module {}", moduleName);
+                    }
                 }
             }
         }
+    }
+
+    private boolean isRelevant(String moduleName) {
+        return !ignoredModules.contains(moduleName);
     }
 
     @Override

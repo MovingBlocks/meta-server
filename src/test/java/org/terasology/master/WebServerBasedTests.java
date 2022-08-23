@@ -95,6 +95,7 @@ public abstract class WebServerBasedTests {
         ServerListModel serverListModel = new ServerListModelImpl(dataBase, SERVER_TABLE, secret);
 
         webServer = JettyMain.createServer(PORT,
+                true,
                 new AboutServlet(),
                 new ServerServlet(serverListModel),          // the server list servlet
                 new ModuleServlet(moduleListModel));         // the module list servlet

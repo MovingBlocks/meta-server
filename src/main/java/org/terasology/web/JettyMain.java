@@ -16,6 +16,7 @@
 
 package org.terasology.web;
 
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -76,6 +77,14 @@ public final class JettyMain {
             logger.warn("Environment variable 'PORT' not defined - using default {}", portEnv);
         }
         Integer port = Integer.valueOf(portEnv);
+
+        String localhostOnlyEnv = System.getenv("LOCALHOST_ONLY");
+        Boolean localhostOnly = true;
+        if (localhostOnlyEnv != null) {
+            localhostOnly = Boolean.valueOf(localhostOnlyEnv);
+        } else {
+            logger.warn("Environment variable 'LOCALHOST_ONLY' not defined - using default {}", localhostOnly);
+        }
 
         String dbEnv = System.getenv("DATABASE_URL");
         if (dbEnv == null) {
@@ -139,6 +148,7 @@ public final class JettyMain {
             ServerListModel serverListModel = new ServerListModelImpl(dataBase, "servers", secret);
 
             Server server = createServer(port.intValue(),
+                    localhostOnly,
                     new AboutServlet(),
                     new ServerServlet(serverListModel),          // the server list servlet
                     new ModuleServlet(moduleListModel));         // the module list servlet
@@ -152,8 +162,15 @@ public final class JettyMain {
         }
     }
 
-    public static Server createServer(int port, Object... servlets) throws Exception {
-        Server server = new Server(port);
+    public static Server createServer(int port, boolean localOnly, Object... servlets) throws Exception {
+
+        Server server;
+
+        if (localOnly) {
+            server = new Server(new InetSocketAddress("localhost", port));
+        } else {
+            server = new Server(port);
+        }
 
         ResourceHandler logFileResourceHandler = new ResourceHandler();
         logFileResourceHandler.setDirectoriesListed(true);
