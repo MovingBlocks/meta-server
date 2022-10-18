@@ -1,0 +1,31 @@
+micronaut:
+  application:
+    name: meta-server
+  server:
+    port: 8080
+  router:
+    static-resources:
+      base:
+        paths:
+          - "classpath:static"
+
+datasources:
+  default:
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: password
+
+meta-server:
+  cache.folder: "./cache"
+  table.name: "servers"
+  module:
+    metadataFileNames:
+      - module.json
+      - module.txt
+    repos:
+      - url: http://artifactory.terasology.org/artifactory
+        repo-name: virtual-repo-live
+        group: org/terasology/modules
+        cache-folder: cache
+

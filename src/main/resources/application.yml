@@ -1,0 +1,29 @@
+micronaut:
+  application:
+    name: meta-server
+  server:
+    port: 80
+  router:
+    static-resources:
+      base:
+        paths:
+          - "classpath:static"
+
+datasources:
+  default:
+    url: jdbc:postgresql://localhost:5432/postgres
+    driverClassName: org.postgresql.Driver
+
+meta-server:
+  cache.folder: "./cache"
+  table.name: "servers"
+  module:
+    metadataFileNames:
+      - module.json
+      - module.txt
+    repos:
+      - url: http://artifactory.terasology.org/artifactory
+        repo-name: virtual-repo-live
+        group: org/terasology/modules
+        cache-folder: cache
+

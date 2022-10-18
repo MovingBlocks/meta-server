@@ -16,38 +16,33 @@
 
 package org.terasology.master;
 
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import jakarta.inject.Inject;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.terasology.web.services.api.DatabaseService;
+
 import java.util.Map;
 
-import org.h2.jdbcx.JdbcDataSource;
-import org.junit.Assert;
-import org.junit.Test;
-import org.terasology.web.db.JooqDatabase;
-import org.terasology.web.geo.GeoLocationService;
+@MicronautTest
+class JooqDbTest {
 
-public class JooqDbTest {
-
-    // Keep the content of an in-memory database as long as the virtual machine is alive
-    private static final String DB_URL = "jdbc:h2:mem:dbtest;DB_CLOSE_DELAY=-1";
+    @Inject
+    DatabaseService db;
 
     @Test
-    public void testConnection() throws Exception {
-
-        JdbcDataSource ds = new JdbcDataSource();
-        ds.setURL(DB_URL);
-
-        GeoLocationService geoService = new DummyGeoLocationService();
-        JooqDatabase db = new JooqDatabase(ds, geoService);
-        String tableName = "servers";
+    void testConnection() throws Exception {
+        String tableName = "servers1";
 
         db.createTable(tableName);
         db.insert(tableName, "myName", "localhost", 25000, "Tester", true);
 
         Map<String, Object> data = db.readAll(tableName).get(0);
 
-        Assert.assertTrue(data.get("name").equals("myName"));
-        Assert.assertTrue(data.get("owner").equals("Tester"));
-        Assert.assertTrue(data.get("port").equals(25000));
-        Assert.assertTrue(data.get("address").equals("localhost"));
-        Assert.assertTrue(data.get("active").equals(true));
+        Assertions.assertEquals("myName", data.get("name"));
+        Assertions.assertEquals("Tester", data.get("owner"));
+        Assertions.assertEquals(25000, data.get("port"));
+        Assertions.assertEquals("localhost", data.get("address"));
+        Assertions.assertEquals(true, data.get("active"));
     }
 }

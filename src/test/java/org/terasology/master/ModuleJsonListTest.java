@@ -16,47 +16,55 @@
 
 package org.terasology.master;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.junit.Assert;
-import org.junit.Test;
+import com.google.gson.stream.JsonReader;
+import io.micronaut.http.HttpRequest;
+import io.micronaut.http.HttpStatus;
+import io.micronaut.http.client.HttpClient;
+import io.micronaut.http.client.annotation.Client;
+import io.micronaut.http.client.exceptions.HttpClientResponseException;
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import jakarta.inject.Inject;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.terasology.module.ModuleMetadata;
 import org.terasology.module.ModuleMetadataJsonAdapter;
 import org.terasology.naming.Name;
 import org.terasology.naming.Version;
 
-import com.google.gson.stream.JsonReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
+import java.util.Set;
 
 
 /**
  * Tests the json operations in ModuleServlet.
  */
-public class ModuleJsonListTest extends WebServerBasedTests {
+@MicronautTest
+class ModuleJsonListTest extends BaseTests {
 
     private static final ModuleMetadataJsonAdapter META_READER = new ModuleMetadataJsonAdapter();
 
     private final Charset charset = StandardCharsets.UTF_8;
 
+    @Inject
+    @Client("/")
+    HttpClient client;
+
     @Test
-    public void testFullList() throws IOException {
+    void testFullList() throws IOException {
+        String response = client.toBlocking().retrieve(HttpRequest.GET("/modules/list"));
 
-        URL url = new URL(URL_BASE + "/modules/list");
-
-        try (JsonReader reader = new JsonReader(new InputStreamReader(url.openStream(), charset))) {
+        try (JsonReader reader = new JsonReader(new StringReader(response))) {
             reader.beginArray();
 
             while (reader.hasNext()) {
                 ModuleMetadata meta = META_READER.read(reader);
-                Assert.assertNotNull(meta.getId());
-                Assert.assertNotNull(meta.getVersion());
+                Assertions.assertNotNull(meta.getId());
+                Assertions.assertNotNull(meta.getVersion());
             }
 
             reader.endArray();
@@ -64,20 +72,22 @@ public class ModuleJsonListTest extends WebServerBasedTests {
     }
 
     @Test
-    public void testLatestList() throws IOException {
+    void testLatestList() throws IOException {
 
-        URL url = new URL(URL_BASE + "/modules/list/latest");
+        String response = client.toBlocking().retrieve(HttpRequest.GET("/modules/list/latest"));
         Set<Name> ids = new HashSet<>();
 
-        try (JsonReader reader = new JsonReader(new InputStreamReader(url.openStream(), charset))) {
+        try (JsonReader reader = new JsonReader(new StringReader(response))) {
             reader.beginArray();
 
             while (reader.hasNext()) {
                 ModuleMetadata meta = META_READER.read(reader);
-                Assert.assertNotNull(meta.getId());
-                Assert.assertNotNull(meta.getVersion());
+                Assertions.assertAll(
+                        () -> Assertions.assertNotNull(meta.getId(), "Id must be provided"),
+                        () -> Assertions.assertNotNull(meta.getVersion(), "Version must be provided"),
 
-                Assert.assertTrue("Only one latest version per module is possible", ids.add(meta.getId()));
+                        () -> Assertions.assertTrue(ids.add(meta.getId()), "Only one latest version per module is possible")
+                );
             }
 
             reader.endArray();
@@ -85,16 +95,16 @@ public class ModuleJsonListTest extends WebServerBasedTests {
     }
 
     @Test
-    public void testSingleModuleList() throws IOException {
+    void testSingleModuleList() throws IOException {
 
-        URL url = new URL(URL_BASE + "/modules/list/Core");
+        String response = client.toBlocking().retrieve(HttpRequest.GET("/modules/list/Core"));
 
-        try (JsonReader reader = new JsonReader(new InputStreamReader(url.openStream(), charset))) {
+        try (JsonReader reader = new JsonReader(new StringReader(response))) {
             reader.beginArray();
 
             while (reader.hasNext()) {
                 ModuleMetadata meta = META_READER.read(reader);
-                Assert.assertEquals(new Name("Core"), meta.getId());
+                Assertions.assertEquals(new Name("Core"), meta.getId());
             }
 
             reader.endArray();
@@ -102,66 +112,62 @@ public class ModuleJsonListTest extends WebServerBasedTests {
     }
 
     @Test
-    public void testSingleModuleVersion() throws IOException {
+    void testSingleModuleVersion() throws IOException {
 
-        URL url = new URL(URL_BASE + "/modules/list/Core/0.53.1");
+        String response = client.toBlocking().retrieve(HttpRequest.GET("/modules/list/Core/0.53.1"));
 
-        try (Reader reader = new InputStreamReader(url.openStream(), charset)) {
+        try (Reader reader = new StringReader(response)) {
             ModuleMetadata meta = META_READER.read(reader);
-            Assert.assertEquals(new Name("Core"), meta.getId());
-            Assert.assertEquals(new Version("0.53.1"), meta.getVersion());
-        }
-    }
-
-    @Test(expected = FileNotFoundException.class)
-    public void testNonExistingModuleVersion() throws IOException {
-
-        URL url = new URL(URL_BASE + "/modules/list/Core/23.1337.23");
-
-        try (Reader reader = new InputStreamReader(url.openStream(), charset)) {
-            META_READER.read(reader);
-        }
-    }
-
-    @Test(expected = FileNotFoundException.class)
-    public void testInvalidVersion() throws IOException {
-
-        URL url = new URL(URL_BASE + "/modules/list/Core/asdfd");
-
-        try (Reader reader = new InputStreamReader(url.openStream(), charset)) {
-            META_READER.read(reader);
-        }
-    }
-
-    @Test(expected = FileNotFoundException.class)
-    public void testUnknownModuleLatestVersion() throws IOException {
-
-        URL url = new URL(URL_BASE + "/modules/list/notThere/latest");
-
-        try (Reader reader = new InputStreamReader(url.openStream(), charset)) {
-            META_READER.read(reader);
-        }
-    }
-
-    @Test(expected = FileNotFoundException.class)
-    public void testUnknownModuleInvalidVersion() throws IOException {
-
-        URL url = new URL(URL_BASE + "/modules/list/notThere/1.2.3");
-
-        try (Reader reader = new InputStreamReader(url.openStream(), charset)) {
-            META_READER.read(reader);
+            Assertions.assertEquals(new Name("Core"), meta.getId());
+            Assertions.assertEquals(new Version("0.53.1"), meta.getVersion());
         }
     }
 
     @Test
-    public void testSingleModuleLatestVersion() throws IOException {
+    void testNonExistingModuleVersion() throws IOException {
+        HttpClientResponseException exception = Assertions.assertThrows(HttpClientResponseException.class,
+                () -> client.toBlocking().retrieve(HttpRequest.GET("/modules/list/Core/23.1337.23")),
+                "Request to Not existiong module version should thrown an HttpClientResponseException"
+        );
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatus(), "Status must be 404");
+    }
 
-        URL url = new URL(URL_BASE + "/modules/list/Core/latest");
+    @Test
+    void testInvalidVersion() throws IOException {
+        HttpClientResponseException exception = Assertions.assertThrows(HttpClientResponseException.class,
+                () -> client.toBlocking().retrieve(HttpRequest.GET("/modules/list/Core/asdfd")),
+                "Request to invalid version should thrown an HttpClientResponseException"
+        );
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatus(), "Status must be 404");
+    }
 
-        try (Reader reader = new InputStreamReader(url.openStream(), charset)) {
+    @Test
+    void testUnknownModuleLatestVersion() throws IOException {
+        HttpClientResponseException exception = Assertions.assertThrows(HttpClientResponseException.class,
+                () -> client.toBlocking().retrieve(HttpRequest.GET("/modules/list/notThere/latest")),
+                "Request to Unknown Module Version should thrown an HttpClientResponseException"
+        );
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatus(), "Status must be 404");
+    }
+
+    @Test
+    void testUnknownModuleInvalidVersion() throws IOException {
+        HttpClientResponseException exception = Assertions.assertThrows(HttpClientResponseException.class,
+                () -> client.toBlocking().retrieve(HttpRequest.GET("/modules/list/notThere/1.2.3")),
+                "Request to unknown module should thrown an HttpClientResponseException"
+        );
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatus(), "Status must be 404");
+    }
+
+    @Test
+    void testSingleModuleLatestVersion() throws IOException {
+
+        String response = client.toBlocking().retrieve(HttpRequest.GET("/modules/list/Core/latest"));
+
+        try (Reader reader = new StringReader(response)) {
             ModuleMetadata meta = META_READER.read(reader);
-            Assert.assertEquals(new Name("Core"), meta.getId());
-            Assert.assertEquals(new Version("0.53.1"), meta.getVersion());
+            Assertions.assertEquals(new Name("Core"), meta.getId());
+            Assertions.assertEquals(new Version("0.53.1"), meta.getVersion());
         }
     }
 }

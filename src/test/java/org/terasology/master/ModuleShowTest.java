@@ -16,60 +16,65 @@
 
 package org.terasology.master;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.URL;
+import io.micronaut.http.HttpRequest;
+import io.micronaut.http.HttpStatus;
+import io.micronaut.http.client.HttpClient;
+import io.micronaut.http.client.annotation.Client;
+import io.micronaut.http.client.exceptions.HttpClientResponseException;
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import jakarta.inject.Inject;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-
-import org.junit.Test;
 
 /**
  *
  */
-public class ModuleShowTest extends WebServerBasedTests {
+@MicronautTest
+class ModuleShowTest extends BaseTests {
 
     private final Charset charset = StandardCharsets.UTF_8;
 
-    @Test(expected = FileNotFoundException.class)
-    public void testNonExistingModuleVersion() throws IOException {
+    @Inject
+    @Client("/")
+    HttpClient client;
 
-        URL url = new URL(URL_BASE + "/modules/show/Core/23.1337.23");
-
-        try (Reader reader = new InputStreamReader(url.openStream(), charset)) {
-            reader.read();
-        }
+    @Test
+    void testNonExistingModuleVersion() {
+        HttpClientResponseException exception = Assertions.assertThrows(HttpClientResponseException.class,
+                () -> client.toBlocking().retrieve(HttpRequest.GET("/modules/show/Core/23.1337.23")),
+                "Request to not existing moduel version should thrown an HttpClientResponseException"
+        );
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatus(), "Status must be 404");
     }
 
-    @Test(expected = FileNotFoundException.class)
-    public void testInvalidVersion() throws IOException {
 
-        URL url = new URL(URL_BASE + "/modules/show/Core/sdfsdfs");
-
-        try (Reader reader = new InputStreamReader(url.openStream(), charset)) {
-            reader.read();
-        }
+    @Test
+    void testInvalidVersion() {
+        HttpClientResponseException exception = Assertions.assertThrows(HttpClientResponseException.class,
+                () -> client.toBlocking().retrieve(HttpRequest.GET("/modules/show/Core/sdfdsad")),
+                "Request to unknown module should thrown an HttpClientResponseException"
+        );
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatus(), "Status must be 404");
     }
 
-    @Test(expected = FileNotFoundException.class)
-    public void testUnknownModuleLatestVersion() throws IOException {
-
-        URL url = new URL(URL_BASE + "/modules/show/notThere/latest");
-
-        try (Reader reader = new InputStreamReader(url.openStream(), charset)) {
-            reader.read();
-        }
+    @Test
+    void testUnknownModuleLatestVersion() {
+        HttpClientResponseException exception = Assertions.assertThrows(HttpClientResponseException.class,
+                () -> client.toBlocking().retrieve(HttpRequest.GET("/modules/show/notThere/latest")),
+                "Request to invalid version should thrown an HttpClientResponseException"
+        );
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatus(), "Status must be 404");
     }
 
-    @Test(expected = FileNotFoundException.class)
-    public void testUnknownModuleInvalidVersion() throws IOException {
-
-        URL url = new URL(URL_BASE + "/modules/show/notThere/1.2.3");
-
-        try (Reader reader = new InputStreamReader(url.openStream(), charset)) {
-            reader.read();
-        }
+    @Test
+    void testUnknownModuleInvalidVersion() {
+        HttpClientResponseException exception = Assertions.assertThrows(HttpClientResponseException.class,
+                () -> client.toBlocking().retrieve(HttpRequest.GET("/modules/show/notThere/1.2.3")),
+                "Request to unknown module should thrown an HttpClientResponseException"
+        );
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatus(), "Status must be 404");
     }
 }

@@ -16,33 +16,38 @@
 
 package org.terasology.master;
 
-import java.io.IOException;
-
+import io.micronaut.http.HttpRequest;
+import io.micronaut.http.client.HttpClient;
+import io.micronaut.http.client.annotation.Client;
+import jakarta.inject.Inject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 
 /**
  *
  */
-public class ServerHtmlContentTest extends WebServerBasedTests {
+public class ServerHtmlContentTest extends BaseTests {
+
+    @Inject
+    @Client("/")
+    HttpClient client;
 
     @Test
-    public void testShowHtml() throws IOException {
-        String url = URL_BASE + "/servers/show";
-
-        Document doc = Jsoup.connect(url).get();
+    public void testShowHtml() {
+        String response = client.toBlocking().retrieve(HttpRequest.GET("/servers/show"));
+        Document doc = Jsoup.parse(response);
 
         Element table = doc.getElementById("server-list");
-        Assert.assertTrue(table.nodeName().equals("table"));
+        Assertions.assertTrue(table.nodeName().equals("table"));
         Element tableBody = table.select("tbody").first();
         Element firstRow = tableBody.select("tr").first();
-        Assert.assertEquals(firstEntry.getName(), firstRow.getElementsByClass("server-name").first().text());
-        Assert.assertEquals(firstEntry.getOwner(), firstRow.getElementsByClass("server-owner").first().text());
-        Assert.assertEquals("" + firstEntry.getPort(), firstRow.getElementsByClass("server-port").first().text());
-        Assert.assertEquals(firstEntry.getAddress(), firstRow.getElementsByClass("server-address").first().text());
+        Assertions.assertEquals(firstEntry.getName(), firstRow.getElementsByClass("server-name").first().text());
+        Assertions.assertEquals(firstEntry.getOwner(), firstRow.getElementsByClass("server-owner").first().text());
+        Assertions.assertEquals("" + firstEntry.getPort(), firstRow.getElementsByClass("server-port").first().text());
+        Assertions.assertEquals(firstEntry.getAddress(), firstRow.getElementsByClass("server-address").first().text());
     }
 }

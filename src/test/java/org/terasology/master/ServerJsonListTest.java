@@ -16,45 +16,50 @@
 
 package org.terasology.master;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.lang.reflect.Type;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-
-import org.junit.Assert;
-import org.junit.Test;
-import org.terasology.web.model.ServerEntry;
-
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import io.micronaut.http.HttpRequest;
+import io.micronaut.http.client.HttpClient;
+import io.micronaut.http.client.annotation.Client;
+import jakarta.inject.Inject;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.terasology.web.model.server.ServerEntry;
+import org.terasology.web.services.impl.geo.dbip.DbIpGeoLocationService;
+
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
+import java.lang.reflect.Type;
+import java.util.List;
 
 
 /**
  *
  */
-public class ServerJsonListTest extends WebServerBasedTests {
+class ServerJsonListTest extends BaseTests {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
+    @Inject
+    @Client("/")
+    HttpClient client;
+
+    @Inject
+    DbIpGeoLocationService dbIpGeoLocationService;
+
     @Test
-    public void testJson() throws MalformedURLException {
-
+    void testJson() throws IOException {
         @SuppressWarnings("serial")
-        Type entryListType = new TypeToken<List<ServerEntry>>() { /**/ }.getType();
+        Type entryListType = new TypeToken<List<ServerEntry>>() { /**/
+        }.getType();
 
-        URL url = new URL(URL_BASE + "/servers/list");
-        Charset cs = StandardCharsets.UTF_8;
-        try (Reader reader = new InputStreamReader(url.openStream(), cs)) {
+        try (Reader reader = new StringReader(client.toBlocking().retrieve(HttpRequest.GET("/servers/list")))) {
             List<ServerEntry> list = GSON.fromJson(reader, entryListType);
             ServerEntry entry = list.get(0);
 
-            Assert.assertEquals(entry, firstEntry);
+            Assertions.assertEquals(firstEntry, entry);
 
         } catch (IOException e) {
             e.printStackTrace();

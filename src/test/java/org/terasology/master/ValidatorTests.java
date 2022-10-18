@@ -16,87 +16,61 @@
 
 package org.terasology.master;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.io.CharStreams;
 import com.jcabi.w3c.Defect;
 import com.jcabi.w3c.ValidationResponse;
 import com.jcabi.w3c.Validator;
 import com.jcabi.w3c.ValidatorBuilder;
+import io.micronaut.http.HttpRequest;
+import io.micronaut.http.client.HttpClient;
+import io.micronaut.http.client.annotation.Client;
+import jakarta.inject.Inject;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 /**
  * Use the w3c validator to verify that correct html code is generated.
  */
-public class ValidatorTests extends WebServerBasedTests {
+
+class ValidatorTests extends BaseTests {
 
     private static final Logger logger = LoggerFactory.getLogger(ValidatorTests.class);
 
-    private static Validator validator;
+    private static final Validator validator = new ValidatorBuilder().html();
 
-    @BeforeClass
-    public static void createValidator() {
-        validator = new ValidatorBuilder().html();
+    @Inject
+    @Client("/")
+    HttpClient client;
+
+    @ParameterizedTest()
+    @ValueSource(strings = {
+            "/modules/show",
+            "/modules/show/Core",
+            "/modules/show/Core/0.53.1",
+            "/servers/show",
+            "/home",
+            "/servers/add",
+            "/servers/edit?index=0",
+    })
+    void testW3CValidation(String uri) throws IOException {
+        analyzePage(uri);
     }
 
-    @Test
-    public void testShowListAllPage() throws IOException {
-        analyzePage(new URL(URL_BASE + "/modules/show"));
-    }
-
-    @Test
-    public void testShowModulePage() throws IOException {
-        analyzePage(new URL(URL_BASE + "/modules/show/Core"));
-    }
-
-    @Test
-    public void testShowModuleInfoPage() throws IOException {
-        analyzePage(new URL(URL_BASE + "/modules/show/Core/0.53.1"));
-    }
-
-    @Test
-    public void testShowServerListPage() throws IOException {
-        analyzePage(new URL(URL_BASE + "/servers/show"));
-    }
-
-    @Test
-    public void testShowAboutPage() throws IOException {
-        analyzePage(new URL(URL_BASE + "/home"));
-    }
-
-    @Test
-    public void testShowAddServerPage() throws IOException {
-        analyzePage(new URL(URL_BASE + "/servers/add"));
-    }
-
-    @Test
-    public void testShowEditServerPage() throws IOException {
-        analyzePage(new URL(URL_BASE + "/servers/edit?index=0"));
-    }
-
-    private void analyzePage(URL url) throws IOException {
-        try (InputStream is = url.openStream()) {
-            InputStreamReader inr = new InputStreamReader(is, StandardCharsets.UTF_8);
-            String text = CharStreams.toString(inr);
-            ValidationResponse response = validator.validate(text);
-            if (!response.valid()) {
-                for (Defect error : response.warnings()) {
-                    logger.warn(error.toString());
-                }
-                for (Defect error : response.errors()) {
-                    logger.error("ERROR: " + error.toString());
-                }
-                Assert.fail();
+    private void analyzePage(String uri) throws IOException {
+        String text = client.toBlocking().retrieve(HttpRequest.GET(uri));
+        ValidationResponse response = validator.validate(text);
+        if (!response.valid()) {
+            for (Defect error : response.warnings()) {
+                logger.warn(error.toString());
             }
+            for (Defect error : response.errors()) {
+                logger.error("ERROR: " + error.toString());
+            }
+            Assertions.fail("W3C Validation failed, see logs");
         }
     }
 }
