@@ -17,10 +17,10 @@
 package org.terasology.master.services;
 
 import io.micronaut.context.annotation.Primary;
+import jakarta.inject.Singleton;
 import org.terasology.web.services.api.GeoLocationService;
 import org.terasology.web.services.impl.geo.GeoLocation;
 
-import javax.inject.Singleton;
 import java.io.IOException;
 
 /**

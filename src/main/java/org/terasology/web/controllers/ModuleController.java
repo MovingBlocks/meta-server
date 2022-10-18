@@ -112,7 +112,7 @@ public class ModuleController {
         String path = uri.getPath().substring(0, pathLen - "latest".length());
         Module latest = model.getLatestModuleVersion(new Name(module));
         if (latest == null) {
-            return HttpResponse.notFound();
+            return HttpResponse.notFound(Map.of("version", VersionInfo.getVersion()));
         }
         String ver = latest.getVersion().toString();
         URI redirect = URI.create(path + ver);
@@ -127,7 +127,7 @@ public class ModuleController {
         String path = uriInfo.getPath().substring(0, pathLen - "latest".length());
         Module latest = model.getLatestModuleVersion(new Name(module));
         if (latest == null) {
-            return HttpResponse.notFound();
+            return HttpResponse.notFound(Map.of("version", VersionInfo.getVersion()));
         }
         String ver = latest.getVersion().toString();
         URI redirect = URI.create(path + ver);
@@ -145,7 +145,7 @@ public class ModuleController {
             Module mod = model.getModule(moduleName, modVersion);
             if (mod == null) {
                 logger.warn("No entry for module '{}' found", module);
-                return HttpResponse.notFound();
+                return HttpResponse.notFound(Map.of("version", VersionInfo.getVersion()));
             }
             ModuleMetadata meta = mod.getMetadata();
 
@@ -162,7 +162,7 @@ public class ModuleController {
             return HttpResponse.ok(dataModel);
         } catch (VersionParseException e) {
             logger.warn("Invalid version for module '{}' specified: {}", module, version);
-            return HttpResponse.notFound();
+            return HttpResponse.notFound(Map.of("version", VersionInfo.getVersion()));
         }
     }
 }

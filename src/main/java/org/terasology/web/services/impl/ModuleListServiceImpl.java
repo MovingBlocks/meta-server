@@ -5,10 +5,10 @@ package org.terasology.web.services.impl;
 
 import com.google.common.io.Files;
 import io.micronaut.context.annotation.Value;
+import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.module.Module;
-import org.terasology.module.*;
 import org.terasology.naming.Name;
 import org.terasology.naming.Version;
 import org.terasology.web.model.artifactory.ArtifactInfo;
@@ -18,7 +18,6 @@ import org.terasology.web.services.api.MetadataExtractor;
 import org.terasology.web.services.api.ModuleListService;
 
 import javax.annotation.concurrent.ThreadSafe;
-import javax.inject.Singleton;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
@@ -35,25 +34,15 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import javax.annotation.concurrent.ThreadSafe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.terasology.module.DependencyResolver;
-import org.terasology.module.Module;
 import org.terasology.module.ModuleMetadata;
 import org.terasology.module.ModuleMetadataJsonAdapter;
 import org.terasology.module.ModuleRegistry;
 import org.terasology.module.RemoteModuleExtension;
 import org.terasology.module.ResolutionResult;
 import org.terasology.module.TableModuleRegistry;
-import org.terasology.naming.Name;
-import org.terasology.naming.Version;
-import org.terasology.web.artifactory.ArtifactInfo;
-import org.terasology.web.artifactory.ArtifactRepository;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.io.Files;
 
 /**
  * Provides a list of modules.
@@ -78,10 +67,7 @@ public class ModuleListServiceImpl implements ModuleListService {
 
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
 
-    public ModuleListServiceImpl(
-            @Value("${meta-server.cache.folder}") Path cacheFolder,
-            Collection<ArtifactRepository> repositories,
-            MetadataExtractor extractor) {
+    public ModuleListServiceImpl(@Value("${meta-server.cache.folder}") Path cacheFolder, Collection<ArtifactRepository> repositories, MetadataExtractor extractor) {
         this.cacheFolder = cacheFolder;
         this.cacheFolder.toFile().mkdirs();
         this.extractor = extractor;

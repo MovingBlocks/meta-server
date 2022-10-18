@@ -3,6 +3,7 @@
 
 package org.terasology.web.services.impl.db;
 
+import jakarta.inject.Singleton;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.InsertSetMoreStep;
@@ -20,7 +21,6 @@ import org.terasology.web.services.api.DatabaseService;
 import org.terasology.web.services.api.GeoLocationService;
 import org.terasology.web.services.impl.geo.GeoLocation;
 
-import javax.inject.Singleton;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.Connection;

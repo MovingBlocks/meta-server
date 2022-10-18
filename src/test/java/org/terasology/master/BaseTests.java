@@ -1,6 +1,7 @@
 package org.terasology.master;
 
-import io.micronaut.test.annotation.MicronautTest;
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.terasology.master.services.DummyArtifactRepo;
@@ -11,11 +12,10 @@ import org.terasology.web.services.api.GeoLocationService;
 import org.terasology.web.services.impl.ModuleListServiceImpl;
 import org.terasology.web.services.impl.geo.GeoLocation;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.sql.SQLException;
 
-@MicronautTest
+@MicronautTest(environments = "test")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class BaseTests {
 

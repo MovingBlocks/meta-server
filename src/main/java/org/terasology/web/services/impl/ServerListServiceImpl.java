@@ -18,6 +18,7 @@ package org.terasology.web.services.impl;
 
 import com.google.common.base.Preconditions;
 import io.micronaut.context.annotation.Value;
+import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.web.model.server.Result;
@@ -25,7 +26,6 @@ import org.terasology.web.model.server.ServerEntry;
 import org.terasology.web.services.api.DatabaseService;
 import org.terasology.web.services.api.ServerListService;
 
-import javax.inject.Singleton;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;

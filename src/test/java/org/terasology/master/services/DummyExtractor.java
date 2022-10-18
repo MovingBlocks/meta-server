@@ -17,13 +17,13 @@
 package org.terasology.master.services;
 
 import io.micronaut.context.annotation.Replaces;
+import jakarta.inject.Singleton;
 import org.terasology.module.ModuleMetadata;
 import org.terasology.module.ModuleMetadataJsonAdapter;
 import org.terasology.module.RemoteModuleExtension;
 import org.terasology.web.services.api.MetadataExtractor;
 import org.terasology.web.services.impl.ZipExtractor;
 
-import javax.inject.Singleton;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;

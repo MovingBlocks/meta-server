@@ -22,12 +22,12 @@ import com.google.gson.GsonBuilder;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.client.HttpClient;
 import io.micronaut.http.client.annotation.Client;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.terasology.web.model.server.ServerEntry;
 import org.terasology.web.services.impl.geo.dbip.DbIpGeoLocationService;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;

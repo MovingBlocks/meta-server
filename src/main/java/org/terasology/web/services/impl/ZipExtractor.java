@@ -4,11 +4,11 @@
 package org.terasology.web.services.impl;
 
 import io.micronaut.context.annotation.Value;
+import jakarta.inject.Singleton;
 import org.terasology.module.ModuleMetadata;
 import org.terasology.module.ModuleMetadataJsonAdapter;
 import org.terasology.web.services.api.MetadataExtractor;
 
-import javax.inject.Singleton;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
