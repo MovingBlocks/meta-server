@@ -54,7 +54,6 @@ import com.zaxxer.hikari.HikariDataSource;
 
 import javax.servlet.DispatcherType;
 
-
 /**
  */
 public final class JettyMain {
@@ -67,7 +66,7 @@ public final class JettyMain {
 
     /**
      * @param args ignored
-     * @throws Exception
+     * @throws Exception uncaught exceptions
      */
     public static void main(String[] args) throws Exception {
 
@@ -108,7 +107,7 @@ public final class JettyMain {
         String password = dbUri.getUserInfo().split(":")[1];
         int dbPort = dbUri.getPort();
 
-        String host = "http://artifactory.terasology.org/artifactory";
+        String host = "https://artifactory.terasology.io/artifactory";
         String releaseRepo = "terasology-release-local";
         String snapshotRepo = "terasology-snapshot-local";
         String modGroup = "org.terasology.modules";
@@ -128,7 +127,7 @@ public final class JettyMain {
         moduleListModel.addRepository(ArtifactoryRepo.snapshot(host, snapshotRepo, engineGroup, snapshotRepoFolder));
 
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:postgresql://" + dbUri.getHost() + ":" + dbPort + dbUri.getPath());
+        config.setJdbcUrl("jdbc:mariadb://" + dbUri.getHost() + ":" + dbPort + dbUri.getPath());
         config.setUsername(username);
         config.setPassword(password);
         config.addDataSourceProperty("sslmode", "require");
@@ -147,11 +146,9 @@ public final class JettyMain {
             DataBase dataBase = new JooqDatabase(ds, geoService);
             ServerListModel serverListModel = new ServerListModelImpl(dataBase, "servers", secret);
 
-            Server server = createServer(port.intValue(),
-                    localhostOnly,
-                    new AboutServlet(),
-                    new ServerServlet(serverListModel),          // the server list servlet
-                    new ModuleServlet(moduleListModel));         // the module list servlet
+            Server server = createServer(port.intValue(), localhostOnly, new AboutServlet(),
+                    new ServerServlet(serverListModel), // the server list servlet
+                    new ModuleServlet(moduleListModel)); // the module list servlet
 
             server.start();
             logger.info("Server started on port {}!", port);
@@ -183,11 +180,11 @@ public final class JettyMain {
         webResourceHandler.setDirectoriesListed(false);
         webResourceHandler.setResourceBase("web");
 
-        ContextHandler webContext = new ContextHandler("/");     // the server uri path
+        ContextHandler webContext = new ContextHandler("/"); // the server uri path
         webContext.setHandler(webResourceHandler);
 
         ResourceConfig rc = new ResourceConfig();
-        rc.register(new GsonMessageBodyHandler());               // register JSON serializer
+        rc.register(new GsonMessageBodyHandler()); // register JSON serializer
         rc.register(FreemarkerMvcFeature.class);
 
         for (Object servlet : servlets) {
